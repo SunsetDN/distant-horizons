@@ -46,14 +46,7 @@ public class MixinLightTexture
 	@Inject(method = "updateLightTexture(F)V", at = @At("RETURN"))
 	public void updateLightTexture(float partialTicks, CallbackInfo ci)
 	{
-		IMinecraftClientWrapper mc = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
-		if (mc == null || mc.getWrappedClientLevel() == null)
-		{
-			return;
-		}
-		
-		IClientLevelWrapper clientLevel = mc.getWrappedClientLevel();
-		MinecraftRenderWrapper.INSTANCE.updateLightmap(this.lightPixels, clientLevel);
+		MinecraftRenderWrapper.INSTANCE.updateLightmap(this.lightPixels);
 	}
 	
 }

@@ -11,14 +11,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersiveP
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 
 import net.minecraft.client.Camera;
-import net.minecraft.client.renderer.FogRenderer;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.material.FogType;
-
-
-import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;

@@ -38,10 +38,14 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftCli
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.ILightMapWrapper;
 
 #if MC_VER < MC_1_17_1
-#elif MC_VER < MC_1_21_6
+#elif MC_VER < MC_1_21_3
 import net.minecraft.client.renderer.FogRenderer;
 import com.mojang.blaze3d.systems.RenderSystem;
+#elif MC_VER < MC_1_21_6
+import com.seibel.distanthorizons.coreapi.util.ColorUtil;
+import net.minecraft.client.renderer.FogRenderer;
 #else
+import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.client.renderer.fog.FogRenderer;
 #endif
@@ -62,6 +66,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IOptifineAc
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.effect.MobEffects;
 
@@ -69,6 +74,7 @@ import net.minecraft.world.phys.Vec3;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector4f;
 
 #if MC_VER < MC_1_17_1
 import net.minecraft.tags.FluidTags;
@@ -533,7 +539,7 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	#else
 	public void setLightmapGpuTexture(GpuTexture gpuTexture)
 	{
-		IClientLevelWrapper clientLevel = GetLightmapClientWrapper();
+		IClientLevelWrapper clientLevel = getLightmapClientLevelWrapper();
 		if (clientLevel == null)
 		{
 			return;
