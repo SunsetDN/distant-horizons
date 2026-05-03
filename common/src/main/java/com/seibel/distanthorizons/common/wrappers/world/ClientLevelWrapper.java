@@ -128,8 +128,6 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 		long currentTime = System.currentTimeMillis();
 		long timeout = 30 * 1000;
 		
-		System.out.println("Current: " + LEVEL_WRAPPER_REF_BY_CLIENT_LEVEL);
-		
 		ArrayList<ClientLevelWrapper> toUnload = new ArrayList<>();
 		synchronized(LEVEL_WRAPPER_REF_BY_CLIENT_LEVEL)
 		{
@@ -139,7 +137,6 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 				if (wrapper != null 
 					&& wrapper.level != MINECRAFT.level)
 				{
-					System.out.println("Thinking of unloading: " + wrapper + " Time: " + (currentTime - wrapper.getLastAccessTime()));
 					// We use the synchronized getter to prevent race conditions with markAccessed()
 					if (currentTime - wrapper.getLastAccessTime() > timeout)
 					{
