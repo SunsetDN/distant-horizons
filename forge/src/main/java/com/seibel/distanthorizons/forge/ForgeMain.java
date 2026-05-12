@@ -22,6 +22,7 @@ package com.seibel.distanthorizons.forge;
 import com.mojang.brigadier.CommandDispatcher;
 import com.seibel.distanthorizons.common.AbstractModInitializer;
 import com.seibel.distanthorizons.common.wrappers.gui.GetConfigScreen;
+import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IPluginPacketSender;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.*;
@@ -103,7 +104,16 @@ public class ForgeMain extends AbstractModInitializer
 	{
 		this.tryCreateModCompatAccessor("optifine", IOptifineAccessor.class, OptifineAccessor::new);
 		this.tryCreateModCompatAccessor("oculus", IIrisAccessor.class, OculusAccessor::new);
-		this.tryCreateModCompatAccessor("imm_ptl_core", IImmersivePortalsAccessor.class, ImmersivePortalsAccessorForge::new);
+		IModChecker modChecker = SingletonInjector.INSTANCE.get(IModChecker.class);
+		// We ideally want to detect imm_ptl_core, but 1.16.5 did not provide that mod id.
+		if (modChecker.isModLoaded("imm_ptl_core") || modChecker.isModLoaded("immersive_portals"))
+		{
+			ModAccessorInjector.INSTANCE.bind(IImmersivePortalsAccessor.class, new ImmersivePortalsAccessorForge());
+		}
+		else
+		{
+			LOGGER.debug("Skipping mod compatibility accessor for: [ Immersive Portals ]");
+		}
 		
 		#if MC_VER < MC_1_17_1
 		ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
