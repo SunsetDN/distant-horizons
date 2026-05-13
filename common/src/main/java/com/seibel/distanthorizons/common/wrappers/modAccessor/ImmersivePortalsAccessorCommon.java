@@ -21,12 +21,18 @@ package com.seibel.distanthorizons.common.wrappers.modAccessor;
 
 import com.google.common.base.Suppliers;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.seibel.distanthorizons.common.wrappers.world.ClientLevelWrapper;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
+import com.seibel.distanthorizons.core.pos.DhChunkPos;
+import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.ImmersivePortalsAbstractAccessor;
+import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 #if MC_VER > MC_1_19_2
 import org.joml.Matrix4f;
@@ -43,6 +49,14 @@ import java.util.function.Supplier;
 
 public abstract class ImmersivePortalsAccessorCommon extends ImmersivePortalsAbstractAccessor
 {
+	// We don't use the fields in RenderStates because they are not volatile.
+	@Nullable
+	public static volatile ClientLevel originalLevel;
+	@Nullable
+	public static volatile DhBlockPos originalBlockPos;
+	@Nullable
+	public static volatile DhChunkPos originalChunkPos;
+	
 	@Override
 	protected Object getClientLevel() { return Minecraft.getInstance().level; }
 	@Override
@@ -96,6 +110,24 @@ public abstract class ImmersivePortalsAccessorCommon extends ImmersivePortalsAbs
 		#else
 		return null;
 		#endif
+	}
+	
+	@Override
+	@Nullable
+	public DhBlockPos getOriginalPlayerBlockPos() {
+		return originalBlockPos;
+	}
+	
+	@Override
+	@Nullable
+	public DhChunkPos getOriginalPlayerChunkPos() {
+		return originalChunkPos;
+	}
+	
+	@Override
+	@Nullable
+	public IClientLevelWrapper getOriginalClientLevelWrapper() {
+		return ClientLevelWrapper.getWrapper(originalLevel, false);
 	}
 	
 }

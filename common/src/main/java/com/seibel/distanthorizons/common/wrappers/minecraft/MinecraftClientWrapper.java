@@ -25,8 +25,10 @@ import com.mojang.blaze3d.platform.Window;
 import com.seibel.distanthorizons.common.wrappers.gui.NativeDialogUtil;
 import com.seibel.distanthorizons.common.wrappers.world.ClientLevelWrapper;
 import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
+import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.file.structure.ClientOnlySaveStructure;
 import com.seibel.distanthorizons.core.render.RenderThreadTaskHandler;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersivePortalsAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapper;
 import com.seibel.distanthorizons.coreapi.ModInfo;
@@ -93,6 +95,11 @@ public class MinecraftClientWrapper implements IMinecraftClientWrapper, IMinecra
 	
 	
 	private ProfilerWrapper profilerWrapper;
+	
+	// Need to classload this field later because otherwise it will be null even when Immersive Portals is present.
+	public static class Late {
+		private static final IImmersivePortalsAccessor IMMERSIVE_PORTALS = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
+	}
 	
 	
 	
@@ -172,6 +179,12 @@ public class MinecraftClientWrapper implements IMinecraftClientWrapper, IMinecra
 			return new DhBlockPos(0, 0, 0);	
 		}
 		
+		if (Late.IMMERSIVE_PORTALS != null)
+		{
+			DhBlockPos pos = Late.IMMERSIVE_PORTALS.getOriginalPlayerBlockPos();
+			if (pos != null) return pos;
+		}
+		
 		BlockPos playerPos = player.blockPosition();
 		return new DhBlockPos(playerPos.getX(), playerPos.getY(), playerPos.getZ());
 	}
@@ -183,6 +196,12 @@ public class MinecraftClientWrapper implements IMinecraftClientWrapper, IMinecra
 		if (player == null)
 		{
 			return new DhChunkPos(0, 0);
+		}
+		
+		if (Late.IMMERSIVE_PORTALS != null)
+		{
+			DhChunkPos pos = Late.IMMERSIVE_PORTALS.getOriginalPlayerChunkPos();
+			if (pos != null) return pos;
 		}
 		
         #if MC_VER < MC_1_17_1
@@ -215,6 +234,11 @@ public class MinecraftClientWrapper implements IMinecraftClientWrapper, IMinecra
 	@Nullable
 	public IClientLevelWrapper getWrappedClientLevel(boolean bypassLevelKeyManager)
 	{
+		if (!bypassLevelKeyManager && Late.IMMERSIVE_PORTALS != null)
+		{
+			IClientLevelWrapper level = Late.IMMERSIVE_PORTALS.getOriginalClientLevelWrapper();
+			if (level != null) return level;
+		}
 		ClientLevel level = MINECRAFT.level;
 		if (level == null)
 		{
