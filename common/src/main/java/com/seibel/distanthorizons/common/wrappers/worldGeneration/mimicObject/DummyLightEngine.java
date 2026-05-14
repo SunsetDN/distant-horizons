@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject;
 
+#if MC_VER > MC_1_12_2
 import net.minecraft.world.level.lighting.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,3 +98,4 @@ public class DummyLightEngine extends LevelLightEngine
     #endif
 	
 }
+#endif

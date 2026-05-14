@@ -56,7 +56,9 @@ public class MinecraftServerWrapper implements IMinecraftSharedWrapper
 			throw new IllegalStateException("Trying to get Installation Direction before dedicated server completed initialization!");
 		}
 		
-		#if MC_VER < MC_1_21_1
+		#if MC_VER <= MC_1_12_2
+		return this.dedicatedServer.getDataDirectory();
+		#elif MC_VER < MC_1_21_1
 		return this.dedicatedServer.getServerDirectory();
 		#else
 		return this.dedicatedServer.getServerDirectory().toFile();
@@ -71,7 +73,11 @@ public class MinecraftServerWrapper implements IMinecraftSharedWrapper
 			throw new IllegalStateException("Trying to get player count before dedicated server completed initialization!");
 		}
 		
-		return this.dedicatedServer.getPlayerCount(); 
+		#if MC_VER <= MC_1_12_2
+		return this.dedicatedServer.getCurrentPlayerCount();
+		#else
+		return this.dedicatedServer.getPlayerCount();
+		#endif
 	}
 	
 	

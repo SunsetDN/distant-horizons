@@ -50,9 +50,12 @@ public class MixinFogRenderer
 			#if MC_VER < MC_1_17_1
 			RenderSystem.fogStart(A_REALLY_REALLY_BIG_VALUE);
 			RenderSystem.fogEnd(A_EVEN_LARGER_VALUE);
-			#else
+			#elif MC_VER < MC_1_21_3
 			RenderSystem.setShaderFogStart(A_REALLY_REALLY_BIG_VALUE);
 			RenderSystem.setShaderFogEnd(A_EVEN_LARGER_VALUE);
+			#elif MC_VER < MC_1_21_6
+			callback.setReturnValue(FogParameters.NO_FOG);
+			#else
 			#endif
 			
 			ClientApi.RENDER_STATE.vanillaFogEnabled = false;
@@ -61,6 +64,7 @@ public class MixinFogRenderer
 		{
 			ClientApi.RENDER_STATE.vanillaFogEnabled = true;
 		}
+		
 	}
 	
 }

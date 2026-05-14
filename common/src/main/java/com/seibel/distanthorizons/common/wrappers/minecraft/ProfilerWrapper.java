@@ -21,25 +21,50 @@ package com.seibel.distanthorizons.common.wrappers.minecraft;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IProfilerWrapper;
 
+#if MC_VER <= MC_1_12_2
+import net.minecraft.profiler.Profiler;
+#else
 import net.minecraft.util.profiling.ProfilerFiller;
+#endif
 
 public class ProfilerWrapper implements IProfilerWrapper
 {
+	#if MC_VER <= MC_1_12_2
+	public Profiler profiler;
+	#else
 	public ProfilerFiller profiler;
+	#endif
 	
-	public ProfilerWrapper(ProfilerFiller newProfiler) { this.profiler = newProfiler; }
+	
+	
+	#if MC_VER <= MC_1_12_2
+	public ProfilerWrapper(Profiler newProfiler)
+	#else
+	public ProfilerWrapper(ProfilerFiller newProfiler)
+	#endif
+	{ this.profiler = newProfiler; }
+	
+	
 	
 	@Override
 	public IProfileBlock push(String newSection) 
 	{
-		this.profiler.push(newSection); 
+		#if MC_VER <= MC_1_12_2
+		this.profiler.startSection(newSection);
+		#else
+		this.profiler.push(newSection);
+		#endif
 		return new ProfileBlock(this.profiler);
 	}
 	
 	@Override
 	public void popPush(String newSection) 
 	{
-		this.profiler.popPush(newSection);
+		#if MC_VER <= MC_1_12_2
+		this.profiler.endStartSection(newSection);
+		#else
+		this.profiler.popPush(newSection) ;
+		#endif
 	}
 	
 	
@@ -51,14 +76,27 @@ public class ProfilerWrapper implements IProfilerWrapper
 	
 	public static class ProfileBlock implements IProfileBlock
 	{
-		private final ProfilerFiller profiler;
-		public ProfileBlock(ProfilerFiller newProfiler) { this.profiler = newProfiler; }
-		
+		#if MC_VER <= MC_1_12_2
+		public Profiler profiler;
+		#else
+		public ProfilerFiller profiler;
+		#endif
+
+		#if MC_VER <= MC_1_12_2
+		public ProfileBlock(Profiler newProfiler)
+		#else
+		public ProfileBlock(ProfilerFiller newProfiler)
+		#endif
+		{ this.profiler = newProfiler; }
 		
 		@Override
 		public void close()
 		{
+			#if MC_VER <= MC_1_12_2
+			this.profiler.endSection();
+			#else
 			this.profiler.pop();
+			#endif
 		}
 	}
 	

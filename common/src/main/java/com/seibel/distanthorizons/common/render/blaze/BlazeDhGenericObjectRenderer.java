@@ -57,6 +57,7 @@ import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.logging.f3.F3Screen;
 import com.seibel.distanthorizons.core.render.RenderParams;
+import com.seibel.distanthorizons.core.render.RenderThreadTaskHandler;
 import com.seibel.distanthorizons.core.render.renderer.GenericRenderObjectFactory;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.objects.IDhGenericObjectVertexBufferContainer;
 import com.seibel.distanthorizons.core.render.renderer.RenderableBoxGroup;
@@ -609,6 +610,28 @@ public class BlazeDhGenericObjectRenderer implements IDhGenericRenderer
 		
 		return "Generic Obj #: " + F3Screen.NUMBER_FORMAT.format(activeGroupCount) + "/" + F3Screen.NUMBER_FORMAT.format(totalGroupCount) + ", " +
 				"Cube #: " + F3Screen.NUMBER_FORMAT.format(activeBoxCount) + "/" + F3Screen.NUMBER_FORMAT.format(totalBoxCount);
+	}
+	
+	//endregion
+	
+	
+	
+	//================//
+	// base overrides //
+	//================//
+	//region
+	
+	@Override
+	public void close()
+	{
+		// close is called outside the render thread and buffer closing must be done on the render thread
+		RenderThreadTaskHandler.INSTANCE.queueRunningOnRenderThread("Generic Obj Cleanup", () ->
+		{
+			if (this.vertUniformBuffer != null)
+			{
+				this.vertUniformBuffer.close();
+			}
+		});
 	}
 	
 	//endregion

@@ -24,7 +24,11 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IDimensionTypeWrapper;
 
+#if MC_VER <= MC_1_12_2
+import net.minecraft.world.DimensionType;
+#else
 import net.minecraft.world.level.dimension.DimensionType;
+#endif
 
 public class DimensionTypeWrapper implements IDimensionTypeWrapper
 {
@@ -86,7 +90,9 @@ public class DimensionTypeWrapper implements IDimensionTypeWrapper
 	}
 	private static String determineName(DimensionType dimensionType)
 	{
-		#if MC_VER <= MC_1_16_5
+		#if MC_VER <= MC_1_12_2
+		return dimensionType.getName();
+		#elif MC_VER <= MC_1_16_5
 		// effectsLocation() is marked as client only, so using the backing field directly
 		return dimensionType.effectsLocation.getPath();
 		#elif MC_VER <= MC_1_21_10
@@ -108,10 +114,26 @@ public class DimensionTypeWrapper implements IDimensionTypeWrapper
 	public String getName() { return this.name; }
 	
 	@Override
-	public boolean hasCeiling() { return this.dimensionType.hasCeiling(); }
+	public boolean hasCeiling()
+	{
+		#if MC_VER <= MC_1_12_2
+		// 1.12.2 has no hasCeiling() - only the nether has a ceiling in vanilla
+		return this.dimensionType.getId() == -1;
+		#else
+		return this.dimensionType.hasCeiling();
+		#endif
+	}
 	
 	@Override
-	public boolean hasSkyLight() { return this.dimensionType.hasSkyLight(); }
+	public boolean hasSkyLight()
+	{
+		#if MC_VER <= MC_1_12_2
+		// 1.12.2 DimensionType doesn't store hasSkyLight, it's in the WorldProvider instead
+		return this.dimensionType != DimensionType.NETHER;
+		#else
+		return this.dimensionType.hasSkyLight();
+		#endif
+	}
 	
 	@Override
 	public Object getWrappedMcObject() { return this.dimensionType; }
@@ -120,7 +142,15 @@ public class DimensionTypeWrapper implements IDimensionTypeWrapper
 	public boolean isTheEnd() { return this.getName().equalsIgnoreCase("the_end"); }
 	
 	@Override
-	public double getCoordinateScale() { return this.dimensionType.coordinateScale(); }
+	public double getCoordinateScale()
+	{
+		#if MC_VER <= MC_1_12_2
+		// 1.12.2 DimensionType doesn't store coordinate scale, it's in the WorldProvider instead
+		return this.dimensionType == net.minecraft.world.DimensionType.NETHER ? 8.0 : 1.0;
+		#else
+		return this.dimensionType.coordinateScale();
+		#endif
+	}
 	
 	
 	

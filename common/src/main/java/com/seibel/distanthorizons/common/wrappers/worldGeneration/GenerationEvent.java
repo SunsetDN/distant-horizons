@@ -25,7 +25,9 @@ import java.util.function.Consumer;
 
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiDistantGeneratorMode;
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiWorldGenerationStep;
+#if MC_VER > MC_1_12_2
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.params.ThreadWorldGenParams;
+#endif
 import com.seibel.distanthorizons.core.util.ExceptionUtil;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
@@ -43,7 +45,9 @@ public final class GenerationEvent
 	/** can be used for troubleshooting */
 	public final int id;
 	
+	#if MC_VER > MC_1_12_2
 	public final ThreadWorldGenParams threadedParam;
+	#endif
 	public final DhChunkPos minPos;
 	public final int widthInChunks;
 	public final EDhApiWorldGenerationStep targetGenerationStep;
@@ -67,7 +71,9 @@ public final class GenerationEvent
 		this.widthInChunks = widthInChunks;
 		this.targetGenerationStep = targetGenerationStep;
 		this.generatorMode = generatorMode;
+		#if MC_VER > MC_1_12_2
 		this.threadedParam = ThreadWorldGenParams.getOrMake(generationGroup.globalParams);
+		#endif
 		this.future = new CompletableFuture<>();
 		this.resultConsumer = resultConsumer;
 	}

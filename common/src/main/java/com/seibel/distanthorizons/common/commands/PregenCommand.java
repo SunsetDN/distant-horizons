@@ -1,27 +1,36 @@
 package com.seibel.distanthorizons.common.commands;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
 import com.seibel.distanthorizons.core.generation.PregenManager;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos2D;
 import com.seibel.distanthorizons.core.world.DhServerWorld;
+
+#if MC_VER <= MC_1_12_2
+import net.minecraft.command.ICommandSender;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.world.WorldServer;
+#else
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.DimensionArgument;
 import net.minecraft.commands.arguments.coordinates.ColumnPosArgument;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.server.level.ServerLevel;
 
-import java.util.Objects;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-
 import static com.mojang.brigadier.arguments.IntegerArgumentType.getInteger;
 import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
+#endif
+
+import java.util.Objects;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+
 
 public class PregenCommand extends AbstractCommand
 {
@@ -31,6 +40,101 @@ public class PregenCommand extends AbstractCommand
 		return world.getPregenManager();
 	}
 	
+	#if MC_VER <= MC_1_12_2
+	public void execute(MinecraftServer server, ICommandSender sender, String[] args)
+	{
+		if (args.length < 2)
+		{
+			sender.sendMessage(new TextComponentString("Usage: /dh pregen <status|start|stop>"));
+			return;
+		}
+		
+		switch (args[1])
+		{
+			case "status":
+			{
+				String statusString = this.getPregenManager().getStatusString();
+				sender.sendMessage(new TextComponentString(
+					statusString != null ? statusString : "Pregen is not running"));
+				break;
+			}
+			case "start":
+			{
+				if (args.length < 5)
+				{
+					sender.sendMessage(new TextComponentString("Usage: /dh pregen start <dimension> <x> <z> <chunkRadius>"));
+					return;
+				}
+				
+				try
+				{
+					String dimensionName = args[2];
+					int x = Integer.parseInt(args[3]);
+					int z = Integer.parseInt(args[4]);
+					int chunkRadius = args.length >= 6 ? Integer.parseInt(args[5]) : 32;
+					
+					// find the world by dimension name
+					WorldServer world = null;
+					for (WorldServer w : server.worlds)
+					{
+						if (w.provider.getDimensionType().getName().equals(dimensionName))
+						{
+							world = w;
+							break;
+						}
+					}
+					
+					if (world == null)
+					{
+						sender.sendMessage(new TextComponentString("Unknown dimension: " + dimensionName));
+						return;
+					}
+					
+					sender.sendMessage(new TextComponentString("Starting pregen. Progress will be in the server console."));
+					
+					final ICommandSender finalSender = sender;
+					CompletableFuture<Void> future = this.getPregenManager().startPregen(
+						ServerLevelWrapper.getWrapper(world),
+						new DhBlockPos2D(x, z),
+						chunkRadius
+					);
+					
+					future.whenComplete((result, throwable) -> {
+						if (throwable instanceof CancellationException)
+						{
+							finalSender.sendMessage(new TextComponentString("Pregen is cancelled"));
+							return;
+						}
+						else if (throwable != null)
+						{
+							finalSender.sendMessage(new TextComponentString("Pregen failed: " + throwable.getMessage()));
+							return;
+						}
+						finalSender.sendMessage(new TextComponentString("Pregen is complete"));
+					});
+				}
+				catch (NumberFormatException e)
+				{
+					sender.sendMessage(new TextComponentString("Invalid number format"));
+				}
+				break;
+			}
+			case "stop":
+			{
+				CompletableFuture<Void> runningPregen = this.getPregenManager().getRunningPregen();
+				if (runningPregen == null)
+				{
+					sender.sendMessage(new TextComponentString("Pregen is not running"));
+					return;
+				}
+				runningPregen.cancel(true);
+				break;
+			}
+			default:
+				sender.sendMessage(new TextComponentString("Unknown subcommand: " + args[1]));
+		}
+	}
+    #else
 	@Override
 	public LiteralArgumentBuilder<CommandSourceStack> buildCommand()
 	{
@@ -110,5 +214,5 @@ public class PregenCommand extends AbstractCommand
 		runningPregen.cancel(true);
 		return 1;
 	}
-	
+	#endif
 }

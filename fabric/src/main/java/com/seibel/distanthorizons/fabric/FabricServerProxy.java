@@ -1,6 +1,8 @@
 package com.seibel.distanthorizons.fabric;
 
 import com.seibel.distanthorizons.api.DhApi;
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBlockColorOverrideEvent;
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBlockStateWrapperCreatedEvent;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiChunkProcessingEvent;
 import com.seibel.distanthorizons.api.methods.events.DhApiEventRegister;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiLevelLoadEvent;
@@ -16,7 +18,9 @@ import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IPluginPacketSender;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
+import com.seibel.distanthorizons.fabric.testing.TestBlockWrapperCreatedEvent;
 import com.seibel.distanthorizons.fabric.testing.TestChunkInputReplacerEvent;
+import com.seibel.distanthorizons.fabric.testing.TestCustomColorEvent;
 import com.seibel.distanthorizons.fabric.testing.TestWorldGenBindingEvent;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -87,11 +91,21 @@ public class FabricServerProxy implements AbstractModInitializer.IEventProxy
 		
 		/* Register the mod needed event callbacks */
 		
-		// can be enabled to test overrides/events without having to build a separate API project 
-		if (false)
+		// can be enabled to test overrides/events without having to build a separate API project
 		{
-			DhApiEventRegister.on(DhApiLevelLoadEvent.class, new TestWorldGenBindingEvent());
-			DhApi.events.bind(DhApiChunkProcessingEvent.class, new TestChunkInputReplacerEvent());
+			// test custom world gen 
+			if (false)
+			{
+				DhApiEventRegister.on(DhApiLevelLoadEvent.class, new TestWorldGenBindingEvent());
+				DhApi.events.bind(DhApiChunkProcessingEvent.class, new TestChunkInputReplacerEvent());
+			}
+			
+			// test custom colors
+			if (false)
+			{
+				DhApi.events.bind(DhApiBlockColorOverrideEvent.class, new TestCustomColorEvent());
+				DhApi.events.bind(DhApiBlockStateWrapperCreatedEvent.class, new TestBlockWrapperCreatedEvent());
+			}
 		}
 		
 		

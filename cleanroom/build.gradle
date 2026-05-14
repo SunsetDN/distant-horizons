@@ -1,0 +1,48 @@
+plugins {
+    id 'unimined-cleanroom'
+}
+
+
+// ==================== Mod Dependency Helper ====================
+
+def addMod(path, enabled) {
+    if (enabled == "2")
+        dependencies { modImplementation(path) }
+    else if (enabled == "1")
+        dependencies { compileOnly(path) }
+}
+
+
+// ==================== Dependencies ====================
+
+dependencies {
+  
+}
+
+
+// ==================== Tasks ====================
+
+task deleteResources(type: Delete) {
+    delete file("build/resources/main")
+}
+
+processResources {
+    rename '(.+_at.cfg)', 'META-INF/$1'
+    dependsOn(copyCoreResources)
+    dependsOn(convertJsonToLang)
+    // dependsOn(copyCommonLoaderResources)
+}
+
+tasks.named('runClient') {
+    dependsOn(copyCoreResources)
+    // dependsOn(copyCommonLoaderResources)
+    finalizedBy(deleteResources)
+}
+
+sourcesJar {
+    def commonSources = project(":common").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
+}
+
+

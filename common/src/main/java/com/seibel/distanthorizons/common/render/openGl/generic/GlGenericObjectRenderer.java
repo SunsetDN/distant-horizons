@@ -748,4 +748,27 @@ public class GlGenericObjectRenderer implements IDhGenericRenderer
 	
 	
 	
+	//================//
+	// base overrides //
+	//================//
+	//region
+	
+	@Override 
+	public void close()
+	{
+		if (this.boxVertexBuffer != null)
+		{
+			this.boxVertexBuffer.close();
+		}
+		
+		if (this.boxIndexBuffer != null)
+		{
+			this.boxIndexBuffer.close();
+		}
+	}
+	
+	//endregion
+	
+	
+	
 }

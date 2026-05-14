@@ -1,5 +1,5 @@
 package com.seibel.distanthorizons.common.wrappers.gui.updater;
-
+#if MC_VER > MC_1_12_2
 import com.seibel.distanthorizons.api.enums.config.EDhApiUpdateBranch;
 import com.seibel.distanthorizons.common.wrappers.gui.DhScreen;
 import com.seibel.distanthorizons.common.wrappers.gui.TexturedButtonWidget;
@@ -222,3 +222,4 @@ public class UpdateModScreen extends DhScreen
 	}
 	
 }
+#endif

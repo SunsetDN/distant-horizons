@@ -19,9 +19,13 @@
 
 package com.seibel.distanthorizons.common.wrappers.misc;
 
+#if MC_VER > MC_1_12_2
 import com.mojang.blaze3d.platform.NativeImage;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
+#endif
+import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
+import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.ILightMapWrapper;
 import com.seibel.distanthorizons.core.logging.DhLogger;
@@ -58,7 +62,6 @@ public class LightMapWrapper implements ILightMapWrapper
 	private final BlazeTextureViewWrapper lightmapTextureWrapper = new BlazeTextureViewWrapper();
 	
 	
-	
 	//==============//
 	// constructors //
 	//==============//
@@ -75,6 +78,7 @@ public class LightMapWrapper implements ILightMapWrapper
 	//==================//
 	//region
 	
+	#if MC_VER > MC_1_12_2
 	public void uploadLightmap(NativeImage image)
 	{
 		#if MC_VER < MC_1_21_3
@@ -110,6 +114,7 @@ public class LightMapWrapper implements ILightMapWrapper
 		throw new UnsupportedOperationException("setLightmapId should be used for MC versions after 1.21.3");
 		#endif
 	}
+	#endif
 	
 	public void setLightmapId(int minecraftLightmapTextureId)
 	{
@@ -125,6 +130,7 @@ public class LightMapWrapper implements ILightMapWrapper
 		this.lightmapTextureWrapper.tryWrap(this.gpuTexture);
 	}
 	#endif
+	
 	
 	//endregion
 	

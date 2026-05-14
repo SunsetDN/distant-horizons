@@ -1,0 +1,17 @@
+{
+    "required": true,
+    "package": "com.seibel.distanthorizons.cleanroom.mixins",
+    "compatibilityLevel": "JAVA_8",
+    "target": "@env(DEFAULT)",
+    "mixins": [],
+    "minVersion": "0.8.7",
+    "server": [
+        "server.MixinEntityPlayerMP"
+    ],
+    "client": [
+        "client.MixinEntityRenderer",
+        "client.MixinNetHandlerPlayClient",
+        "client.MixinOptionsScreen",
+        "client.MixinRenderGlobal"
+    ]
+}

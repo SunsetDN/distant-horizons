@@ -28,12 +28,15 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
-import net.minecraft.world.level.Level;
 import com.seibel.distanthorizons.core.logging.DhLogger;
-
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IBiomeWrapper;
 
-#if MC_VER == MC_1_16_5 || MC_VER == MC_1_17_1
+#if MC_VER > MC_1_12_2
+import net.minecraft.world.level.Level;
+#endif
+
+#if MC_VER <= MC_1_12_2
+#elif MC_VER == MC_1_16_5 || MC_VER == MC_1_17_1
 import net.minecraft.core.Registry;
 #elif MC_VER == MC_1_18_2 || MC_VER == MC_1_19_2
 import net.minecraft.core.Holder;
@@ -45,14 +48,21 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 #endif
 
-#if MC_VER <= MC_1_21_10
+#if MC_VER <= MC_1_12_2
+import net.minecraft.util.ResourceLocation;
+#elif MC_VER <= MC_1_21_10
 import net.minecraft.resources.ResourceLocation;
 #else
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.component.DataComponentMap;
 #endif
 
+#if MC_VER <= MC_1_12_2
+import net.minecraft.world.biome.Biome;
+#else
 import net.minecraft.world.level.biome.Biome;
+#endif
+
 
 #if MC_VER >= MC_1_18_2
 import net.minecraft.world.level.biome.Biomes;
@@ -108,8 +118,13 @@ public class BiomeWrapper implements IBiomeWrapper
 	//==============//
 	// constructors //
 	//==============//
+	//region
 	
-	public static BiomeWrapper getBiomeWrapper(#if MC_VER < MC_1_18_2 Biome #else Holder<Biome> #endif biome, ILevelWrapper levelWrapper)
+	#if MC_VER < MC_1_18_2
+	public static BiomeWrapper getBiomeWrapper(Biome biome, ILevelWrapper levelWrapper)
+	#else
+	public static BiomeWrapper getBiomeWrapper(Holder<Biome> biome, ILevelWrapper levelWrapper)
+	#endif
 	{
 		if (biome == null)
 		{
@@ -129,7 +144,12 @@ public class BiomeWrapper implements IBiomeWrapper
 			return newWrapper;
 		}
 	}
-	private BiomeWrapper(#if MC_VER < MC_1_18_2 Biome #else Holder<Biome> #endif biome, ILevelWrapper levelWrapper)
+	
+	#if MC_VER < MC_1_18_2
+	private BiomeWrapper(Biome biome, ILevelWrapper levelWrapper)
+	#else
+	private BiomeWrapper(Holder<Biome> biome, ILevelWrapper levelWrapper)
+	#endif
 	{
 		this.biome = biome;
 		this.serialString = this.serialize(levelWrapper);
@@ -138,11 +158,14 @@ public class BiomeWrapper implements IBiomeWrapper
 		//LOGGER.trace("Created BiomeWrapper ["+this.serialString+"] for ["+biome+"]");
 	}
 	
+	//endregion
+	
 	
 	
 	//=========//
 	// methods //
 	//=========//
+	//region
 	
 	@Override
 	public String getName()
@@ -188,11 +211,14 @@ public class BiomeWrapper implements IBiomeWrapper
 	@Override
 	public String toString() { return this.getSerialString(); }
 	
+	//endregion
+	
 	
 	
 	//=======================//
 	// serialization methods //
 	//=======================//
+	//region
 	
 	public String serialize(ILevelWrapper levelWrapper)
 	{
@@ -219,8 +245,10 @@ public class BiomeWrapper implements IBiomeWrapper
 		
 		// generate the serial string //
 		
+		#if MC_VER > MC_1_12_2
 		Level level = (Level)levelWrapper.getWrappedMcObject();
 		net.minecraft.core.RegistryAccess registryAccess = level.registryAccess();
+		#endif
 		
 		#if MC_VER <= MC_1_21_10
 		ResourceLocation resourceLocation;
@@ -228,7 +256,9 @@ public class BiomeWrapper implements IBiomeWrapper
 		Identifier resourceLocation;
 		#endif
 		
-		#if MC_VER <= MC_1_17_1
+		#if MC_VER <= MC_1_12_2
+		resourceLocation = biome.getRegistryName();
+		#elif MC_VER <= MC_1_17_1
 		resourceLocation = registryAccess.registryOrThrow(Registry.BIOME_REGISTRY).getKey(this.biome);
 		#elif MC_VER <= MC_1_19_2
 		resourceLocation = registryAccess.registryOrThrow(Registry.BIOME_REGISTRY).getKey(this.biome.value());
@@ -293,11 +323,16 @@ public class BiomeWrapper implements IBiomeWrapper
 		{
 			try
 			{
+				#if MC_VER > MC_1_12_2
 				Level level = (Level) levelWrapper.getWrappedMcObject();
 				net.minecraft.core.RegistryAccess registryAccess = level.registryAccess();
-				
+				#endif
+
+				#if MC_VER <= MC_1_12_2
+				BiomeDeserializeResult deserializeResult = deserializeBiome(resourceLocationString);
+				#else
 				BiomeDeserializeResult deserializeResult = deserializeBiome(resourceLocationString, registryAccess);
-				
+				#endif				
 				
 				
 				if (!deserializeResult.success)
@@ -325,7 +360,11 @@ public class BiomeWrapper implements IBiomeWrapper
 		}
 	}
 	
+	#if MC_VER <= MC_1_12_2
+	public static BiomeDeserializeResult deserializeBiome(String resourceLocationString) throws IOException
+	#else
 	public static BiomeDeserializeResult deserializeBiome(String resourceLocationString, net.minecraft.core.RegistryAccess registryAccess) throws IOException
+	#endif
 	{
 		// parse the resource location
 		int separatorIndex = resourceLocationString.indexOf(":");
@@ -356,7 +395,10 @@ public class BiomeWrapper implements IBiomeWrapper
 		
 		
 		boolean success;
-		#if MC_VER <= MC_1_17_1
+		#if MC_VER <= MC_1_12_2
+		Biome biome = Biome.REGISTRY.getObject(resourceLocation);
+		success = (biome != null);
+		#elif MC_VER <= MC_1_17_1
 		Biome biome = registryAccess.registryOrThrow(Registry.BIOME_REGISTRY).get(resourceLocation);
 		success = (biome != null);
 		#elif MC_VER <= MC_1_19_2
@@ -400,10 +442,14 @@ public class BiomeWrapper implements IBiomeWrapper
 		return new BiomeDeserializeResult(success, biome);
 	}
 	
+	//endregion
+	
+	
 	
 	//================//
 	// helper classes //
 	//================//
+	//region
 	
 	public static class BiomeDeserializeResult
 	{
@@ -413,14 +459,21 @@ public class BiomeWrapper implements IBiomeWrapper
 		public final Biome biome;
 		#else
 		public final Holder<Biome> biome;
-    #endif
+        #endif
 		
-		public BiomeDeserializeResult(boolean success, #if MC_VER < MC_1_18_2 Biome #else Holder<Biome> #endif biome)
+		#if MC_VER < MC_1_18_2
+		public BiomeDeserializeResult(boolean success, Biome biome)
+		#else
+		public BiomeDeserializeResult(boolean success, Holder<Biome> biome)
+		#endif
 		{
 			this.success = success;
 			this.biome = biome;
 		}
 	}
+	
+	//endregion
+	
 	
 	
 }

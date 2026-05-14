@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.chunkFileHandling;
 
+#if MC_VER > MC_1_12_2
 import com.mojang.serialization.Codec;
 import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
@@ -749,3 +750,4 @@ public class ChunkCompoundTagParser
 	
 	
 }
+#endif

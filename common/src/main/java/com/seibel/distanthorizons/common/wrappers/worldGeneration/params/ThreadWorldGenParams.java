@@ -20,6 +20,7 @@
 
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.params;
 
+#if MC_VER > MC_1_12_2
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject.WorldGenStructFeatManager;
 
 import net.minecraft.server.level.ServerLevel;
@@ -119,3 +120,4 @@ public final class ThreadWorldGenParams
 	
 	
 }
+#endif

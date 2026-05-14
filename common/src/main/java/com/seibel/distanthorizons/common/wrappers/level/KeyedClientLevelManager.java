@@ -4,8 +4,11 @@ import com.seibel.distanthorizons.common.wrappers.world.ClientLevelWrapper;
 import com.seibel.distanthorizons.core.level.IServerKeyedClientLevel;
 import com.seibel.distanthorizons.core.level.IKeyedClientLevelManager;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
-import net.minecraft.client.Minecraft;
+#if MC_VER <= MC_1_12_2
+import net.minecraft.client.multiplayer.WorldClient;
+#else
 import net.minecraft.client.multiplayer.ClientLevel;
+#endif
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -41,14 +44,18 @@ public class KeyedClientLevelManager implements IKeyedClientLevelManager
 	//=============//
 	// constructor //
 	//=============//
+	//region
 	
 	private KeyedClientLevelManager() { }
+	
+	//endregion
 	
 	
 	
 	//======================//
 	// level override logic //
 	//======================//
+	//region
 	
 	@Override
 	@Nullable

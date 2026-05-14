@@ -1,15 +1,60 @@
 package com.seibel.distanthorizons.common.commands;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
 import com.seibel.distanthorizons.core.multiplayer.server.ServerPlayerState;
 import com.seibel.distanthorizons.core.network.messages.base.CodecCrashMessage;
+
+#if MC_VER <= MC_1_12_2
+import com.seibel.distanthorizons.common.wrappers.misc.ServerPlayerWrapper;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.text.TextComponentString;
+#else
 import net.minecraft.commands.CommandSourceStack;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
 import static net.minecraft.commands.Commands.literal;
+#endif
+
 
 public class CrashCommand extends AbstractCommand
 {
+	#if MC_VER <= MC_1_12_2
+	public void execute(ICommandSender sender, String[] args)
+	{
+		if (!(sender instanceof EntityPlayerMP))
+		{
+			sender.sendMessage(new TextComponentString("This command can only be run by a player"));
+			return;
+		}
+		
+		if (args.length < 2)
+		{
+			sender.sendMessage(new TextComponentString("Usage: /dh crash <encode|decode>"));
+			return;
+		}
+		
+		if (SharedApi.tryGetDhServerWorld() == null) return;
+		
+		ServerPlayerState serverPlayerState = SharedApi.tryGetDhServerWorld()
+			.getServerPlayerStateManager()
+			.getConnectedPlayer(ServerPlayerWrapper.getWrapper((EntityPlayerMP) sender));
+		
+		if (serverPlayerState == null) return;
+		
+		switch (args[1])
+		{
+			case "encode":
+				serverPlayerState.networkSession.sendMessage(new CodecCrashMessage(CodecCrashMessage.ECrashPhase.ENCODE));
+				break;
+			case "decode":
+				serverPlayerState.networkSession.sendMessage(new CodecCrashMessage(CodecCrashMessage.ECrashPhase.DECODE));
+				break;
+			default:
+				sender.sendMessage(new TextComponentString("Usage: /dh crash <encode|decode>"));
+		}
+	}
+	#else
 	@Override
 	public LiteralArgumentBuilder<CommandSourceStack> buildCommand()
 	{
@@ -40,5 +85,6 @@ public class CrashCommand extends AbstractCommand
 							return 1;
 						}));
 	}
+	#endif
 	
 }

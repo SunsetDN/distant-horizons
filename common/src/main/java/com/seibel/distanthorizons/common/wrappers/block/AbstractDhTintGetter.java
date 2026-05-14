@@ -1,5 +1,5 @@
 package com.seibel.distanthorizons.common.wrappers.block;
-
+#if MC_VER > MC_1_12_2
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dataObjects.BlockBiomeWrapperPair;
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
@@ -11,10 +11,14 @@ import com.seibel.distanthorizons.core.util.FullDataPointUtil;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 import net.minecraft.client.Minecraft;
+#if MC_VER <= MC_1_12_2
+import net.minecraft.world.biome.Biome;
+#else
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.biome.Biome;
+#endif
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,8 +49,6 @@ public abstract class AbstractDhTintGetter implements BlockAndTintGetter
     #endif
 	
 	private static final ConcurrentHashMap<BlockBiomeWrapperPair, Integer> COLOR_BY_BLOCK_BIOME_PAIR = new ConcurrentHashMap<>();
-	/** returned if the color cache is incomplete */
-	public static final int INVALID_COLOR = -1;
 	
 	
 	protected BiomeWrapper biomeWrapper;
@@ -98,7 +100,7 @@ public abstract class AbstractDhTintGetter implements BlockAndTintGetter
 	 * Can be called by DH directly, skipping some of MC's logic
 	 * to speed up tint getting slightly.
 	 * 
-	 * @return {@link AbstractDhTintGetter#INVALID_COLOR} if any of the biomes needed for this position
+	 * @return {@link ClientBlockStateColorCache#INVALID_COLOR} if any of the biomes needed for this position
 	 *          were not cached. In that case calling {@link AbstractDhTintGetter#getBlockTint(BlockPos, ColorResolver)}
 	 *          will need to be called by MC's ColorResolver so we can
 	 *          populate the color cache.
@@ -159,9 +161,9 @@ public abstract class AbstractDhTintGetter implements BlockAndTintGetter
 				int id = FullDataPointUtil.getId(dataPoint);
 				BiomeWrapper biomeWrapper = (BiomeWrapper) this.fullDataSource.mapping.getBiomeWrapper(id);
 				int color = this.tryGetClientBiomeColor(colorResolver, biomeWrapper);
-				if (color == INVALID_COLOR)
+				if (color == ClientBlockStateColorCache.INVALID_COLOR)
 				{
-					return INVALID_COLOR;
+					return ClientBlockStateColorCache.INVALID_COLOR;
 				}
 				
 				
@@ -210,7 +212,7 @@ public abstract class AbstractDhTintGetter implements BlockAndTintGetter
 			// no color resolver is present,
 			// the cache needs to be populated before 
 			// we can use the fast path
-			return INVALID_COLOR;
+			return ClientBlockStateColorCache.INVALID_COLOR;
 		}
 		
 		
@@ -363,3 +365,4 @@ public abstract class AbstractDhTintGetter implements BlockAndTintGetter
 	
 	
 }
+#endif

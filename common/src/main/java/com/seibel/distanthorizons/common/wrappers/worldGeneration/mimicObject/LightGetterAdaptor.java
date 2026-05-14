@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject;
 
+#if MC_VER > MC_1_12_2
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IStarlightAccessor;
 
@@ -80,3 +81,4 @@ public class LightGetterAdaptor implements LightChunkGetter
 	}
 	#endif
 }
+#endif

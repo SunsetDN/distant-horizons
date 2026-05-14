@@ -18,7 +18,7 @@
  */
 
 package com.seibel.distanthorizons.common.wrappers.block;
-
+#if MC_VER > MC_1_12_2
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelReader;
@@ -109,3 +109,4 @@ public class TintWithoutLevelOverrider extends AbstractDhTintGetter
 	
 	
 }
+#endif

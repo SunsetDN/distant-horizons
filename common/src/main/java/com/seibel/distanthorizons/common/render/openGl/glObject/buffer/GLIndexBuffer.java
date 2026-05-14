@@ -37,10 +37,11 @@ public class GLIndexBuffer extends GLBuffer
 	protected int glType = GL32.GL_UNSIGNED_INT;
 	public int getGlType() { return this.glType; }
 	
-	public GLIndexBuffer(boolean isBufferStorage)
-	{
-		super(isBufferStorage);
-	}
+	
+	
+	public GLIndexBuffer(boolean isBufferStorage) { super(isBufferStorage); }
+	
+	
 	
 	@Override
 	public void destroyAsync()

@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.step;
 
+#if MC_VER > MC_1_12_2
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -143,3 +144,4 @@ public final class StepStructureStart extends AbstractWorldGenStep
 	}
 	
 }
+#endif

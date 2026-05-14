@@ -1,12 +1,24 @@
 package com.seibel.distanthorizons.common.commands;
 
-import com.mojang.brigadier.arguments.*;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
 import com.seibel.distanthorizons.core.config.ConfigHandler;
 import com.seibel.distanthorizons.core.config.types.AbstractConfigBase;
 import com.seibel.distanthorizons.core.config.types.ConfigEntry;
+
+#if MC_VER <= MC_1_12_2
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.text.TextComponentString;
+#else
+import com.mojang.brigadier.arguments.*;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
+
+import static com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg;
+import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
+#endif
+
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -16,16 +28,75 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.ToIntBiFunction;
 
-import static com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg;
-import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
-import static net.minecraft.commands.Commands.argument;
-import static net.minecraft.commands.Commands.literal;
+
 
 /**
  * Command for managing config.
  */
 public class ConfigCommand extends AbstractCommand
 {
+	#if MC_VER <= MC_1_12_2
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private static void setConfigValue(ConfigEntry<?> configEntry, String value)
+	{
+		Class<?> type = configEntry.getType();
+		
+		if (type == Boolean.class)       ((ConfigEntry) configEntry).set(Boolean.parseBoolean(value));
+		else if (type == Integer.class)  ((ConfigEntry) configEntry).set(Integer.parseInt(value));
+		else if (type == Double.class)   ((ConfigEntry) configEntry).set(Double.parseDouble(value));
+		else if (type == Float.class)    ((ConfigEntry) configEntry).set(Float.parseFloat(value));
+		else if (type == Long.class)     ((ConfigEntry) configEntry).set(Long.parseLong(value));
+		else if (type == String.class)   ((ConfigEntry) configEntry).set(value);
+		else if (type.isEnum())          ((ConfigEntry) configEntry).set(Enum.valueOf((Class<Enum>) type, value));
+		else throw new RuntimeException("Unsupported config type: " + type.getSimpleName());
+	}
+	public void execute(ICommandSender sender, String[] args)
+	{
+		if (args.length < 2)
+		{
+			sender.sendMessage(new TextComponentString("Usage: /dh config <name> [value]"));
+			return;
+		}
+		
+		String configName = args[1];
+		AbstractConfigBase<?> found = null;
+		for (AbstractConfigBase<?> entry : ConfigHandler.INSTANCE.configBaseList)
+		{
+			if (entry instanceof ConfigEntry && configName.equals(((ConfigEntry<?>) entry).getChatCommandName()))
+			{
+				found = entry;
+				break;
+			}
+		}
+		
+		if (found == null)
+		{
+			sender.sendMessage(new TextComponentString("Unknown config: " + configName));
+			return;
+		}
+		
+		ConfigEntry<?> configEntry = (ConfigEntry<?>) found;
+		if (args.length == 2)
+		{
+			sender.sendMessage(new TextComponentString("Current value of " + configName + " is " + configEntry.get()));
+		}
+		else
+		{
+			String value = args[2];
+			try
+			{
+				setConfigValue(configEntry, value);
+				sender.sendMessage(new TextComponentString("Changed " + configName + " to " + value));
+			}
+			catch (Exception e)
+			{
+				sender.sendMessage(new TextComponentString("Invalid value: " + value));
+			}
+		}
+	}
+	
+	#else
+	
 	private static final List<CommandArgumentData<?>> commandArguments = Arrays.asList(
 			new CommandArgumentData<>(Integer.class, configEntry -> integer(configEntry.getMin(), configEntry.getMax()), IntegerArgumentType::getInteger),
 			new CommandArgumentData<>(Double.class, configEntry -> doubleArg(configEntry.getMin(), configEntry.getMax()), DoubleArgumentType::getDouble),
@@ -150,5 +221,6 @@ public class ConfigCommand extends AbstractCommand
 		}
 		
 	}
+	#endif
 	
 }

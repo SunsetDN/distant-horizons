@@ -26,8 +26,10 @@ import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiDistantGenerat
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiWorldGenerationStep;
 import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
+#if MC_VER > MC_1_12_2
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.chunkFileHandling.ChunkFileReader;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject.*;
+#endif
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.params.GlobalWorldGenParams;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
 import com.seibel.distanthorizons.core.api.internal.chunkUpdating.ChunkUpdateQueueManager;
@@ -57,18 +59,26 @@ import com.seibel.distanthorizons.coreapi.ModInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+#if MC_VER > MC_1_12_2
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.step.StepBiomes;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.step.StepFeatures;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.step.StepNoise;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.step.StepStructureReference;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.step.StepStructureStart;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.step.StepSurface;
+#endif 
 
+#if MC_VER <= MC_1_12_2
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.ForgeChunkManager;
+#else
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.levelgen.DebugLevelSource;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
+#endif
+
 
 #if MC_VER <= MC_1_17_1
 #elif MC_VER <= MC_1_19_2
@@ -80,12 +90,14 @@ import net.minecraft.core.registries.Registries;
 #else
 #endif
 
-
-#if MC_VER <= MC_1_20_4
+#if MC_VER <= MC_1_12_2
+#elif MC_VER <= MC_1_20_4
 import net.minecraft.world.level.chunk.ChunkStatus;
 #else
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 #endif
+import org.jetbrains.annotations.Nullable;
+
 
 public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironmentWrapper
 {
@@ -122,7 +134,10 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	private final ChunkUpdateQueueManager updateManager;
 	
 	public final InternalServerGenerator internalServerGenerator;
+	
+	#if MC_VER > MC_1_12_2
 	public final ChunkFileReader chunkFileReader;
+	#endif
 	
 	private final Timer chunkSaveIgnoreTimer = TimerUtil.CreateTimer("ChunkSaveIgnoreTimer");
 	
@@ -131,12 +146,14 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	public final LinkedBlockingQueue<GenerationEvent> generationEventQueue = new LinkedBlockingQueue<>();
 	public final GlobalWorldGenParams globalParams;
 	
+	#if MC_VER > MC_1_12_2
 	public final StepStructureStart stepStructureStart = new StepStructureStart(this);
 	public final StepStructureReference stepStructureReference = new StepStructureReference(this);
 	public final StepBiomes stepBiomes = new StepBiomes(this);
 	public final StepNoise stepNoise = new StepNoise(this);
 	public final StepSurface stepSurface = new StepSurface(this);
 	public final StepFeatures stepFeatures = new StepFeatures(this);
+	#endif
 	
 	public boolean unsafeThreadingRecorded = false;
 	public boolean generatedChunkWithoutBiomeWarningLogged = false;
@@ -181,6 +198,8 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		this.updateManager = WorldChunkUpdateManager.INSTANCE.getByLevelWrapper(this.dhServerLevel.getServerLevelWrapper());
 		this.globalParams = new GlobalWorldGenParams(dhServerLevel);
 		this.internalServerGenerator = new InternalServerGenerator(this.globalParams, this.dhServerLevel);
+		
+		#if MC_VER > MC_1_12_2
 		this.chunkFileReader = new ChunkFileReader(this.globalParams);
 		
 		ChunkGenerator generator = ((ServerLevelWrapper) (dhServerLevel.getServerLevelWrapper())).getLevel().getChunkSource().getGenerator();
@@ -201,6 +220,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 				LOGGER.warn("If it does crash, disable Distant Generation or set the Generation Mode to [" + EDhApiDistantGeneratorMode.PRE_EXISTING_ONLY + "].");
 			}
 		}
+		#endif
 		
 	}
 	
@@ -309,6 +329,11 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		// variable setup //
 		//================//
 		
+		#if MC_VER <= MC_1_12_2
+		// MC 1.12 can only run world gen on the main thread
+		this.internalServerGenerator.generateChunksViaInternalServer(genEvent);
+		
+		#else
 		int borderSize = MAX_WORLD_GEN_CHUNK_BORDER_NEEDED;
 		// genEvent.size - 1 converts the even width size to an odd number for MC compatability
 		int refSize = (genEvent.widthInChunks - 1) + (borderSize * 2);
@@ -558,12 +583,14 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		{
 			LOGGER.error("Unexpected error during world gen for min chunk pos ["+genEvent.minPos+"], error: ["+e.getMessage()+"].", e);
 		}
+		#endif
 	}
 	
 	
 	
 	// direct generation //
 	
+	#if MC_VER > MC_1_12_2
 	public void generateDirect(
 			GenerationEvent genEvent, ArrayGridList<ChunkWrapper> chunkWrappersToGenerate,
 			DhLitWorldGenRegion region) throws InterruptedException
@@ -728,7 +755,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	}
 	private static <T> ArrayGridList<T> GetCutoutFrom(ArrayGridList<T> total, int border) { return new ArrayGridList<>(total, border, total.gridSize - border); }
 	private static <T> ArrayGridList<T> GetCutoutFrom(ArrayGridList<T> total, EDhApiWorldGenerationStep step) { return GetCutoutFrom(total, WORLD_GEN_CHUNK_BORDER_NEEDED_BY_GEN_STEP.get(step)); }
-	
+	#endif
 	
 	
 	// queue task //
@@ -769,8 +796,9 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		}
 		
 		
+		#if MC_VER > MC_1_12_2
 		this.chunkFileReader.close();
-		
+		#endif
 	}
 	
 	
@@ -798,12 +826,12 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	// helper classes //
 	//================//
 	
+	#if MC_VER > MC_1_12_2
 	@FunctionalInterface
 	public interface IEmptyChunkRetrievalFunc
 	{
 		ChunkAccess getChunk(int chunkPosX, int chunkPosZ);
 	}
-	
-	
+	#endif
 	
 }

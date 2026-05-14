@@ -1,5 +1,6 @@
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.step;
 
+#if MC_VER > MC_1_12_2
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.params.ThreadWorldGenParams;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject.DhLitWorldGenRegion;
@@ -52,3 +53,4 @@ public abstract class AbstractWorldGenStep
 	
 	
 }
+#endif

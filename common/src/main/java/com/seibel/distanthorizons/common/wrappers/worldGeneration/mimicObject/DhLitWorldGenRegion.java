@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject;
 
+#if MC_VER > MC_1_12_2
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -489,3 +490,4 @@ public class DhLitWorldGenRegion extends WorldGenRegion
 	}
 	
 }
+#endif

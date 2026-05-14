@@ -1,5 +1,6 @@
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.chunkFileHandling;
 
+#if MC_VER > MC_1_12_2
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import org.jetbrains.annotations.Nullable;
@@ -146,3 +147,4 @@ public class CompoundTagUtil
 	
 	
 }
+#endif

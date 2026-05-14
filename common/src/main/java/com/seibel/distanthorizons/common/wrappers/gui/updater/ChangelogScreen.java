@@ -1,5 +1,5 @@
 package com.seibel.distanthorizons.common.wrappers.gui.updater;
-
+#if MC_VER > MC_1_12_2
 import com.seibel.distanthorizons.common.wrappers.gui.DhScreen;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
@@ -297,3 +297,4 @@ public class ChangelogScreen extends DhScreen
 	}
 	
 }
+#endif

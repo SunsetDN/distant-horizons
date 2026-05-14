@@ -1,6 +1,10 @@
 package com.seibel.distanthorizons.common.wrappers.worldGeneration;
 
+#if MC_VER <= MC_1_12_2
+import net.minecraft.util.math.ChunkPos;
+#else
 import net.minecraft.world.level.ChunkPos;
+#endif
 
 import java.util.Iterator;
 import java.util.Spliterator;

@@ -19,10 +19,17 @@
 
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.params;
 
-import com.mojang.datafixers.DataFixer;
 import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
 import com.seibel.distanthorizons.core.level.IDhServerLevel;
 
+
+#if MC_VER <= MC_1_12_2
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.datafix.DataFixer;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.gen.IChunkGenerator;
+#else
+import com.mojang.datafixers.DataFixer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.MinecraftServer;
@@ -56,30 +63,39 @@ import net.minecraft.world.level.levelgen.WorldGenSettings;
 #else
 import net.minecraft.world.level.levelgen.WorldOptions;
 #endif
+#endif
 
+#if MC_VER > MC_1_12_2
 /**
  * Handles parameters that are relevant for the entire MC world.
  * 
  * @see ThreadWorldGenParams
  */
+#endif
+
 public final class GlobalWorldGenParams
 {
-	public final ChunkGenerator generator;
+	public final #if MC_VER <= MC_1_12_2 IChunkGenerator #else ChunkGenerator #endif generator;
 	public final IDhServerLevel dhServerLevel;
-	public final ServerLevel mcServerLevel;
+	public final #if MC_VER <= MC_1_12_2 WorldServer #else ServerLevel #endif mcServerLevel;
+	#if MC_VER > MC_1_12_2
 	public final Registry<Biome> biomes;
 	public final RegistryAccess registry;
+	#endif
+	
 	public final long worldSeed;
 	public final DataFixer dataFixer;
 	
-	#if MC_VER < MC_1_19_2
+	#if MC_VER <= MC_1_12_2
+	#elif MC_VER < MC_1_19_2
 	public final StructureManager structures;
 	#else
 	public final StructureTemplateManager structures;
 	public final RandomState randomState;
 	#endif
 	
-	#if MC_VER < MC_1_19_4
+	#if MC_VER <= MC_1_12_2
+	#elif MC_VER < MC_1_19_4
 	public final WorldGenSettings worldGenSettings;
 	#else
 	public final WorldOptions worldOptions;
@@ -99,13 +115,17 @@ public final class GlobalWorldGenParams
 	public GlobalWorldGenParams(IDhServerLevel dhServerLevel)
 	{
 		this.dhServerLevel = dhServerLevel;
-		
 		this.mcServerLevel = ((ServerLevelWrapper) dhServerLevel.getServerLevelWrapper()).getWrappedMcObject();
-		MinecraftServer server = this.mcServerLevel.getServer();
+		
+		MinecraftServer server = this.mcServerLevel.#if MC_VER <= MC_1_12_2 getMinecraftServer() #else getServer() #endif;
+		#if MC_VER > MC_1_12_2
 		WorldData worldData = server.getWorldData();
 		this.registry = server.registryAccess();
+		#endif
 		
-		#if MC_VER < MC_1_19_4
+		#if MC_VER <= MC_1_12_2
+		this.worldSeed = mcServerLevel.getSeed();
+		#elif MC_VER < MC_1_19_4
 		this.worldGenSettings = worldData.worldGenSettings();
 		this.biomes = registry.registryOrThrow(Registry.BIOME_REGISTRY);
 		this.worldSeed = worldGenSettings.seed();
@@ -123,15 +143,24 @@ public final class GlobalWorldGenParams
 		this.worldSeed = this.worldOptions.seed();
 		#endif
 		
+		
 		#if MC_VER >= MC_1_18_2
 		this.biomeManager = new BiomeManager(this.mcServerLevel, BiomeManager.obfuscateSeed(this.worldSeed));
 		this.chunkScanner = this.mcServerLevel.getChunkSource().chunkScanner();
 		#endif
 		
+		#if MC_VER <= MC_1_12_2
+		this.generator = this.mcServerLevel.getChunkProvider().chunkGenerator;
+		#else
 		this.structures = server.getStructureManager();
 		this.generator = this.mcServerLevel.getChunkSource().getGenerator();
-		this.dataFixer = server.getFixerUpper();
+		#endif
 		
+		#if MC_VER <= MC_1_12_2
+		this.dataFixer = server != null ? server.getDataFixer() : null;
+		#else
+		this.dataFixer = server.getFixerUpper();
+		#endif
 		#if MC_VER >= MC_1_19_2
 		this.randomState = this.mcServerLevel.getChunkSource().randomState();
 		#endif

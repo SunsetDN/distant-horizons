@@ -1,5 +1,6 @@
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.chunkFileHandling;
 
+#if MC_VER > MC_1_12_2
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.params.GlobalWorldGenParams;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject.RegionFileStorageExternalCache;
@@ -341,3 +342,4 @@ public class ChunkFileReader implements AutoCloseable
 	
 	
 }
+#endif

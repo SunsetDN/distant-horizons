@@ -6,15 +6,23 @@ import com.seibel.distanthorizons.core.api.internal.ServerApi;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapper;
+#if MC_VER <= MC_1_12_2
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.chunk.Chunk;
+#else
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ProtoChunk;
+#endif
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 public class MixinChunkMapCommon
 {
-	
+	#if MC_VER <= MC_1_12_2
+	public static void onChunkSave(WorldServer level, Chunk chunk)
+	#else
 	public static void onChunkSave(ServerLevel level, ChunkAccess chunk, CallbackInfoReturnable<Boolean> ci)
+	#endif
 	{
 		IServerLevelWrapper levelWrapper = ServerLevelWrapper.getWrapper(level);
 		
@@ -37,7 +45,7 @@ public class MixinChunkMapCommon
 		
 		
 		// is this chunk being saved to disk?
-		boolean savingChunkToDisk = ci.getReturnValue();
+		boolean savingChunkToDisk = #if MC_VER <= MC_1_12_2 true #else ci.getReturnValue() #endif;
 		// true means a chunk was saved to disk
 		if (!savingChunkToDisk)
 		{
@@ -50,7 +58,12 @@ public class MixinChunkMapCommon
 		
 		// MC has a tendency to try saving incomplete or corrupted chunks (which show up as empty or black chunks)
 		// this logic should prevent that from happening
-		#if MC_VER <= MC_1_17_1
+		#if MC_VER <= MC_1_12_2
+		if (!chunk.isTerrainPopulated() || !chunk.isLightPopulated())
+		{
+			return;
+		}
+		#elif MC_VER <= MC_1_17_1
 		if (chunk.isUnsaved() || chunk.getUpgradeData() != null || !chunk.isLightCorrect())
 		{
 			return;
@@ -67,7 +80,12 @@ public class MixinChunkMapCommon
 		// biome validation //
 		
 		// some chunks may be missing their biomes, which cause issues when attempting to save them
-		#if MC_VER <= MC_1_17_1
+		#if MC_VER <= MC_1_12_2
+		if (chunk. getBiomeArray() == null)
+		{
+			return;
+		}
+		#elif MC_VER <= MC_1_17_1
 		if (chunk.getBiomes() == null)
 		{
 			return;

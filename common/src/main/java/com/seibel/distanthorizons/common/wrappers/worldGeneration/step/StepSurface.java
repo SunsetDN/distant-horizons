@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.step;
 
+#if MC_VER > MC_1_12_2
 import java.util.ArrayList;
 
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
@@ -82,3 +83,4 @@ public final class StepSurface extends AbstractWorldGenStep
 	
 	
 }
+#endif

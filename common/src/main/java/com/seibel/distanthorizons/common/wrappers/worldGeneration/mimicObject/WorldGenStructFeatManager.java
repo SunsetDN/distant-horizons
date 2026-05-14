@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject;
 
+#if MC_VER > MC_1_12_2
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -277,3 +278,4 @@ public class WorldGenStructFeatManager extends #if MC_VER < MC_1_19_2 StructureF
 	#endif
 	#endif
 }
+#endif

@@ -46,17 +46,30 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.world.IBiomeWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.worldGeneration.IBatchGeneratorEnvironmentWrapper;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.minecraft.client.multiplayer.ClientLevel;
+
 #if MC_VER > MC_1_17_1
 import net.minecraft.core.Holder;
 #endif
+
+#if MC_VER <= MC_1_12_2
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.chunk.Chunk;
+#else
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
+#endif
 
 import java.io.IOException;
+import java.util.HashSet;
 
 /**
  * This handles creating abstract wrapper objects.
@@ -84,7 +97,6 @@ public class WrapperFactory implements IWrapperFactory
 		this.renderDefinition = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 		return this.renderDefinition;
 	}
-	
 	//endregion
 	
 	
@@ -115,7 +127,7 @@ public class WrapperFactory implements IWrapperFactory
 			throw new ClassCastException("levelWrapper must be returned by DH and of type ["+ILevelWrapper.class.getName()+"].");
 		}
 		
-		return BiomeWrapper.deserialize(resourceLocationString, (ILevelWrapper)levelWrapper); 
+		return BiomeWrapper.deserialize(resourceLocationString, (ILevelWrapper)levelWrapper);
 	}
 	@Override
 	public IDhApiBlockStateWrapper getDefaultBlockStateWrapper(String resourceLocationString, IDhApiLevelWrapper levelWrapper) throws IOException, ClassCastException
@@ -125,19 +137,19 @@ public class WrapperFactory implements IWrapperFactory
 			throw new ClassCastException("Invalid ["+IDhApiLevelWrapper.class.getSimpleName()+"] value given. Level wrapper object must be one given by the DH API (it can't be a custom implementation), specifically of type ["+ILevelWrapper.class.getName()+"].");
 		}
 		
-		return BlockStateWrapper.deserialize(resourceLocationString, (ILevelWrapper)levelWrapper); 
+		return BlockStateWrapper.deserialize(resourceLocationString, (ILevelWrapper)levelWrapper);
 	}
 	
 	@Override
 	public IBiomeWrapper deserializeBiomeWrapper(String str, ILevelWrapper levelWrapper) throws IOException { return BiomeWrapper.deserialize(str, levelWrapper); }
-	@Override 
+	@Override
 	public IBiomeWrapper getPlainsBiomeWrapper(ILevelWrapper levelWrapper)
 	{
 		try
 		{
 			return BiomeWrapper.deserialize(BiomeWrapper.PLAINS_RESOURCE_LOCATION_STRING, levelWrapper);
 		}
-		catch (IOException e) 
+		catch (IOException e)
 		{
 			throw new LodUtil.AssertFailureException("Unable to parse plains resource string ["+BiomeWrapper.PLAINS_RESOURCE_LOCATION_STRING+"], error:\n " + e.getMessage());
 		}
@@ -192,25 +204,25 @@ public class WrapperFactory implements IWrapperFactory
 			// correct number of parameters from the API
 			
 			// chunk
-			if (!(objectArray[0] instanceof ChunkAccess))
+			if (!(objectArray[0] instanceof #if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif))
 			{
 				throw new ClassCastException(createChunkWrapperErrorMessage(objectArray));
 			}
-			ChunkAccess chunk = (ChunkAccess) objectArray[0];
+			#if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif chunk = (#if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif) objectArray[0];
 			
 			// level / light source
-			if (!(objectArray[1] instanceof Level))
+			if (!(objectArray[1] instanceof #if MC_VER <= MC_1_12_2 World #else Level #endif))
 			{
 				throw new ClassCastException(createChunkWrapperErrorMessage(objectArray));
 			}
 			// the level is needed for the DH level wrapper...
-			Level level = (Level) objectArray[1];
+			#if MC_VER <= MC_1_12_2 World #else Level #endif level = (#if MC_VER <= MC_1_12_2 World #else Level #endif) objectArray[1];
 			
 			
 			// level wrapper
-			ILevelWrapper levelWrapper = level.isClientSide()
-					? ClientLevelWrapper.getWrapper((ClientLevel)level)
-					: ServerLevelWrapper.getWrapper((ServerLevel)level);
+			ILevelWrapper levelWrapper = #if MC_VER <= MC_1_12_2 !level.isRemote #else level.isClientSide() #endif
+				? ClientLevelWrapper.getWrapper((#if MC_VER <= MC_1_12_2 WorldClient #else ClientLevel #endif)level)
+				: ServerLevelWrapper.getWrapper((#if MC_VER <= MC_1_12_2 WorldServer #else ServerLevel #endif)level);
 			
 			
 			return new ChunkWrapper(chunk, levelWrapper);
@@ -231,11 +243,11 @@ public class WrapperFactory implements IWrapperFactory
 		String[] expectedClassNames;
 		
 		//#if MC_VER <= MC_1_XX_X
-		expectedClassNames = new String[] 
-		{
-			ChunkAccess.class.getName(),
-			"[ServerLevel] or [ClientLevel]" // Classes are not referenced by names to avoid exception when one of them is missing
-		};
+		expectedClassNames = new String[]
+			{
+				#if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif.class.getName(),
+				"[ServerLevel] or [ClientLevel]" // Classes are not referenced by names to avoid exception when one of them is missing
+			};
 		//#endif
 		
 		return createWrapperErrorMessage("Chunk wrapper", expectedClassNames, objectArray);
@@ -258,7 +270,7 @@ public class WrapperFactory implements IWrapperFactory
 	
 	// documentation should be in the API interface
 	
-	public IDhApiBiomeWrapper getBiomeWrapper(Object[] objectArray, IDhApiLevelWrapper levelWrapper) 
+	public IDhApiBiomeWrapper getBiomeWrapper(Object[] objectArray, IDhApiLevelWrapper levelWrapper)
 	{
 		// confirm the API level wrapper is also a Core wrapper 
 		if (!(levelWrapper instanceof ILevelWrapper))
@@ -327,12 +339,12 @@ public class WrapperFactory implements IWrapperFactory
 		{
 			throw new ClassCastException(createBlockStateWrapperErrorMessage(objectArray));
 		}
-		if (!(objectArray[0] instanceof BlockState))
+		if (!(objectArray[0] instanceof #if MC_VER <= MC_1_12_2 IBlockState #else BlockState #endif))
 		{
 			throw new ClassCastException(createBlockStateWrapperErrorMessage(objectArray));
 		}
 		
-		BlockState blockState = (BlockState) objectArray[0];
+		#if MC_VER <= MC_1_12_2 IBlockState #else BlockState #endif blockState = (#if MC_VER <= MC_1_12_2 IBlockState #else BlockState #endif) objectArray[0];
 		return BlockStateWrapper.fromBlockState(blockState, coreLevelWrapper);
 		//#endif
 	}
@@ -344,7 +356,7 @@ public class WrapperFactory implements IWrapperFactory
 	{
 		String[] expectedClassNames;
 		
-		#if MC_VER == MC_1_16_5 || MC_VER == MC_1_17_1
+		#if MC_VER <= MC_1_17_1
 		expectedClassNames = new String[] { Biome.class.getName() };
 		#else
 		expectedClassNames = new String[] { Holder.class.getName()+"<"+Biome.class.getName()+">" };
@@ -367,8 +379,8 @@ public class WrapperFactory implements IWrapperFactory
 	{
 		// error header
 		StringBuilder message = new StringBuilder(
-				wrapperName + " creation failed. \n" +
-						"Expected object array parameters: \n");
+			wrapperName + " creation failed. \n" +
+				"Expected object array parameters: \n");
 		
 		
 		// expected parameters

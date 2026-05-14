@@ -26,9 +26,15 @@ import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.util.math.Mat4f;
 
+#if MC_VER <= MC_1_12_2
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
+#else
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.ChunkPos;
+#endif
 
 /**
  * This class converts to and from Minecraft objects (Ex: Matrix4f)
@@ -47,7 +53,8 @@ public class McObjectConverter
 	
 	/** 4x4 float matrix converter */
 	public static Mat4f Convert(
-			#if MC_VER < MC_1_19_4 com.mojang.math.Matrix4f 
+			#if MC_VER <= MC_1_12_2 org.joml.Matrix4f
+			#elif MC_VER < MC_1_19_4 com.mojang.math.Matrix4f 
 			#elif MC_VER < MC_1_21_6 org.joml.Matrix4f
 			#else org.joml.Matrix4fc 
 			#endif 
@@ -56,21 +63,24 @@ public class McObjectConverter
 		FloatBuffer buffer = FloatBuffer.allocate(16);
 		storeMatrix(mcMatrix, buffer);
 		Mat4f matrix = new Mat4f(buffer);
-        #if MC_VER < MC_1_19_4
+        #if MC_VER > MC_1_12_2 && MC_VER < MC_1_19_4
 		matrix.transpose(); // In 1.19.3 and later, we no longer need to transpose it
         #endif
 		return matrix;
 	}
 	/** Taken from Minecraft's com.mojang.math.Matrix4f class from 1.18.2 */
 	private static void storeMatrix(
-			#if MC_VER < MC_1_19_4 com.mojang.math.Matrix4f 
+			#if MC_VER <= MC_1_12_2 org.joml.Matrix4f
+			#elif MC_VER < MC_1_19_4 com.mojang.math.Matrix4f 
 			#elif MC_VER < MC_1_21_6 org.joml.Matrix4f 
 			#else org.joml.Matrix4fc 
 			#endif
 			matrix, 
 			FloatBuffer buffer)
 	{
-        #if MC_VER < MC_1_19_4
+		#if MC_VER <= MC_1_12_2
+		matrix.get(buffer);
+        #elif MC_VER < MC_1_19_4
 		matrix.store(buffer);
         #else
 		// Mojang starts to use joml's Matrix4f libary in 1.19.3 so we copy their store method and use it here if its newer than 1.19.3
@@ -94,35 +104,37 @@ public class McObjectConverter
 	}
 	
 	
-	static final Direction[] directions;
+	static final #if MC_VER <= MC_1_12_2 EnumFacing[] #else Direction[] #endif directions;
 	static final EDhDirection[] lodDirections;
 	static
 	{
 		EDhDirection[] lodDirs = EDhDirection.values();
-		directions = new Direction[lodDirs.length];
+		
+		directions = new #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif[lodDirs.length];
+		
 		lodDirections = new EDhDirection[lodDirs.length];
 		for (EDhDirection lodDir : lodDirs)
 		{
-			Direction dir;
+			#if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif dir;
 			switch (lodDir.name().toUpperCase())
 			{
 				case "DOWN":
-					dir = Direction.DOWN;
+					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.DOWN;
 					break;
 				case "UP":
-					dir = Direction.UP;
+					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.UP;
 					break;
 				case "NORTH":
-					dir = Direction.NORTH;
+					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.NORTH;
 					break;
 				case "SOUTH":
-					dir = Direction.SOUTH;
+					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.SOUTH;
 					break;
 				case "WEST":
-					dir = Direction.WEST;
+					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.WEST;
 					break;
 				case "EAST":
-					dir = Direction.EAST;
+					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.EAST;
 					break;
 				default:
 					dir = null;
@@ -150,7 +162,7 @@ public class McObjectConverter
 		#endif
 	}
 	
-	public static Direction Convert(EDhDirection lodDirection) { return directions[lodDirection.ordinal()]; }
-	public static EDhDirection Convert(Direction direction) { return lodDirections[direction.ordinal()]; }
+	public static #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif Convert(EDhDirection lodDirection) { return directions[lodDirection.ordinal()]; }
+	public static EDhDirection Convert(#if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif direction) { return lodDirections[direction.ordinal()]; }
 	
 }

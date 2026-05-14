@@ -6,6 +6,7 @@ import org.apache.tools.zip.ZipOutputStream
 import javax.annotation.Nonnull
 import java.util.function.Function
 import java.util.function.Predicate
+import groovy.json.JsonSlurper
 
 // Convention plugin for all MC-facing subprojects (common + loaders).
 // Common uses this directly; loaders use it via unimined-fabric/forge/neoforge.
@@ -23,6 +24,9 @@ plugins {
 
 def isNotCommonProject = project.name != "common"
 
+if (isNotCommonProject) {
+    evaluationDependsOn(":common")
+}
 
 // ==================== Version Properties ====================
 
@@ -54,7 +58,12 @@ repositories {
         url "https://www.cursemaven.com"
         content { includeGroup "curse.maven" }
     }
-    maven { url "https://repo.spongepowered.org/maven/" }
+    maven {
+        url "https://repo.spongepowered.org/maven/"
+		// exclusion is needed since sponge has a deprecated version of fabric
+		// that gradle would prefer to get over the up-to-date version modrinth provides
+        content { excludeGroupByRegex "net\\.fabricmc(\\..*)?" }
+    }
     maven { url "https://maven.terraformersmc.com/" }
     maven { url "https://maven.neoforged.net/releases/" }
     flatDir {
@@ -116,6 +125,15 @@ if (isNotCommonProject) {
                 'Multi-Release': true,
                 'Main-Class': 'com.seibel.distanthorizons.core.jar.JarMain',
             )
+            if (project.name == "cleanroom") {
+                attributes(
+                    'ModType': 'CRL',
+                    'MixinConfigs': "${mod_id}.default.mixin.json,${mod_id}.mod.mixin.json",
+                    'FMLCorePlugin': 'com.seibel.distanthorizons.cleanroom.DistantHorizonsLoadingPlugin',
+                    'FMLCorePluginContainsFMLMod': true,
+                    'FMLAT': "src/main/resources/${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg"
+                )
+            }
         }
     }
 }
@@ -128,8 +146,14 @@ unimined.minecraft(sourceSets.main, true) {
 
     if (gradle.ext.minecraft_version.startsWith("1.")) { // 26.1+ doesn't use obfuscation
         mappings {
-            mojmap()
-            devNamespace "mojmap"
+            if(gradle.ext.minecraft_version.startsWith("1.12.2")){
+                mcp("stable", "39-1.12")
+            }
+            else{
+                mojmap()
+                devNamespace "mojmap"
+            }
+
         }
     }
 }
@@ -160,17 +184,21 @@ if (isNotCommonProject) {
         source(project(":common").sourceSets.main.allSource)
     }
 } else {
-    // Common: fabric for compilation + access widener, no jar remapping or runs
     unimined.minecraft {
-        fabric {
-            loader gradle.ext.fabric_loader_version
-            accessWidener project.file("src/main/resources/${gradle.ext.accessWidenerVersion}.distanthorizons.accesswidener")
+        if (gradle.ext.minecraft_version.equals("1.12.2")) {
+            cleanroom {
+                loader gradle.ext.cleanroom_loader_version
+            }
+        } else {
+            fabric {
+                loader gradle.ext.fabric_loader_version
+                accessWidener project.file("src/main/resources/${gradle.ext.accessWidenerVersion}.distanthorizons.accesswidener")
+            }
         }
         defaultRemapJar = false
         runs.off = true
     }
 }
-
 
 // ==================== Configurations ====================
 
@@ -341,12 +369,25 @@ if (isNotCommonProject) {
         def loaderPaths = configurations.minecraftLibraries.resolve().collect { it.path }.toSet()
         tasks.withType(JavaExec).configureEach { runTask ->
             dependsOn(shadowJar)
-            classpath = files(shadowJar.archiveFile) + classpath.filter { file ->
-                !file.path.contains(project.buildDir.path) &&
-                !file.path.contains("core${File.separator}build") &&
-                !file.path.contains("api${File.separator}build") &&
-                !file.path.contains("common${File.separator}build") &&
-                !(shadowedPaths.contains(file.path) && !loaderPaths.contains(file.path))
+            if (project.name != "cleanroom") {
+                classpath = files(shadowJar.archiveFile) + classpath.filter { file ->
+                    file != shadowJar.archiveFile.get().asFile &&
+                        !file.path.contains(project.buildDir.path) &&
+                        !file.path.contains("core${File.separator}build") &&
+                        !file.path.contains("api${File.separator}build") &&
+                        !file.path.contains("common${File.separator}build") &&
+                        !(shadowedPaths.contains(file.path) && !loaderPaths.contains(file.path))
+                }
+            } else {
+                // For cleanroom, don't put shadow jar on app classpath.
+                // crl.dev.extrapath loads it via LaunchClassLoader instead.
+                classpath = classpath.filter { file ->
+                    !file.path.contains(project.buildDir.path) &&
+                        !file.path.contains("core${File.separator}build") &&
+                        !file.path.contains("api${File.separator}build") &&
+                        !file.path.contains("common${File.separator}build") &&
+                        !(shadowedPaths.contains(file.path) && !loaderPaths.contains(file.path))
+                }
             }
 
             // Shared run directory so all loaders use the same worlds
@@ -361,6 +402,31 @@ if (isNotCommonProject) {
                 !arg.startsWith("-XX:MaxGCPauseMillis")
             }
             runTask.jvmArgs = filteredArgs
+
+            if(project.name == "forge" 
+                || project.name == "neoforge" 
+                || project.name == "cleanroom") 
+            {
+                // fix (Neo)forge, Cleanroom debug running
+                doFirst {
+                    def modsDir = rootProject.file("run/${isClient ? 'client' : 'server'}/mods")
+                    modsDir.mkdirs()
+                
+                    // Remove any stale DH jars before copying the fresh one
+                    modsDir.listFiles()?.each({ file ->
+                        if (file.name.startsWith(rootProject.mod_name))
+                        {
+                            file.delete()
+                        }
+                    });
+                
+                    // Copy shadow jar into mods folder so (Neo)Forge discovers it properly
+                    copy {
+                        from shadowJar.archiveFile
+                        into modsDir
+                    }
+                }
+            }
             
             // JVM args
             runTask.jvmArgs(
@@ -371,7 +437,8 @@ if (isNotCommonProject) {
                 //"-XX:+ZGenerational",
                 rootProject.minecraftMemoryJavaArg,
             )
-            if (isClient) {
+            if (isClient) 
+            {
                 runTask.jvmArgs(
                     "-Dminecraft.api.auth.host=https://nope.invalid",
                     "-Dminecraft.api.account.host=https://nope.invalid",
@@ -382,11 +449,23 @@ if (isNotCommonProject) {
                     // use a consistent username for easier debugging in a given world (vs randomly teleporting to a new user each time the game boots)
                     "--username", "Dev",
                     // "--renderDebugLabels" is a Mojang command to show render names in RenderDoc
-                    "--renderDebugLabels",
+                    "--renderDebugLabels"
+                    )
+                
+                // enabling tracy causes constant memory growth so it isn't always desired
+                if (rootProject.minecraftEnableTracy == "true")
+                {
                     // "--tracy" is a Mojang command to allow individual frames to be debugged using Tracy https://github.com/wolfpld/tracy/releases/tag/v0.13.1
-                    "--tracy")
+                    runTask.args("--tracy")
+                }
+                
+                
             }
         }
+        
+        tasks.downgradeJar.inputFile.set(tasks.named("remapJar").flatMap { it.archiveFile })
+        tasks.jar.finalizedBy(tasks.named("remapJar"))
+        tasks.named("remapJar").configure { finalizedBy(tasks.shadeDowngradedApi) }
     }
 }
 
@@ -398,6 +477,7 @@ if (isNotCommonProject) {
         def resourceTargets = [
             "build_info.json",
             "fabric.mod.json",
+            "mcmod.info",
             "quilt.mod.json",
             "META-INF/mods.toml",
             "META-INF/neoforge.mods.toml",
@@ -408,6 +488,7 @@ if (isNotCommonProject) {
         // Quilt contributors
         def quilt_contributors = []
         def mod_author_list = rootProject.mod_authors.replaceAll("\"", "").replace("[", "").replace("]", "").split(",")
+        def cleanroom_author_list = rootProject.mod_authors.replace('[', '').replace(']', '').split(',').collect({ it.trim().replace('"', '') }).join('", "')
         for (dev in mod_author_list) {
             quilt_contributors.push("\"${dev.strip()}\": \"Developer\"")
         }
@@ -425,9 +506,11 @@ if (isNotCommonProject) {
 
         def replaceProperties = [
             version                      : rootProject.mod_version,
+            mod_id                       : rootProject.mod_id,
             mod_name                     : rootProject.mod_readable_name,
             group                        : rootProject.maven_group,
             authors                      : rootProject.mod_authors,
+            cleanroom_authors            : cleanroom_author_list,
             description                  : rootProject.mod_description,
             homepage                     : rootProject.mod_homepage,
             source                       : rootProject.mod_source,
@@ -445,6 +528,7 @@ if (isNotCommonProject) {
             fabric_incompatibility_list  : rootProject.fabric_incompatibility_list,
             fabric_recommend_list        : rootProject.fabric_recommend_list,
             neoforge_version_range       : rootProject.neoforge_version_range,
+            logo_path                    : "assets/distanthorizons/icon.png"
         ]
 
         inputs.properties replaceProperties
@@ -455,7 +539,7 @@ if (isNotCommonProject) {
 
         // Remove unused access wideners
         exclude { file ->
-            if (file.name.contains(".distanthorizons.accesswidener") && file.name != "${rootProject.accessWidenerVersion}.distanthorizons.accesswidener") {
+            if ((file.name.contains(".distanthorizons.accesswidener") && file.name != "${rootProject.accessWidenerVersion}.distanthorizons.accesswidener")) {
                 return true
             }
             return false
@@ -474,6 +558,25 @@ if (isNotCommonProject) {
     task copyCoreResources(type: Copy) {
         from fileTree(project(":core").file("src/main/resources"))
         into project.file("build/resources/main")
+    }
+    
+    tasks.register("convertJsonToLang") {
+        dependsOn(copyCoreResources)
+        
+        File input = project.file("build/resources/main/assets/distanthorizons/lang/en_us.json")
+        File output = project.file("build/resources/main/assets/distanthorizons/lang/en_us.lang")
+        inputs.file(input)
+        outputs.file(output)
+        doLast {
+            output.withWriter("UTF-8") { writer ->
+                writer.writeLine("#PARSE_ESCAPES")
+                new JsonSlurper()
+                    .parse(input)
+                    .each { key, value ->
+                        writer.writeLine("${key}=${value.toString().replace("%", "%%").replace("\n", "\\n")}")
+                    }
+            }
+        }
     }
 
 

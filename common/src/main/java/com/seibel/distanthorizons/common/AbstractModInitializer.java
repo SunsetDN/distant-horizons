@@ -1,6 +1,5 @@
 package com.seibel.distanthorizons.common;
 
-import com.mojang.brigadier.CommandDispatcher;
 import com.seibel.distanthorizons.api.enums.config.EDhApiRenderApi;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterDhInitEvent;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBeforeDhInitEvent;
@@ -30,7 +29,6 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModAccesso
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
 import com.seibel.distanthorizons.coreapi.ModInfo;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import com.seibel.distanthorizons.core.logging.DhLogger;
@@ -38,6 +36,11 @@ import com.seibel.distanthorizons.core.logging.DhLogger;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+#if MC_VER > MC_1_12_2
+import com.mojang.brigadier.CommandDispatcher;
+import net.minecraft.commands.CommandSourceStack;
+#endif
 
 /**
  * Base for all mod loader initializers 
@@ -62,7 +65,9 @@ public abstract class AbstractModInitializer
 	protected abstract IEventProxy createServerProxy(boolean isDedicated);
 	protected abstract void initializeModCompat();
 	
+	#if MC_VER > MC_1_12_2
 	protected abstract void subscribeRegisterCommandsEvent(Consumer<CommandDispatcher<CommandSourceStack>> eventHandler);
+	#endif
 	
 	protected abstract void subscribeClientStartedEvent(Runnable eventHandler);
 	protected abstract void subscribeServerStartingEvent(Consumer<MinecraftServer> eventHandler);
@@ -130,8 +135,10 @@ public abstract class AbstractModInitializer
 		this.initializeModCompat();
 		
 		LOGGER.info(ModInfo.READABLE_NAME + " server Initialized, adding event subscribers...");
+		#if MC_VER > MC_1_12_2
 		this.commandInitializer = new CommandInitializer();
 		this.subscribeRegisterCommandsEvent(dispatcher -> { this.commandInitializer.initCommands(dispatcher); });
+		#endif
 		
 		this.subscribeServerStartingEvent(server -> 
 		{
@@ -141,11 +148,20 @@ public abstract class AbstractModInitializer
 			Initializer.postConfigInit();
 			this.postInit();
 			this.postServerInit();
+			#if MC_VER > MC_1_12_2
 			this.commandInitializer.onServerReady();
+			#endif
 			
 			this.checkForUpdates();
 			
-			LOGGER.info(ModInfo.READABLE_NAME + " server Initialized at " + server.getServerDirectory());
+			String serverFolderPath;
+			#if MC_VER <= MC_1_12_2
+			serverFolderPath = server.getDataDirectory() + "";
+			#else
+			serverFolderPath = server.getServerDirectory() + "";
+			#endif
+			
+			LOGGER.info(ModInfo.READABLE_NAME + " server Initialized at " + serverFolderPath);
 		});
 	}
 	

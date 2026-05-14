@@ -51,7 +51,10 @@ public class VersionConstants implements IVersionConstants
 		// it can't load client classes when running as a dedicated server,
 		// which was how we were dynamically accessing the MC version string
 		
-		#if MC_VER == MC_1_16_5
+		#if MC_VER == MC_1_12_2
+			return "1.12.2";
+		
+		#elif MC_VER == MC_1_16_5
 			return "1.16.5";
 		
 		#elif MC_VER == MC_1_17_1
