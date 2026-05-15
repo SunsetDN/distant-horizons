@@ -137,7 +137,7 @@ public class KeyedClientLevelManager implements IKeyedClientLevelManager
 		{
 			this.keyedLevelsCache.keySet().removeIf(level -> {
 				#if MC_VER <= MC_1_12_2
-				String levelDim = level.provider.getDimensionType().getName();
+				String levelDim = String.valueOf(level.provider.getDimension());
 				#elif MC_VER <= MC_1_21_10
 				String levelDim = level.dimension().location().toString();
 				#else

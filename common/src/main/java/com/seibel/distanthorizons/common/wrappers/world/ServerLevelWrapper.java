@@ -196,7 +196,7 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	public String getDimensionName()
 	{
 		#if MC_VER <= MC_1_12_2
-		return this.level.provider.getDimensionType().getName();
+		return String.valueOf(this.level.provider.getDimension());
 		#elif MC_VER <= MC_1_21_10
 		return this.level.dimension().location().toString();
 		#else

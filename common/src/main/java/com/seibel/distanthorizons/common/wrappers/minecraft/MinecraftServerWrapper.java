@@ -11,9 +11,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 #else
-import net.minecraft.world.DimensionType;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.DimensionManager;
 #endif
 
 #if  MC_VER <= MC_1_12_2
@@ -30,7 +28,6 @@ import net.minecraft.core.Registry;
 #endif
 
 import java.io.File;
-import java.util.Arrays;
 
 public class MinecraftServerWrapper implements IMinecraftSharedWrapper
 {
@@ -95,11 +92,17 @@ public class MinecraftServerWrapper implements IMinecraftSharedWrapper
 	public IServerLevelWrapper getWrappedServerLevel(String levelKey)
 	{
 		#if  MC_VER <= MC_1_12_2
-		DimensionType levelID = null;
-		try {
-			levelID = DimensionType.byName(levelKey);
-		} catch (IllegalArgumentException e) {}
-		#elif  MC_VER <= MC_1_21_10
+		int dimensionID;
+		try
+		{
+			dimensionID = Integer.parseInt(levelKey);
+		}
+		catch (NumberFormatException ignored)
+		{
+			return null;
+		}
+		#else
+		#if  MC_VER <= MC_1_21_10
 		ResourceLocation levelID = ResourceLocation.tryParse(levelKey);
 		#else
 		Identifier levelID = Identifier.tryParse(levelKey);
@@ -108,10 +111,9 @@ public class MinecraftServerWrapper implements IMinecraftSharedWrapper
 		
 		#if  MC_VER > MC_1_19_2
 		ResourceKey<Level> resourceKey = ResourceKey.create(Registries.DIMENSION, levelID);
-		#elif MC_VER > MC_1_12_2
-		ResourceKey<Level> resourceKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, levelID);
 		#else
-		int dimensionID = Arrays.stream(DimensionManager.getDimensions(levelID)).findFirst().orElse(0);
+		ResourceKey<Level> resourceKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, levelID);
+		#endif
 		#endif
 		
 		#if MC_VER > MC_1_12_2

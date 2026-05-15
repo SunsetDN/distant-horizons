@@ -635,11 +635,17 @@ public class MinecraftClientWrapper implements IMinecraftClientWrapper, IMinecra
 	{
 		if (!hasSinglePlayerServer()) return null;
 		#if  MC_VER <= MC_1_12_2
-		DimensionType levelID = null;
-		try {
-			levelID = DimensionType.byName(levelKey);
-        } catch (IllegalArgumentException ignored) {}
-		#elif  MC_VER <= MC_1_21_10
+		int dimensionID;
+		try
+		{
+			dimensionID = Integer.parseInt(levelKey);
+        }
+		catch (NumberFormatException ignored)
+		{
+			return null;
+		}
+		#else
+		#if  MC_VER <= MC_1_21_10
 		ResourceLocation levelID = ResourceLocation.tryParse(levelKey);
 		#else
 		Identifier levelID = Identifier.tryParse(levelKey);
@@ -648,10 +654,10 @@ public class MinecraftClientWrapper implements IMinecraftClientWrapper, IMinecra
 		
 		#if  MC_VER > MC_1_19_2
 		ResourceKey<Level> resourceKey = ResourceKey.create(Registries.DIMENSION, levelID);
-		#elif MC_VER > MC_1_12_2
-		ResourceKey<Level> resourceKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, levelID);
 		#else
-		int dimensionID = Arrays.stream(DimensionManager.getDimensions(levelID)).findFirst().orElse(0); //TODO Maybe 1.12 should use the dimension number as the level key instead?
+		ResourceKey<Level> resourceKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, levelID);
+		#endif
+		
 		#endif
 		
 		#if  MC_VER <= MC_1_12_2
