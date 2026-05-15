@@ -43,10 +43,10 @@ public class CleanroomPluginPacketSender extends AbstractPluginPacketSender
 			AbstractPluginPacketSender.WRAPPER_PACKET_RESOURCE
 		);
 	
+	
+	
 	public static void setPacketHandler(Consumer<AbstractNetworkMessage> consumer)
-	{
-		setPacketHandler((player, message) -> consumer.accept(message));
-	}
+	{ setPacketHandler((player, message) -> consumer.accept(message)); }
 	static BiConsumer<IServerPlayerWrapper, AbstractNetworkMessage> consumerPacket;
 	public static void setPacketHandler(BiConsumer<IServerPlayerWrapper, AbstractNetworkMessage> consumer)
 	{
@@ -57,21 +57,30 @@ public class CleanroomPluginPacketSender extends AbstractPluginPacketSender
 	
 	@Override
 	public void sendToServer(AbstractNetworkMessage message)
-	{
-		PLUGIN_CHANNEL.sendToServer(new MessageWrapper(message));
-	}
+	{ PLUGIN_CHANNEL.sendToServer(new MessageWrapper(message)); }
 	
 	@Override
 	public void sendToClient(EntityPlayerMP serverPlayer, AbstractNetworkMessage message)
-	{
-		PLUGIN_CHANNEL.sendTo(new MessageWrapper(message), serverPlayer);
-	}
+	{ PLUGIN_CHANNEL.sendTo(new MessageWrapper(message), serverPlayer); }
+	
+	
+	
+	//================//
+	// helper classes //
+	//================//
+	//region
 	
 	// Forge doesn't support using abstract classes
 	@SuppressWarnings({"ClassCanBeRecord", "RedundantSuppression"})
 	public static class MessageWrapper implements IMessage
 	{
 		public AbstractNetworkMessage message;
+		
+		
+		//=============//
+		// constructor //
+		//=============//
+		//region
 		
 		public MessageWrapper(AbstractNetworkMessage message) { this.message = message; }
 		
@@ -80,15 +89,20 @@ public class CleanroomPluginPacketSender extends AbstractPluginPacketSender
 			// For reflection
 		}
 		
+		//endregion
+		
+		
 		@Override
-		public void fromBytes(ByteBuf buf) {
+		public void fromBytes(ByteBuf buf) 
+		{
 			int messageId = buf.readByte();
 			message = MessageRegistry.INSTANCE.createMessage(messageId);
 			message.decode(buf);
 		}
 		
 		@Override
-		public void toBytes(ByteBuf buf) {
+		public void toBytes(ByteBuf buf) 
+		{
 			buf.writeByte(MessageRegistry.INSTANCE.getMessageId(message));
 			message.encode(buf);
 		}
@@ -96,20 +110,27 @@ public class CleanroomPluginPacketSender extends AbstractPluginPacketSender
 		public static class Handler implements IMessageHandler<MessageWrapper, IMessage>
 		{
 			@Override
-			public IMessage onMessage(MessageWrapper wrapper, MessageContext context) {
+			public IMessage onMessage(MessageWrapper wrapper, MessageContext context) 
+			{
 				if (wrapper.message != null)
 				{
 					if (context.side == Side.SERVER)
 					{
 						consumerPacket.accept(ServerPlayerWrapper.getWrapper(context.getServerHandler().player), wrapper.message);
 					}
-					else {
+					else 
+					{
 						consumerPacket.accept(null, wrapper.message);
 					}
 				}
+				
 				return null; // No response needed
 			}
 		}
 	}
+	
+	//endregion
+	
+	
 	
 }

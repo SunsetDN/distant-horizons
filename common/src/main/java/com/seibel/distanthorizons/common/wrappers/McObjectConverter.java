@@ -45,11 +45,12 @@ import net.minecraft.world.level.ChunkPos;
  */
 public class McObjectConverter
 {
-	private static int bufferIndex(int x, int y)
-	{
-		return y * 4 + x;
-	}
 	
+	
+	//========//
+	// matrix //
+	//========//
+	//region
 	
 	/** 4x4 float matrix converter */
 	public static Mat4f Convert(
@@ -102,39 +103,85 @@ public class McObjectConverter
 		buffer.put(bufferIndex(3, 3), matrix.m33());
         #endif
 	}
+	private static int bufferIndex(int x, int y) { return y * 4 + x; }
+	
+	//endregion
 	
 	
-	static final #if MC_VER <= MC_1_12_2 EnumFacing[] #else Direction[] #endif directions;
-	static final EDhDirection[] lodDirections;
+	
+	//===========//
+	// direction //
+	//===========//
+	//region
+	
+	#if MC_VER <= MC_1_12_2
+	private static final EnumFacing[] mcDirections;
+	#else
+	private static final Direction[] mcDirections;
+	#endif
+	
+	private static final EDhDirection[] dhDirections;
 	static
 	{
 		EDhDirection[] lodDirs = EDhDirection.values();
 		
-		directions = new #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif[lodDirs.length];
+		#if MC_VER <= MC_1_12_2
+		mcDirections = new EnumFacing[lodDirs.length];
+		#else
+		mcDirections = new Direction[lodDirs.length];
+		#endif
 		
-		lodDirections = new EDhDirection[lodDirs.length];
+		dhDirections = new EDhDirection[lodDirs.length];
 		for (EDhDirection lodDir : lodDirs)
 		{
-			#if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif dir;
+			#if MC_VER <= MC_1_12_2 
+			EnumFacing dir;
+			#else 
+			Direction dir; 
+			#endif
 			switch (lodDir.name().toUpperCase())
 			{
 				case "DOWN":
-					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.DOWN;
+					#if MC_VER <= MC_1_12_2
+					dir = EnumFacing.DOWN;
+					#else 
+					dir = Direction.DOWN;
+					#endif
 					break;
 				case "UP":
-					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.UP;
+					#if MC_VER <= MC_1_12_2
+					dir = EnumFacing.UP;
+					#else 
+					dir = Direction.UP;
+					#endif
 					break;
 				case "NORTH":
-					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.NORTH;
+					#if MC_VER <= MC_1_12_2
+					dir = EnumFacing.NORTH;
+					#else 
+					dir = Direction.NORTH;
+					#endif
 					break;
 				case "SOUTH":
-					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.SOUTH;
+					#if MC_VER <= MC_1_12_2
+					dir = EnumFacing.SOUTH;
+					#else 
+					dir = Direction.SOUTH;
+					#endif
 					break;
 				case "WEST":
-					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.WEST;
+					#if MC_VER <= MC_1_12_2
+					dir = EnumFacing.WEST;
+					#else 
+					dir = Direction.WEST;
+					#endif
 					break;
 				case "EAST":
-					dir = #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif.EAST;
+					#if MC_VER <= MC_1_12_2
+					dir = EnumFacing.EAST;
+					#else 
+					dir = Direction.EAST;
+					#endif
 					break;
 				default:
 					dir = null;
@@ -143,12 +190,36 @@ public class McObjectConverter
 			
 			if (dir == null)
 			{
-				throw new IllegalArgumentException("Invalid direction on init mapping: " + lodDir);
+				throw new IllegalArgumentException("Invalid direction on init mapping: [" + lodDir + "].");
 			}
-			directions[lodDir.ordinal()] = dir;
-			lodDirections[dir.ordinal()] = lodDir;
+			mcDirections[lodDir.ordinal()] = dir;
+			dhDirections[dir.ordinal()] = lodDir;
 		}
 	}
+	
+	#if MC_VER <= MC_1_12_2
+	public static EnumFacing Convert(EDhDirection lodDirection)
+	#else
+	public static Direction Convert(EDhDirection lodDirection)
+	#endif
+	{ return mcDirections[lodDirection.ordinal()]; }
+	
+	
+	#if MC_VER <= MC_1_12_2
+	public static EDhDirection Convert(EnumFacing direction) 
+	#else
+	public static EDhDirection Convert(Direction direction) 
+	#endif
+	{ return dhDirections[direction.ordinal()]; }
+	
+	//endregion
+	
+	
+	
+	//==================//
+	// position objects //
+	//==================//
+	//region
 	
 	public static BlockPos Convert(DhBlockPos wrappedPos) { return new BlockPos(wrappedPos.getX(), wrappedPos.getY(), wrappedPos.getZ()); }
 	
@@ -162,7 +233,8 @@ public class McObjectConverter
 		#endif
 	}
 	
-	public static #if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif Convert(EDhDirection lodDirection) { return directions[lodDirection.ordinal()]; }
-	public static EDhDirection Convert(#if MC_VER <= MC_1_12_2 EnumFacing #else Direction #endif direction) { return lodDirections[direction.ordinal()]; }
+	//endregion
+	
+	
 	
 }

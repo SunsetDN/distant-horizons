@@ -97,6 +97,7 @@ public class WrapperFactory implements IWrapperFactory
 		this.renderDefinition = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 		return this.renderDefinition;
 	}
+	
 	//endregion
 	
 	
@@ -184,7 +185,8 @@ public class WrapperFactory implements IWrapperFactory
 	 */
 	public IChunkWrapper createChunkWrapper(Object[] objectArray) throws ClassCastException
 	{
-		if (objectArray.length == 1 && objectArray[0] instanceof IChunkWrapper)
+		if (objectArray.length == 1 
+			&& objectArray[0] instanceof IChunkWrapper)
 		{
 			try
 			{
@@ -198,41 +200,102 @@ public class WrapperFactory implements IWrapperFactory
 			}
 		}
 		
-		//#if MC_VER <= MC_1_XX_X
-		else if (objectArray.length == 2)
-		{
-			// correct number of parameters from the API
-			
-			// chunk
-			if (!(objectArray[0] instanceof #if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif))
-			{
-				throw new ClassCastException(createChunkWrapperErrorMessage(objectArray));
-			}
-			#if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif chunk = (#if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif) objectArray[0];
-			
-			// level / light source
-			if (!(objectArray[1] instanceof #if MC_VER <= MC_1_12_2 World #else Level #endif))
-			{
-				throw new ClassCastException(createChunkWrapperErrorMessage(objectArray));
-			}
-			// the level is needed for the DH level wrapper...
-			#if MC_VER <= MC_1_12_2 World #else Level #endif level = (#if MC_VER <= MC_1_12_2 World #else Level #endif) objectArray[1];
-			
-			
-			// level wrapper
-			ILevelWrapper levelWrapper = #if MC_VER <= MC_1_12_2 !level.isRemote #else level.isClientSide() #endif
-				? ClientLevelWrapper.getWrapper((#if MC_VER <= MC_1_12_2 WorldClient #else ClientLevel #endif)level)
-				: ServerLevelWrapper.getWrapper((#if MC_VER <= MC_1_12_2 WorldServer #else ServerLevel #endif)level);
-			
-			
-			return new ChunkWrapper(chunk, levelWrapper);
-		}
-		// incorrect number of parameters from the API
-		else
+		else if (objectArray.length != 2)
 		{
 			throw new ClassCastException(createChunkWrapperErrorMessage(objectArray));
 		}
-		//#endif
+		
+		
+		// correct number of parameters from the API
+		
+		//=======//
+		// chunk //
+		//=======//
+		//region
+		
+		boolean chunkClassCorrect;
+		#if MC_VER <= MC_1_12_2
+		chunkClassCorrect = (objectArray[0] instanceof Chunk);
+		#else
+		chunkClassCorrect = (objectArray[0] instanceof ChunkAccess);
+		#endif
+		if (!chunkClassCorrect)
+		{
+			throw new ClassCastException(createChunkWrapperErrorMessage(objectArray));
+		}
+		
+		#if MC_VER <= MC_1_12_2
+		Chunk chunk = (Chunk) objectArray[0];
+		#else
+		ChunkAccess chunk = (ChunkAccess) objectArray[0];
+		#endif
+		
+		//endregion
+		
+		
+		
+		//=======//
+		// level //
+		//=======//
+		//region
+		
+		boolean levelClassCorrect;
+		#if MC_VER <= MC_1_12_2
+		levelClassCorrect = (objectArray[1] instanceof World);
+		#else
+		levelClassCorrect = (objectArray[1] instanceof Level);
+		#endif
+		
+		if (!levelClassCorrect)
+		{
+			throw new ClassCastException(createChunkWrapperErrorMessage(objectArray));
+		}
+		
+		#if MC_VER <= MC_1_12_2
+		World level = (World) objectArray[1];
+		#else
+		Level level = (Level) objectArray[1];
+		#endif
+		
+		//endregion
+		
+		
+		
+		//===============//
+		// level wrapper //
+		//===============//
+		//region
+		
+		boolean isClientSide;
+		#if MC_VER <= MC_1_12_2
+		isClientSide = !level.isRemote;
+		#else
+		isClientSide = level.isClientSide();
+		#endif
+		
+		ILevelWrapper levelWrapper;
+		if (isClientSide)
+		{
+			#if MC_VER <= MC_1_12_2
+			levelWrapper = ClientLevelWrapper.getWrapper((WorldClient)level);
+			#else
+			levelWrapper = ClientLevelWrapper.getWrapper((ClientLevel)level);
+			#endif
+		}
+		else
+		{
+			#if MC_VER <= MC_1_12_2
+			levelWrapper = ServerLevelWrapper.getWrapper((WorldServer)level);
+			#else
+			levelWrapper = ServerLevelWrapper.getWrapper((ServerLevel)level);
+			#endif
+		}
+		
+		//endregion
+		
+		
+		
+		return new ChunkWrapper(chunk, levelWrapper);
 	}
 	/**
 	 * Note: when this is updated for different MC versions,
@@ -242,13 +305,19 @@ public class WrapperFactory implements IWrapperFactory
 	{
 		String[] expectedClassNames;
 		
-		//#if MC_VER <= MC_1_XX_X
+		#if MC_VER <= MC_1_12_2
 		expectedClassNames = new String[]
 			{
-				#if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif.class.getName(),
+				Chunk.class.getName(),
+				"[WorldClient] or [WorldServer]" // Classes are not referenced by names to avoid exception when one of them is missing
+			};
+		#else
+		expectedClassNames = new String[]
+			{
+				ChunkAccess.class.getName(),
 				"[ServerLevel] or [ClientLevel]" // Classes are not referenced by names to avoid exception when one of them is missing
 			};
-		//#endif
+		#endif
 		
 		return createWrapperErrorMessage("Chunk wrapper", expectedClassNames, objectArray);
 	}
@@ -334,19 +403,29 @@ public class WrapperFactory implements IWrapperFactory
 		
 		
 		
-		//#if MC_VER <= MC_1_XX_X
 		if (objectArray.length != 1)
 		{
 			throw new ClassCastException(createBlockStateWrapperErrorMessage(objectArray));
 		}
-		if (!(objectArray[0] instanceof #if MC_VER <= MC_1_12_2 IBlockState #else BlockState #endif))
+		
+		boolean blockClassCorrect;
+		#if MC_VER <= MC_1_12_2
+		blockClassCorrect = (objectArray[0] instanceof IBlockState);
+		#else
+		blockClassCorrect = (objectArray[0] instanceof BlockState);
+		#endif
+		if (!blockClassCorrect)
 		{
 			throw new ClassCastException(createBlockStateWrapperErrorMessage(objectArray));
 		}
 		
-		#if MC_VER <= MC_1_12_2 IBlockState #else BlockState #endif blockState = (#if MC_VER <= MC_1_12_2 IBlockState #else BlockState #endif) objectArray[0];
+		#if MC_VER <= MC_1_12_2
+		IBlockState blockState = (IBlockState) objectArray[0];
 		return BlockStateWrapper.fromBlockState(blockState, coreLevelWrapper);
-		//#endif
+		#else
+		BlockState blockState = (BlockState) objectArray[0];
+		return BlockStateWrapper.fromBlockState(blockState, coreLevelWrapper);
+		#endif
 	}
 	/**
 	 * Note: when this is updated for different MC versions,
@@ -356,7 +435,9 @@ public class WrapperFactory implements IWrapperFactory
 	{
 		String[] expectedClassNames;
 		
-		#if MC_VER <= MC_1_17_1
+		#if MC_VER <= MC_1_12_2
+		expectedClassNames = new String[] { IBlockState.class.getName() };
+		#elif MC_VER <= MC_1_17_1
 		expectedClassNames = new String[] { Biome.class.getName() };
 		#else
 		expectedClassNames = new String[] { Holder.class.getName()+"<"+Biome.class.getName()+">" };
@@ -366,7 +447,6 @@ public class WrapperFactory implements IWrapperFactory
 	}
 	
 	//endregion
-	
 	
 	
 	

@@ -26,8 +26,11 @@ import com.seibel.distanthorizons.core.level.IDhServerLevel;
 #if MC_VER <= MC_1_12_2
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.datafix.DataFixer;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.gen.IChunkGenerator;
+
+import java.util.concurrent.CompletableFuture;
 #else
 import com.mojang.datafixers.DataFixer;
 import net.minecraft.core.Registry;
@@ -75,9 +78,16 @@ import net.minecraft.world.level.levelgen.WorldOptions;
 
 public final class GlobalWorldGenParams
 {
-	public final #if MC_VER <= MC_1_12_2 IChunkGenerator #else ChunkGenerator #endif generator;
 	public final IDhServerLevel dhServerLevel;
-	public final #if MC_VER <= MC_1_12_2 WorldServer #else ServerLevel #endif mcServerLevel;
+	
+	#if MC_VER <= MC_1_12_2
+	public final IChunkGenerator generator;
+	public final WorldServer mcServerLevel;
+	#else
+	public final ChunkGenerator generator;
+	public final ServerLevel mcServerLevel;
+	#endif
+	
 	#if MC_VER > MC_1_12_2
 	public final Registry<Biome> biomes;
 	public final RegistryAccess registry;
@@ -117,7 +127,12 @@ public final class GlobalWorldGenParams
 		this.dhServerLevel = dhServerLevel;
 		this.mcServerLevel = ((ServerLevelWrapper) dhServerLevel.getServerLevelWrapper()).getWrappedMcObject();
 		
-		MinecraftServer server = this.mcServerLevel.#if MC_VER <= MC_1_12_2 getMinecraftServer() #else getServer() #endif;
+		#if MC_VER <= MC_1_12_2
+		MinecraftServer server = this.mcServerLevel.getMinecraftServer();
+		#else
+		MinecraftServer server = this.mcServerLevel.getServer();
+		#endif
+		
 		#if MC_VER > MC_1_12_2
 		WorldData worldData = server.getWorldData();
 		this.registry = server.registryAccess();

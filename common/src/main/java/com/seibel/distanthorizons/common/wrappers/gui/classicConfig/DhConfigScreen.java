@@ -565,6 +565,7 @@ class DhConfigScreen extends DhScreen
 			{
 				configEntry.uiSetWithoutSaving(configEntry.getDefaultValue());
 				this.reload = true;
+				
 				#if MC_VER <= MC_1_12_2
 				Objects.requireNonNull(this.mc).displayGuiScreen(ClassicConfigGUI.getScreen(this.parent, this.category));
 				#else
@@ -587,7 +588,18 @@ class DhConfigScreen extends DhScreen
 				ClassicConfigGUI.ConfigScreenConfigs.RESET_BUTTON_WIDTH, ClassicConfigGUI.ConfigScreenConfigs.RESET_BUTTON_HEIGHT,
 				btnAction);
 			
-			if (configEntry.apiIsOverriding())
+			
+			if (configEntry.mcVersionOverridePresent())
+			{
+				#if MC_VER <= MC_1_12_2
+				resetButton.enabled = false;
+				resetButton.displayString = Translatable("distanthorizons.general.unsupportedMcVersion").setStyle(new Style().setColor(TextFormatting.DARK_GRAY)).getFormattedText();
+				#else
+				resetButton.active = false;
+				resetButton.setMessage(Translatable("distanthorizons.general.unsupportedMcVersion").withStyle(ChatFormatting.DARK_GRAY));
+				#endif
+			}
+			else if (configEntry.apiIsOverriding())
 			{
 				#if MC_VER <= MC_1_12_2
 				resetButton.enabled = false;
@@ -599,7 +611,11 @@ class DhConfigScreen extends DhScreen
 			}
 			else
 			{
-				resetButton.#if MC_VER <= MC_1_12_2 enabled #else active #endif = true;
+				#if MC_VER <= MC_1_12_2
+				resetButton.enabled = true;
+				#else
+				resetButton.active = true;
+				#endif
 			}
 			
 			//endregion
@@ -648,12 +664,20 @@ class DhConfigScreen extends DhScreen
 					ClassicConfigGUI.ConfigScreenConfigs.OPTION_FIELD_WIDTH, ClassicConfigGUI.ConfigScreenConfigs.CATEGORY_BUTTON_HEIGHT,
 					widget.getKey());
 				
+				
 				// deactivate the button if the API is overriding it
-				#if MC_VER <= MC_1_12_2
-				button.enabled = !configEntry.apiIsOverriding();
-				#else
-				button.active = !configEntry.apiIsOverriding();
-				#endif
+				// or the MC version doesn't support it
+				if (configEntry.mcVersionOverridePresent()
+					|| configEntry.apiIsOverriding())
+				{
+					#if MC_VER <= MC_1_12_2
+					button.enabled = false;
+					#else
+					button.active = false;
+					#endif
+				}
+				
+				
 				
 				this.configListWidget.addButton(this, configEntry,
 					button,
@@ -957,14 +981,21 @@ class DhConfigScreen extends DhScreen
 			button.dhConfigType;
 		
 		boolean apiOverrideActive = false;
+		boolean unsupportedMcVersion = false;
 		if (configBase instanceof ConfigEntry)
 		{
 			apiOverrideActive = ((ConfigEntry<?>) configBase).apiIsOverriding();
+			unsupportedMcVersion = ((ConfigEntry<?>) configBase).mcVersionOverridePresent();
 		}
+		
 		
 		String key = TRANSLATION_PREFIX + (configBase.category.isEmpty() ? "" : configBase.category + ".") + configBase.getName() + ".@tooltip";
 		
-		if (apiOverrideActive)
+		if (unsupportedMcVersion)
+		{
+			key = "distanthorizons.general.unsupportedMcVersion.@tooltip";
+		}
+		else if (apiOverrideActive)
 		{
 			key = "distanthorizons.general.disabledByApi.@tooltip";
 		}

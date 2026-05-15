@@ -1,6 +1,8 @@
 package com.seibel.distanthorizons.common;
 
+import com.seibel.distanthorizons.api.enums.config.EDhApiMcRenderingFadeMode;
 import com.seibel.distanthorizons.api.enums.config.EDhApiRenderApi;
+import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiDistantGeneratorMode;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterDhInitEvent;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBeforeDhInitEvent;
 import com.seibel.distanthorizons.common.commands.CommandInitializer;
@@ -101,6 +103,7 @@ public abstract class AbstractModInitializer
 		// Client uses config for auto-updater, so it's initialized here instead of post-init stage
 		this.initConfig();
 		logIncompatibilityWarnings(); // needs to be called after config loading
+		setUnsupportedConfigsBasedOnMcVersion();
 		Initializer.postConfigInit();
 		
 		LOGGER.info(ModInfo.READABLE_NAME + " client Initialized.");
@@ -407,6 +410,24 @@ public abstract class AbstractModInitializer
 		
 		//endregion
 		
+	}
+	
+	/**
+	 * Some Minecraft versions don't support all
+	 * DH options.
+	 * In that case we need to override what options are available.
+	 */
+	private static void setUnsupportedConfigsBasedOnMcVersion()
+	{
+		
+		#if MC_VER <= MC_1_12_2
+		Config.Client.Advanced.Graphics.Experimental.renderingApi.setMcVersionOverrideValue(EDhApiRenderApi.OPEN_GL);
+		Config.Client.Advanced.Graphics.Quality.vanillaFadeMode.setMcVersionOverrideValue(EDhApiMcRenderingFadeMode.NONE);
+		Config.Common.WorldGenerator.distantGeneratorMode.setMcVersionOverrideValue(EDhApiDistantGeneratorMode.INTERNAL_SERVER);
+		#elif MC_VER <= MC_1_21_10
+		Config.Client.Advanced.Graphics.Experimental.renderingApi.setMcVersionOverrideValue(EDhApiRenderApi.OPEN_GL);
+		#else
+		#endif
 	}
 	
 	//endregion

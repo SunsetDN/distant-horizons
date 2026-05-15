@@ -121,14 +121,25 @@ public class InternalServerGenerator
 			// create gen requests //
 			//=====================//
 			
-			ArrayList<CompletableFuture<#if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif>> getChunkFutureList = new ArrayList<>();
+			#if MC_VER <= MC_1_12_2
+			ArrayList<CompletableFuture<Chunk>> getChunkFutureList = new ArrayList<>();
+			#else
+			ArrayList<CompletableFuture<ChunkAccess>> getChunkFutureList = new ArrayList<>();
+			#endif
+			
 			{
 				Iterator<ChunkPos> chunkPosIterator = ChunkPosGenStream.getIterator(genEvent.minPos.getX(), genEvent.minPos.getZ(), genEvent.widthInChunks, 0);
 				while (chunkPosIterator.hasNext())
 				{
 					ChunkPos chunkPos = chunkPosIterator.next();
 					
-					CompletableFuture<#if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif> requestChunkFuture =
+					#if MC_VER <= MC_1_12_2
+					CompletableFuture<Chunk> requestChunkFuture;
+					#else
+					CompletableFuture<ChunkAccess> requestChunkFuture;
+					#endif
+					
+					requestChunkFuture =
 						this.requestChunkFromServerAsync(chunkPos)
 							// log errors if necessary
 							.whenCompleteAsync(
@@ -171,8 +182,16 @@ public class InternalServerGenerator
 			ArrayList<IChunkWrapper> chunkWrappers = new ArrayList<>();
 			for (int i = 0; i < getChunkFutureList.size(); i++)
 			{
-				CompletableFuture<#if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif> getChunkFuture = getChunkFutureList.get(i);
-				#if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif chunk = getChunkFuture.join();
+				#if MC_VER <= MC_1_12_2
+				CompletableFuture<Chunk> getChunkFuture;
+				Chunk chunk;
+				#else
+				CompletableFuture<ChunkAccess> getChunkFuture;
+				ChunkAccess chunk;
+				#endif
+				
+				getChunkFuture = getChunkFutureList.get(i);
+				chunk = getChunkFuture.join();
 				if (chunk != null)
 				{
 					ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, this.dhServerLevel.getLevelWrapper());
@@ -256,7 +275,11 @@ public class InternalServerGenerator
 			LOGGER.warn(c2meWarning);
 		}
 	}
-	private CompletableFuture<#if MC_VER <= MC_1_12_2 Chunk #else ChunkAccess #endif> requestChunkFromServerAsync(ChunkPos chunkPos)
+	#if MC_VER <= MC_1_12_2
+	private CompletableFuture<Chunk> requestChunkFromServerAsync(ChunkPos chunkPos)
+	#else
+	private CompletableFuture<ChunkAccess> requestChunkFromServerAsync(ChunkPos chunkPos)
+	#endif
 	{
 		#if MC_VER <= MC_1_12_2
 		WorldServer level = this.params.mcServerLevel;
@@ -272,7 +295,7 @@ public class InternalServerGenerator
 		{
 			ChunkProviderServer provider = level.getChunkProvider();
 			
-			// load neighbours first so the target chunk can fully populate
+			// load neighbors first so the target chunk can fully populate
 			for (int i = -1; i <= 1; i++)
 			{
 				for (int j = -1; j <= 1; j++)
@@ -341,7 +364,11 @@ public class InternalServerGenerator
 	 * mitigates out of memory issues in the vanilla chunk system. <br>
 	 * See: https://github.com/pop4959/Chunky/pull/383
 	 */
-	private CompletableFuture<Void> releaseChunkFromServerAsync(#if MC_VER <= MC_1_12_2 WorldServer #else ServerLevel #endif level, ChunkPos chunkPos)
+	#if MC_VER <= MC_1_12_2
+	private CompletableFuture<Void> releaseChunkFromServerAsync(WorldServer level, ChunkPos chunkPos)
+	#else
+	private CompletableFuture<Void> releaseChunkFromServerAsync(ServerLevel level, ChunkPos chunkPos)
+	#endif
 	{
 		CompletableFuture<Void> removeTicketFuture = new CompletableFuture<>();
 		#if MC_VER <= MC_1_12_2
@@ -353,13 +380,14 @@ public class InternalServerGenerator
 			try
 			{
 				#if MC_VER <= MC_1_12_2
-				for (int i = -1; i <= 1; i++)
+				for (int difX = -1; difX <= 1; difX++)
 				{
-					for (int j = -1; j <= 1; j++)
+					for (int difZ = -1; difZ <= 1; difZ++)
 					{
-						if (i != 0 || j != 0)
+						if (difX != 0 || difZ != 0)
 						{
-							final int di = i, dj = j;
+							final int finalDifX = difX;
+							final int finalDifZ = difZ;
 							this.chunkSaveIgnoreTimer.schedule(new TimerTask()
 							{
 								@Override
@@ -367,7 +395,12 @@ public class InternalServerGenerator
 								{
 									if (InternalServerGenerator.this.updateManager != null)
 									{
-										InternalServerGenerator.this.updateManager.removePosToIgnore(new DhChunkPos(chunkPos.x + di, chunkPos.z + dj));
+										InternalServerGenerator.this.updateManager.removePosToIgnore(
+											new DhChunkPos(
+												chunkPos.x + finalDifX, 
+												chunkPos.z + finalDifZ
+											)
+										);
 									}
 								}
 							}, MS_TO_IGNORE_CHUNK_AFTER_COMPLETION);
