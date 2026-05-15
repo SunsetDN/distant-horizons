@@ -26,7 +26,6 @@ import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
-import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -61,9 +60,8 @@ public class MixinEntityRenderer
 			return;
 		}
 		
-		IClientLevelWrapper clientLevel = mc.getWrappedClientLevel();
 		MinecraftRenderWrapper renderWrapper = (MinecraftRenderWrapper)SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
-		renderWrapper.setLightmapId(lightmapTexture.getGlTextureId(), clientLevel);
+		renderWrapper.setLightmapId(lightmapTexture.getGlTextureId());
 	}
 	
 	@Inject(at = @At("RETURN"), method = "setupFog")

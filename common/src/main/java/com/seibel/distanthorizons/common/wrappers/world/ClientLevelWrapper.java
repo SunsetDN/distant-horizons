@@ -152,9 +152,13 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 		}
 	}
 	
+	private static #if MC_VER > MC_1_12_2 ClientLevel #else WorldClient #endif clientLevel() {
+		return #if MC_VER > MC_1_12_2 MINECRAFT.level #else MINECRAFT.world #endif;
+	}
+	
 	public static void tickCleanup()
 	{
-		if (MINECRAFT.level == null) 
+		if (clientLevel() == null) 
 		{
 			return; 
 		}
@@ -169,7 +173,7 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 			{
 				ClientLevelWrapper wrapper = ref.get();
 				if (wrapper != null 
-					&& wrapper.level != MINECRAFT.level)
+					&& wrapper.level != clientLevel())
 				{
 					// We use the synchronized getter to prevent race conditions with markAccessed()
 					if (currentTime - wrapper.getLastAccessTime() > timeout)
@@ -186,7 +190,7 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 			// to ensure atomicity with respect to markAccessed()
 			synchronized(wrapper)
 			{
-				if (wrapper.level != MINECRAFT.level 
+				if (wrapper.level != clientLevel()
 					&& currentTime - wrapper.getLastAccessTime() > timeout)
 				{
 					LOGGER.debug("Unloading level [" + wrapper.getDhIdentifier() + "] due to inactivity");

@@ -10,7 +10,6 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRen
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersivePortalsAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 #if MC_VER <= MC_1_12_2
 #else

@@ -18,7 +18,7 @@
  */
 
 package com.seibel.distanthorizons.common.wrappers.modAccessor;
-
+#if MC_VER > MC_1_12_2
 import com.google.common.base.Suppliers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.seibel.distanthorizons.common.wrappers.world.ClientLevelWrapper;
@@ -131,3 +131,5 @@ public abstract class ImmersivePortalsAccessorCommon extends ImmersivePortalsAbs
 	}
 	
 }
+
+#endif

@@ -77,43 +77,6 @@ public class CleanroomClientProxy implements AbstractModInitializer.IEventProxy
 	}
 	
 	
-	
-	//==============//
-	// world events //
-	//==============//
-	
-	@SubscribeEvent
-	public void clientLevelLoadEvent(WorldEvent.Load event)
-	{
-		LOGGER.info("level load");
-		
-		World level = event.getWorld();
-		if (!(level instanceof WorldClient clientLevel))
-		{
-			return;
-		}
-		
-		IClientLevelWrapper clientLevelWrapper = ClientLevelWrapper.getWrapper(clientLevel, true);
-		ClientApi.INSTANCE.clientLevelLoadEvent(clientLevelWrapper);
-	}
-	
-	@SubscribeEvent
-	public void clientLevelUnloadEvent(WorldEvent.Unload event)
-	{
-		LOGGER.info("level unload");
-		
-		World level = event.getWorld();
-		if (!(level instanceof WorldClient clientLevel))
-		{
-			return;
-		}
-		
-		IClientLevelWrapper clientLevelWrapper = ClientLevelWrapper.getWrapper(clientLevel);
-		ClientApi.INSTANCE.clientLevelUnloadEvent(clientLevelWrapper);
-	}
-	
-	
-	
 	//==============//
 	// chunk events //
 	//==============//

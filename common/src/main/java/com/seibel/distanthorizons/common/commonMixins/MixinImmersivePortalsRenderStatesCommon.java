@@ -1,5 +1,6 @@
 package com.seibel.distanthorizons.common.commonMixins;
 
+#if MC_VER > MC_1_12_2
 import com.seibel.distanthorizons.common.wrappers.modAccessor.ImmersivePortalsAccessorCommon;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos;
@@ -36,3 +37,4 @@ public class MixinImmersivePortalsRenderStatesCommon
 	}
 	
 }
+#endif

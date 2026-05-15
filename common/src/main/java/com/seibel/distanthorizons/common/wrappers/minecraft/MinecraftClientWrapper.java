@@ -20,6 +20,7 @@
 package com.seibel.distanthorizons.common.wrappers.minecraft;
 
 import java.io.File;
+import java.util.Arrays;
 
 #if MC_VER > MC_1_12_2
 import com.mojang.blaze3d.platform.Window;
@@ -52,6 +53,9 @@ import net.minecraft.profiler.Profiler;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.world.DimensionType;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 #else
 import net.minecraft.CrashReport;
 import net.minecraft.client.CloudStatus;
@@ -62,9 +66,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 #endif
 
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 #if MC_VER < MC_1_19_2 && MC_VER > MC_1_12_2
@@ -81,7 +85,9 @@ import net.minecraft.client.GraphicsStatus;
 #else
 #endif
 
-#if  MC_VER <= MC_1_21_10
+#if  MC_VER <= MC_1_12_2
+import net.minecraft.util.ResourceLocation;
+#elif  MC_VER <= MC_1_21_10
 import net.minecraft.resources.ResourceLocation;
 #else
 import net.minecraft.resources.Identifier;
@@ -89,7 +95,7 @@ import net.minecraft.resources.Identifier;
 
 #if  MC_VER > MC_1_19_2
 import net.minecraft.core.registries.Registries;
-#else
+#elif MC_VER > MC_1_12_2
 import net.minecraft.core.Registry;
 #endif
 
@@ -628,7 +634,12 @@ public class MinecraftClientWrapper implements IMinecraftClientWrapper, IMinecra
 	public IServerLevelWrapper getWrappedServerLevel(String levelKey)
 	{
 		if (!hasSinglePlayerServer()) return null;
-		#if  MC_VER <= MC_1_21_10
+		#if  MC_VER <= MC_1_12_2
+		DimensionType levelID = null;
+		try {
+			levelID = DimensionType.byName(levelKey);
+        } catch (IllegalArgumentException ignored) {}
+		#elif  MC_VER <= MC_1_21_10
 		ResourceLocation levelID = ResourceLocation.tryParse(levelKey);
 		#else
 		Identifier levelID = Identifier.tryParse(levelKey);
@@ -637,11 +648,17 @@ public class MinecraftClientWrapper implements IMinecraftClientWrapper, IMinecra
 		
 		#if  MC_VER > MC_1_19_2
 		ResourceKey<Level> resourceKey = ResourceKey.create(Registries.DIMENSION, levelID);
-		#else
+		#elif MC_VER > MC_1_12_2
 		ResourceKey<Level> resourceKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, levelID);
+		#else
+		int dimensionID = Arrays.stream(DimensionManager.getDimensions(levelID)).findFirst().orElse(0); //TODO Maybe 1.12 should use the dimension number as the level key instead?
 		#endif
 		
+		#if  MC_VER <= MC_1_12_2
+		WorldServer level = MINECRAFT.getIntegratedServer().getWorld(dimensionID);
+		#else
 		ServerLevel level = MINECRAFT.getSingleplayerServer().getLevel(resourceKey);
+		#endif
 		return ServerLevelWrapper.getWrapper(level);
 	}
 	

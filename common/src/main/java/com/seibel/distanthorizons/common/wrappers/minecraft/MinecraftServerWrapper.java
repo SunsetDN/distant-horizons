@@ -3,13 +3,21 @@ package com.seibel.distanthorizons.common.wrappers.minecraft;
 import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftSharedWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapper;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.dedicated.DedicatedServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
-#if  MC_VER <= MC_1_21_10
+#if MC_VER > MC_1_12_2
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+#else
+import net.minecraft.world.DimensionType;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
+#endif
+
+#if  MC_VER <= MC_1_12_2
+#elif  MC_VER <= MC_1_21_10
 import net.minecraft.resources.ResourceLocation;
 #else
 import net.minecraft.resources.Identifier;
@@ -17,11 +25,12 @@ import net.minecraft.resources.Identifier;
 
 #if  MC_VER > MC_1_19_2
 import net.minecraft.core.registries.Registries;
-#else
+#elif MC_VER > MC_1_12_2
 import net.minecraft.core.Registry;
 #endif
 
 import java.io.File;
+import java.util.Arrays;
 
 public class MinecraftServerWrapper implements IMinecraftSharedWrapper
 {
@@ -85,7 +94,12 @@ public class MinecraftServerWrapper implements IMinecraftSharedWrapper
 	@Override
 	public IServerLevelWrapper getWrappedServerLevel(String levelKey)
 	{
-		#if  MC_VER <= MC_1_21_10
+		#if  MC_VER <= MC_1_12_2
+		DimensionType levelID = null;
+		try {
+			levelID = DimensionType.byName(levelKey);
+		} catch (IllegalArgumentException e) {}
+		#elif  MC_VER <= MC_1_21_10
 		ResourceLocation levelID = ResourceLocation.tryParse(levelKey);
 		#else
 		Identifier levelID = Identifier.tryParse(levelKey);
@@ -94,11 +108,17 @@ public class MinecraftServerWrapper implements IMinecraftSharedWrapper
 		
 		#if  MC_VER > MC_1_19_2
 		ResourceKey<Level> resourceKey = ResourceKey.create(Registries.DIMENSION, levelID);
-		#else
+		#elif MC_VER > MC_1_12_2
 		ResourceKey<Level> resourceKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, levelID);
+		#else
+		int dimensionID = Arrays.stream(DimensionManager.getDimensions(levelID)).findFirst().orElse(0);
 		#endif
 		
+		#if MC_VER > MC_1_12_2
 		ServerLevel level = dedicatedServer.getLevel(resourceKey);
+		#else
+		WorldServer level = dedicatedServer.getWorld(dimensionID);
+		#endif
 		return ServerLevelWrapper.getWrapper(level);
 	}
 	

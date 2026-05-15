@@ -9,6 +9,7 @@ import net.minecraft.client.multiplayer.WorldClient;
 #else
 import net.minecraft.client.multiplayer.ClientLevel;
 #endif
+import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -33,7 +34,7 @@ public class KeyedClientLevelManager implements IKeyedClientLevelManager
 	private final Map<String, KeyInfo> keysByDimensionName = new ConcurrentHashMap<>();
 	
 	/** Cache for already keyed level wrappers to maintain object identity. */
-	private final Map<ClientLevel, IServerKeyedClientLevel> keyedLevelsCache = Collections.synchronizedMap(new WeakHashMap<>());
+	private final Map<#if MC_VER > MC_1_12_2 ClientLevel #else WorldClient #endif, IServerKeyedClientLevel> keyedLevelsCache = Collections.synchronizedMap(new WeakHashMap<>());
 	
 	/** Allows to keep level manager enabled between loading different keyed levels */
 	private volatile boolean enabled = false;
@@ -61,11 +62,15 @@ public class KeyedClientLevelManager implements IKeyedClientLevelManager
 	@Nullable
 	public IServerKeyedClientLevel getServerKeyedLevel() 
 	{ 
+		#if MC_VER > MC_1_12_2
 		return this.getServerKeyedLevel(Minecraft.getInstance().level); 
+		#else
+		return this.getServerKeyedLevel(Minecraft.getMinecraft().world); 
+		#endif
 	}
 	
 	@Nullable
-	public IServerKeyedClientLevel getServerKeyedLevel(@Nullable ClientLevel level)
+	public IServerKeyedClientLevel getServerKeyedLevel(@Nullable #if MC_VER > MC_1_12_2 ClientLevel #else WorldClient #endif level)
 	{
 		if (level == null)
 		{
@@ -131,7 +136,9 @@ public class KeyedClientLevelManager implements IKeyedClientLevelManager
 		synchronized (this.keyedLevelsCache)
 		{
 			this.keyedLevelsCache.keySet().removeIf(level -> {
-				#if MC_VER <= MC_1_21_10
+				#if MC_VER <= MC_1_12_2
+				String levelDim = level.provider.getDimensionType().getName();
+				#elif MC_VER <= MC_1_21_10
 				String levelDim = level.dimension().location().toString();
 				#else
 				String levelDim = level.dimension().identifier().toString();
@@ -142,7 +149,7 @@ public class KeyedClientLevelManager implements IKeyedClientLevelManager
 		
 		// 4. Return the keyed wrapper for whatever level the core passed us, 
 		// but only if it matches the dimension we just keyed.
-		return this.getServerKeyedLevel((ClientLevel) clientLevel.getWrappedMcObject());
+		return this.getServerKeyedLevel((#if MC_VER > MC_1_12_2 ClientLevel #else WorldClient #endif) clientLevel.getWrappedMcObject());
 	}
 	
 	@Override
