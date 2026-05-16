@@ -64,6 +64,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
 import com.seibel.distanthorizons.core.util.math.Vec3d;
 import com.seibel.distanthorizons.core.util.math.Vec3f;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersivePortalsAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IOptifineAccessor;
 
 #if MC_VER <= MC_1_12_2
@@ -126,6 +127,11 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	#else
 	private static final Minecraft MC = Minecraft.getInstance();
 	#endif
+	
+	// Need to classload this field later because otherwise it will be null even when Immersive Portals is present.
+	public static class Late {
+		private static final IImmersivePortalsAccessor IMMERSIVE_PORTALS = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
+	}
 	
 	/** 
 	 * In the case of immersive portals multiple levels may be active at once, causing conflicting lightmaps. <br> 
@@ -205,6 +211,11 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	@Override
 	public Vec3d getCameraExactPosition()
 	{
+		if (Late.IMMERSIVE_PORTALS != null)
+		{
+			Vec3d cameraPos = Late.IMMERSIVE_PORTALS.getOriginalCameraPos();
+			if (cameraPos != null) return cameraPos;
+		}
 		#if MC_VER <= MC_1_12_2
 		RenderManager rm = MC.getRenderManager();
 		return new Vec3d(rm.viewerPosX, rm.viewerPosY, rm.viewerPosZ);

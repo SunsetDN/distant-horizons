@@ -4,9 +4,11 @@ package com.seibel.distanthorizons.common.commonMixins;
 import com.seibel.distanthorizons.common.wrappers.modAccessor.ImmersivePortalsAccessorCommon;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos;
+import com.seibel.distanthorizons.core.util.math.Vec3d;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.phys.Vec3;
 
 public class MixinImmersivePortalsRenderStatesCommon
 {
@@ -19,8 +21,10 @@ public class MixinImmersivePortalsRenderStatesCommon
 		if (mc.player == null) {
 			ImmersivePortalsAccessorCommon.originalBlockPos = null;
 			ImmersivePortalsAccessorCommon.originalChunkPos = null;
+			ImmersivePortalsAccessorCommon.originalCameraPos = null;
 			return;
 		}
+		
 		BlockPos pos = mc.player.blockPosition();
 		ImmersivePortalsAccessorCommon.originalBlockPos = new DhBlockPos(pos.getX(), pos.getY(), pos.getZ());
 		#if MC_VER < MC_1_17_1
@@ -34,6 +38,14 @@ public class MixinImmersivePortalsRenderStatesCommon
 		#else
 		ImmersivePortalsAccessorCommon.originalChunkPos = new DhChunkPos(cPos.x(), cPos.z());
 		#endif
+		
+		
+		#if MC_VER <= MC_1_21_10
+		Vec3 cameraPos = mc.gameRenderer.getMainCamera().getPosition();
+		#else
+		Vec3 cameraPos = mc.gameRenderer.getMainCamera().position();
+		#endif
+		ImmersivePortalsAccessorCommon.originalCameraPos = new Vec3d(cameraPos.x(), cameraPos.y(), cameraPos.z());
 	}
 	
 }

@@ -25,6 +25,7 @@ import com.seibel.distanthorizons.common.wrappers.world.ClientLevelWrapper;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos;
+import com.seibel.distanthorizons.core.util.math.Vec3d;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.ImmersivePortalsAbstractAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 import net.minecraft.client.Minecraft;
@@ -56,6 +57,8 @@ public abstract class ImmersivePortalsAccessorCommon extends ImmersivePortalsAbs
 	public static volatile DhBlockPos originalBlockPos;
 	@Nullable
 	public static volatile DhChunkPos originalChunkPos;
+	@Nullable
+	public static volatile Vec3d originalCameraPos;
 	
 	@Override
 	protected Object getClientLevel() { return Minecraft.getInstance().level; }
@@ -128,6 +131,12 @@ public abstract class ImmersivePortalsAccessorCommon extends ImmersivePortalsAbs
 	@Nullable
 	public IClientLevelWrapper getOriginalClientLevelWrapper() {
 		return ClientLevelWrapper.getWrapper(originalLevel, false);
+	}
+	
+	@Override
+	@Nullable
+	public Vec3d getOriginalCameraPos() {
+		return originalCameraPos;
 	}
 	
 }
