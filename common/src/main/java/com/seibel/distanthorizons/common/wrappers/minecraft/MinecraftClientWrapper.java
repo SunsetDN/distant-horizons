@@ -638,7 +638,7 @@ public class MinecraftClientWrapper implements IMinecraftClientWrapper, IMinecra
 		int dimensionID;
 		try
 		{
-			dimensionID = Integer.parseInt(levelKey);
+			dimensionID = Integer.parseInt(levelKey.substring(levelKey.indexOf(":")+1));
         }
 		catch (NumberFormatException ignored)
 		{

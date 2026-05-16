@@ -436,7 +436,7 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 		}
 		
 		#if MC_VER <= MC_1_12_2
-		this.dimensionName = String.valueOf(this.level.provider.getDimension());
+		this.dimensionName = this.level.provider.getDimensionType().getName() + ":" + this.level.provider.getDimension();
 		#elif MC_VER <= MC_1_21_10
 		this.dimensionName = this.level.dimension().location().toString();
 		#else

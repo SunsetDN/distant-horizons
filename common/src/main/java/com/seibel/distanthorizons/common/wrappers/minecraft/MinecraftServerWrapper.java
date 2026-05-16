@@ -95,7 +95,7 @@ public class MinecraftServerWrapper implements IMinecraftSharedWrapper
 		int dimensionID;
 		try
 		{
-			dimensionID = Integer.parseInt(levelKey);
+			dimensionID = Integer.parseInt(levelKey.substring(levelKey.indexOf(":")+1));
 		}
 		catch (NumberFormatException ignored)
 		{
