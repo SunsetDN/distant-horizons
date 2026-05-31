@@ -1,5 +1,6 @@
 package com.seibel.distanthorizons.common.wrappers.world;
 
+import com.seibel.distanthorizons.api.enums.config.EDhApiLodShading;
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiLevelType;
 import com.seibel.distanthorizons.api.interfaces.render.IDhApiCustomRenderRegister;
 import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
@@ -10,6 +11,7 @@ import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import com.seibel.distanthorizons.common.wrappers.level.KeyedClientLevelManager;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftClientWrapper;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
+import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.enums.EDhDirection;
@@ -670,16 +672,40 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 	@Override
 	public float getShade(EDhDirection lodDirection)
 	{
-		#if MC_VER <= MC_1_12_2
-			return 0; // 1.12.2 has no getShade
-		#else
-		Direction mcDir = McObjectConverter.Convert(lodDirection);
-		#if MC_VER <= MC_1_21_11
-			return level.getShade(mcDir, true);
-		#else
-			return level.cardinalLighting().byFace(mcDir);
-		#endif
-		#endif
+		EDhApiLodShading lodShading = Config.Client.Advanced.Graphics.Quality.lodShading.get();
+		switch (lodShading)
+		{
+			default:
+			case AUTO:
+				#if MC_VER <= MC_1_12_2
+				// 1.12.2 level doesn't have a getShade method, fall through to ENABLED
+				#else
+					Direction mcDir = McObjectConverter.Convert(lodDirection);
+					#if MC_VER <= MC_1_21_11
+					return this.level.getShade(mcDir, true);
+					#else
+					return this.level.cardinalLighting().byFace(mcDir);
+					#endif
+				#endif
+			case ENABLED:
+				switch (lodDirection)
+				{
+					case DOWN:
+						return 0.5F;
+					default:
+					case UP:
+						return 1.0F;
+					case NORTH:
+					case SOUTH:
+						return 0.8F;
+					case WEST:
+					case EAST:
+						return 0.6F;
+				}
+			
+			case DISABLED:
+				return 1.0F;
+		}
 	}
 	
 	//endregion

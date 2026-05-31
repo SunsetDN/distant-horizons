@@ -648,48 +648,4 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	
 	
 	
-	@Override
-	public float getShade(EDhDirection lodDirection)
-	{
-		EDhApiLodShading lodShading = Config.Client.Advanced.Graphics.Quality.lodShading.get();
-		switch (lodShading)
-		{
-			default:
-			case AUTO:
-				#if MC_VER <= MC_1_12_2
-				// 1.12.2 has no getShade, fall through to ENABLED
-				#else
-				IClientLevelWrapper level = MinecraftClientWrapper.INSTANCE.getWrappedClientLevel();
-				if (level != null)
-				{
-					return level.getShade(lodDirection);
-				}
-				else
-				{
-					return 0.0f;
-				}
-				#endif
-			case ENABLED:
-				switch (lodDirection)
-				{
-					case DOWN:
-						return 0.5F;
-					default:
-					case UP:
-						return 1.0F;
-					case NORTH:
-					case SOUTH:
-						return 0.8F;
-					case WEST:
-					case EAST:
-						return 0.6F;
-				}
-			
-			case DISABLED:
-				return 1.0F;
-		}
-	}
-	
-	
-	
 }
