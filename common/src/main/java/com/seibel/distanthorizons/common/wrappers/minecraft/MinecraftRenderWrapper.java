@@ -659,14 +659,10 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 				#if MC_VER <= MC_1_12_2
 				// 1.12.2 has no getShade, fall through to ENABLED
 				#else
-				if (MC.level != null)
+				IClientLevelWrapper level = MinecraftClientWrapper.INSTANCE.getWrappedClientLevel();
+				if (level != null)
 				{
-					Direction mcDir = McObjectConverter.Convert(lodDirection);
-					#if MC_VER <= MC_1_21_11
-					return MC.level.getShade(mcDir, true);
-					#else
-					return MC.level.cardinalLighting().byFace(mcDir);
-					#endif
+					return level.getShade(lodDirection);
 				}
 				else
 				{

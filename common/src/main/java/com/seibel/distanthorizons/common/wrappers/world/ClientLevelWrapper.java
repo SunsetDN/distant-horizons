@@ -2,6 +2,7 @@ package com.seibel.distanthorizons.common.wrappers.world;
 
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiLevelType;
 import com.seibel.distanthorizons.api.interfaces.render.IDhApiCustomRenderRegister;
+import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.block.BiomeWrapper;
 import com.seibel.distanthorizons.common.wrappers.block.BlockStateWrapper;
 import com.seibel.distanthorizons.common.wrappers.block.ClientBlockStateColorCache;
@@ -11,6 +12,7 @@ import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftClientWrapp
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
+import com.seibel.distanthorizons.core.enums.EDhDirection;
 import com.seibel.distanthorizons.core.level.*;
 import com.seibel.distanthorizons.core.level.IServerKeyedClientLevel;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
@@ -32,6 +34,7 @@ import net.minecraft.block.state.IBlockState;
 #else
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -661,6 +664,21 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 			// default to white if there's an issue
 			return Color.WHITE;
 		}
+		#endif
+	}
+	
+	@Override
+	public float getShade(EDhDirection lodDirection)
+	{
+		#if MC_VER <= MC_1_12_2
+			return 0; // 1.12.2 has no getShade
+		#else
+		Direction mcDir = McObjectConverter.Convert(lodDirection);
+		#if MC_VER <= MC_1_21_11
+			return level.getShade(mcDir, true);
+		#else
+			return level.cardinalLighting().byFace(mcDir);
+		#endif
 		#endif
 	}
 	
