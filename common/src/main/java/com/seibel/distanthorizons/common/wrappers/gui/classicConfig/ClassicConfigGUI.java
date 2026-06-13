@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 #if MC_VER <= MC_1_7_10
 import net.minecraft.client.renderer.Tessellator;
-#elif MC_VER < MC_1_12_2
+#elif MC_VER <= MC_1_12_2
 #elif MC_VER < MC_1_20_1
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiComponent;
