@@ -103,6 +103,15 @@ sourceSets {
 
 processResources {
     from "$commonDir/src/main/resources"
+    // 1.7.10-specific assets (en_US.lang, textures, shaders, sqlScripts) live in the
+    // legacy mod tree. Exclude the files that forge17/src/main/resources is the
+    // source of truth for.
+    from("${rootDir}/DistantHorizons_1.7.10/src/main/resources") {
+        exclude "mcmod.info"
+        exclude "mixins.distanthorizons.json"
+        exclude "mixins.distanthorizons.early.json"
+        exclude "META-INF/distanthorizons_at.cfg"
+    }
 }
 
 // RFG's compileInjectedInterfacesJava inherits compilerArgs from compileJava, so it
