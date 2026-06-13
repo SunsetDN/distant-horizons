@@ -20,4 +20,32 @@ if (gradle.ext.minecraft_version != "1.7.10") {
         autoRun = (loaderCount > 1)
         archiveClassifier = modLoaders
     }
+} else {
+    // GTNHGradle's IdeIntegrationModule (which would auto-register IDEA run configs) is
+    // disabled for this multi-project layout because it NPEs on subprojects, so wire the
+    // forge17 run config up manually via idea-ext on the root project.
+    apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
+
+    idea {
+        project {
+            settings {
+                runConfigurations {
+                    create('forge17: Run Client (Java 21)', org.jetbrains.gradle.ext.Gradle) {
+                        taskNames = [':forge17:runClient21']
+                    }
+                    create('forge17: Run Client (Java 21, Hotswap)', org.jetbrains.gradle.ext.Gradle) {
+                        taskNames = [':forge17:runClient21']
+                        envs = ['HOTSWAP': 'true']
+                    }
+                    create('forge17: Run Server (Java 21)', org.jetbrains.gradle.ext.Gradle) {
+                        taskNames = [':forge17:runServer21']
+                    }
+                    create('forge17: Run Server (Java 21, Hotswap)', org.jetbrains.gradle.ext.Gradle) {
+                        taskNames = [':forge17:runServer21']
+                        envs = ['HOTSWAP': 'true']
+                    }
+                }
+            }
+        }
+    }
 }
