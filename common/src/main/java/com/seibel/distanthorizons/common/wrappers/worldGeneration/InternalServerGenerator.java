@@ -24,16 +24,21 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IC2meAccess
 import com.seibel.distanthorizons.coreapi.ModInfo;
 
 import org.jetbrains.annotations.Nullable;
-#if MC_VER <= MC_1_12_2
+#if MC_VER <= MC_1_7_10
+import com.seibel.distanthorizons.forge.ForgeMain;
+import com.seibel.distanthorizons.forge.ForgeServerProxy;
+import copy.com.gtnewhorizons.angelica.compat.mojang.ChunkPos;
+import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraft.world.gen.ChunkProviderServer;
+import net.minecraftforge.common.ForgeChunkManager;
+#elif MC_VER <= MC_1_12_2
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
-import net.minecraftforge.common.ForgeChunkManager;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.chunk.storage.AnvilChunkLoader;
-import net.minecraft.world.storage.ThreadedFileIOBase;
 #else
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerLevel;
@@ -54,6 +59,9 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Function;
+#if MC_VER <= MC_1_7_10
+import java.lang.reflect.Field;
+#endif
 
 public class InternalServerGenerator
 {
@@ -95,7 +103,9 @@ public class InternalServerGenerator
 	@Nullable
 	private final ChunkUpdateQueueManager updateManager;
 	private final Timer chunkSaveIgnoreTimer = TimerUtil.CreateTimer("ChunkSaveIgnoreTimer");
-	#if MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_7_10
+	private final ForgeChunkManager.Ticket dhServerGenTicket;
+	#elif MC_VER <= MC_1_12_2
 	private static final java.util.concurrent.Semaphore chunkRequestSemaphore = new java.util.concurrent.Semaphore(20);
 	#endif
 	
@@ -109,7 +119,28 @@ public class InternalServerGenerator
 		this.params = params;
 		this.dhServerLevel = dhServerLevel;
 		this.updateManager = WorldChunkUpdateManager.INSTANCE.getByLevelWrapper(this.dhServerLevel.getServerLevelWrapper());
+
+		#if MC_VER <= MC_1_7_10
+		this.dhServerGenTicket = ForgeChunkManager.requestTicket(ForgeMain.instance, params.mcServerLevel, ForgeChunkManager.Type.NORMAL);
+		increaseChunkLimit(this.dhServerGenTicket, 1000);
+		#endif
 	}
+
+	#if MC_VER <= MC_1_7_10
+	private static void increaseChunkLimit(ForgeChunkManager.Ticket ticket, int newMaxDepth)
+	{
+		try
+		{
+			Field maxDepthField = ticket.getClass().getDeclaredField("maxDepth");
+			maxDepthField.setAccessible(true);
+			maxDepthField.setInt(ticket, newMaxDepth);
+		}
+		catch (Exception e)
+		{
+			LOGGER.warn("Failed to increase Forge chunk ticket limit.", e);
+		}
+	}
+	#endif
 	
 	
 	
@@ -134,7 +165,7 @@ public class InternalServerGenerator
 			#endif
 			
 			{
-				#if MC_VER <= MC_1_12_2
+				#if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
 				while (!isServerHealthy())
 				{
 					try
@@ -153,7 +184,7 @@ public class InternalServerGenerator
 				{
 					ChunkPos chunkPos = chunkPosIterator.next();
 					
-					#if MC_VER <= MC_1_12_2
+					#if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
 					chunkRequestSemaphore.acquireUninterruptibly();
 					#endif
 					
@@ -169,7 +200,7 @@ public class InternalServerGenerator
 							.whenCompleteAsync(
 								(chunk, throwable) ->
 								{
-									#if MC_VER <= MC_1_12_2
+									#if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
 									chunkRequestSemaphore.release();
 									#endif
 									// unwrap the CompletionException if necessary
@@ -251,7 +282,7 @@ public class InternalServerGenerator
 		finally
 		{
 			ArrayList<CompletableFuture<Void>> releaseFutures = new ArrayList<>();
-			#if MC_VER <= MC_1_12_2
+			#if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
 			Set<Long> neighborIgnoreSet = new HashSet<>();
 			#endif
 			
@@ -262,7 +293,7 @@ public class InternalServerGenerator
 				ChunkPos chunkPos = chunkPosIterator.next();
 				releaseFutures.add(this.releaseChunkFromServerAsync(this.params.mcServerLevel, chunkPos));
         
-                #if MC_VER <= MC_1_12_2
+                #if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
 				// collect unique neighbor positions for release and ignore removal
 				for (int dx = -1; dx <= 1; dx++)
 				{
@@ -275,7 +306,7 @@ public class InternalServerGenerator
                 #endif
 			}
     
-            #if MC_VER <= MC_1_12_2
+            #if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
 			// release neighbor chunks that were loaded in requestChunkFromServerAsync
 			for (long posLong : neighborIgnoreSet)
 			{
@@ -293,7 +324,7 @@ public class InternalServerGenerator
 			}
 			
 			// tick after all unloads are queued
-            #if MC_VER <= MC_1_12_2
+            #if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
 			CompletableFuture<Void> tickFuture = new CompletableFuture<>();
 			this.params.mcServerLevel.getMinecraftServer().addScheduledTask(() ->
 			{
@@ -313,7 +344,7 @@ public class InternalServerGenerator
 			tickFuture.join();
             #endif
     
-            #if MC_VER <= MC_1_12_2
+            #if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
 			for (long posLong : neighborIgnoreSet)
 			{
 				ChunkPos neighborPos = new ChunkPos(ChunkPos.getX(posLong), ChunkPos.getZ(posLong));
@@ -366,13 +397,63 @@ public class InternalServerGenerator
 		}
 		#endif
 	}
+	#if MC_VER <= MC_1_7_10
+	private static void loadChunkIfNotExists(IChunkProvider provider, int x, int z)
+	{
+		if (!provider.chunkExists(x, z))
+		{
+			provider.loadChunk(x, z);
+		}
+	}
+	#endif
+
 	#if MC_VER <= MC_1_12_2
 	private CompletableFuture<Chunk> requestChunkFromServerAsync(ChunkPos chunkPos)
 	#else
 	private CompletableFuture<ChunkAccess> requestChunkFromServerAsync(ChunkPos chunkPos)
 	#endif
 	{
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		WorldServer level = this.params.mcServerLevel;
+
+		if (this.updateManager != null)
+		{
+			this.updateManager.addPosToIgnore(McObjectConverter.Convert(chunkPos));
+		}
+
+		return ForgeServerProxy.schedule(true, () ->
+		{
+			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
+
+			if (ForgeMain.isHodgePodgeInstalled)
+			{
+				HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x, chunkPos.z, true);
+			}
+			ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x, chunkPos.z));
+
+			for (int dx = -1; dx <= 1; dx++)
+			{
+				for (int dz = -1; dz <= 1; dz++)
+				{
+					if (dx == 0 && dz == 0) continue;
+
+					if (this.updateManager != null)
+					{
+						this.updateManager.addPosToIgnore(new DhChunkPos(chunkPos.x + dx, chunkPos.z + dz));
+					}
+					if (ForgeMain.isHodgePodgeInstalled)
+					{
+						HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x + dx, chunkPos.z + dz, true);
+					}
+
+					ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x + dx, chunkPos.z + dz));
+					loadChunkIfNotExists(provider, chunkPos.x + dx, chunkPos.z + dz);
+				}
+			}
+
+			return provider.loadChunk(chunkPos.x, chunkPos.z);
+		});
+		#elif MC_VER <= MC_1_12_2
 		WorldServer level = this.params.mcServerLevel;
 		
 		// ignore chunk update events for this position
@@ -464,6 +545,23 @@ public class InternalServerGenerator
 	private CompletableFuture<Void> releaseChunkFromServerAsync(ServerLevel level, ChunkPos chunkPos)
 	#endif
 	{
+		#if MC_VER <= MC_1_7_10
+		return ForgeServerProxy.schedule(false, () ->
+		{
+			ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x, chunkPos.z));
+
+			for (int dx = -1; dx <= 1; dx++)
+			{
+				for (int dz = -1; dz <= 1; dz++)
+				{
+					if (dx == 0 && dz == 0) continue;
+					ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x + dx, chunkPos.z + dz));
+				}
+			}
+
+			return null;
+		});
+		#else
 		CompletableFuture<Void> removeTicketFuture = new CompletableFuture<>();
 		#if MC_VER <= MC_1_12_2
 		level.getMinecraftServer().addScheduledTask(() ->
@@ -522,6 +620,7 @@ public class InternalServerGenerator
 			}
 		});
 		return removeTicketFuture;
+		#endif
 	}
 	
 	
@@ -530,7 +629,7 @@ public class InternalServerGenerator
 	// misc //
 	//======//
 	
-	#if MC_VER <= MC_1_12_2
+	#if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
 	private boolean isServerHealthy()
 	{
 		if(this.params.mcServerLevel.getMinecraftServer() == null) { return false; }
