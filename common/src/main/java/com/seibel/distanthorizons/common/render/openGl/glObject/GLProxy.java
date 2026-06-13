@@ -139,7 +139,7 @@ public class GLProxy
 		
 		
 		// this must be created on minecraft's render context to work correctly
-		if (runningOnRenderThread())
+		if (!runningOnRenderThread())
 		{
 			String message = "[" + GLProxy.class.getSimpleName() + "] was created outside the render thread!";
 			IllegalStateException exception = new IllegalStateException(message);
