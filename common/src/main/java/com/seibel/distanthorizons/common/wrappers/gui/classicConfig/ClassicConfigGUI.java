@@ -96,7 +96,35 @@ public class ClassicConfigGUI
 		public static final int OPTION_FIELD_HEIGHT = 20;
 		public static final int CATEGORY_BUTTON_WIDTH = 200;
 		public static final int CATEGORY_BUTTON_HEIGHT = 20;
+		public static final int OPTION_ROW_CONTROL_WIDTH = OPTION_FIELD_WIDTH + BUTTON_WIDTH_SPACING + RESET_BUTTON_WIDTH;
+		public static final boolean CENTER_OPTIONS =
+			#if MC_VER == MC_1_7_10
+			true;
+			#else
+			false;
+			#endif
 		
+		public static int getOptionsRightEdge(int screenWidth)
+		{
+			if (CENTER_OPTIONS)
+			{
+				return Math.min(
+					screenWidth - SPACE_FROM_RIGHT_SCREEN,
+					(screenWidth / 2) + (OPTION_ROW_CONTROL_WIDTH / 2));
+			}
+			return screenWidth - SPACE_FROM_RIGHT_SCREEN;
+		}
+		
+		public static int getCategoryButtonX(int screenWidth)
+		{
+			if (CENTER_OPTIONS)
+			{
+				return Math.max(
+					SPACE_FROM_RIGHT_SCREEN,
+					(screenWidth / 2) - (CATEGORY_BUTTON_WIDTH / 2));
+			}
+			return getOptionsRightEdge(screenWidth) - CATEGORY_BUTTON_WIDTH;
+		}
 	}
 	
 	//endregion
@@ -487,10 +515,9 @@ public class ClassicConfigGUI
 					if (this.textPosition == EConfigCommentTextPosition.RIGHT_JUSTIFIED)
 					{
 						// text right justified aligned against the buttons
-						textXPos = this.gui.width
+						textXPos = ConfigScreenConfigs.getOptionsRightEdge(this.gui.width)
 								- translatedLength
 								- ConfigScreenConfigs.SPACE_BETWEEN_TEXT_AND_OPTION_FIELD
-								- ConfigScreenConfigs.SPACE_FROM_RIGHT_SCREEN
 								- ConfigScreenConfigs.OPTION_FIELD_WIDTH
 								- ConfigScreenConfigs.BUTTON_WIDTH_SPACING
 								- ConfigScreenConfigs.RESET_BUTTON_WIDTH;
@@ -498,10 +525,9 @@ public class ClassicConfigGUI
 					else if (this.textPosition == EConfigCommentTextPosition.CENTERED_OVER_BUTTONS)
 					{
 						// have button centered relative to a category button
-						textXPos = this.gui.width
-								- (translatedLength / 2)
-								- (ConfigScreenConfigs.CATEGORY_BUTTON_WIDTH / 2)
-								- ConfigScreenConfigs.SPACE_FROM_RIGHT_SCREEN;
+						textXPos = ConfigScreenConfigs.getCategoryButtonX(this.gui.width)
+								+ (ConfigScreenConfigs.CATEGORY_BUTTON_WIDTH / 2)
+								- (translatedLength / 2);
 					}
 					else if (this.textPosition == EConfigCommentTextPosition.CENTER_OF_SCREEN)
 					{
