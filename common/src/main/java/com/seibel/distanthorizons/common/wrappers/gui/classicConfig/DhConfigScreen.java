@@ -992,15 +992,15 @@ class DhConfigScreen extends DhScreen
 		}
 		
 		#if MC_VER <= MC_1_12_2
-		this.renderTooltip(mouseX, mouseY, delta);
-		#else
-		this.renderTooltip(matrices, mouseX, mouseY, delta);
-		#endif
-		
-		#if MC_VER <= MC_1_12_2
 		super.drawScreen(mouseX, mouseY, delta);
 		#elif MC_VER < MC_1_20_2
 		super.render(matrices, mouseX, mouseY, delta);
+		#endif
+		
+		#if MC_VER <= MC_1_12_2
+		this.renderTooltip(mouseX, mouseY, delta);
+		#else
+		this.renderTooltip(matrices, mouseX, mouseY, delta);
 		#endif
 	}
 	
