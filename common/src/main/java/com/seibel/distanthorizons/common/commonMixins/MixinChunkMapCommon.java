@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 public class MixinChunkMapCommon
 {
+	#if MC_VER > MC_1_7_10
 	#if MC_VER <= MC_1_12_2
 	public static void onChunkSave(WorldServer level, Chunk chunk)
 	#else
@@ -110,5 +111,6 @@ public class MixinChunkMapCommon
 			levelWrapper
 		);
 	}
-	
+	#endif
+
 }
