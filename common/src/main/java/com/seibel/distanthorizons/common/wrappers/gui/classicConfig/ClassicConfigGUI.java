@@ -11,6 +11,7 @@ import com.seibel.distanthorizons.core.config.types.*;
 import com.seibel.distanthorizons.core.config.types.enums.EConfigCommentTextPosition;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.config.IConfigGui;
+import journeymap.client.forge.helper.impl.ColorHelper_1_7_10;
 import net.minecraft.client.Minecraft;
 #if MC_VER <= MC_1_12_2
 import net.minecraft.client.gui.*;
@@ -28,6 +29,7 @@ import net.minecraft.network.chat.Component;
 #endif
 import com.seibel.distanthorizons.core.logging.DhLogger;
 
+import net.minecraft.client.renderer.Tessellator;
 import org.jetbrains.annotations.NotNull;
 
 #if MC_VER <= MC_1_12_2
@@ -375,7 +377,9 @@ public class ClassicConfigGUI
 		
 		
 		@Override
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, Tessellator tessellator, int mouseX, int mouseY, boolean isSelected)
+		#elif MC_VER <= MC_1_12_2
 		public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float tickDelta)
         #elif MC_VER < MC_1_20_1
 		public void render(PoseStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta)
@@ -546,8 +550,10 @@ public class ClassicConfigGUI
 		}
 		
 		#if MC_VER <= MC_1_12_2
+		#if MC_VER > MC_1_7_10
 		@Override
 		public void updatePosition(int slotIndex, int x, int y, float partialTicks) { }
+		#endif
 		
 		@Override
 		public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY)

@@ -49,6 +49,7 @@ public class MixinOptionsScreen extends GuiScreen {
     private void lodconfig$init(CallbackInfo ci) {
         if (Config.Client.showDhOptionsButtonInMinecraftUi.get()) this.buttonList.add(
             (new TexturedButtonWidget(
+	            button_id,
                 // Where the button is on the screen
                 this.width / 2 - 180,
                 this.height / 6 - 12,
@@ -65,11 +66,11 @@ public class MixinOptionsScreen extends GuiScreen {
                 40,
                 // Create the button and tell it where to go
                 // For now it goes to the client option by default
-                button_id,
                 // Add a title to the button
                 "DH" /* ModInfo.ID + ".title" */)));
 
     }
+
 
     @Inject(at = @At("HEAD"), method = "actionPerformed", cancellable = true)
     private void lodconfig$actionPerformed(GuiButton button, CallbackInfo ci) {

@@ -728,7 +728,7 @@ class DhConfigScreen extends DhScreen
 			{
 				// text box input
 				#if MC_VER <= MC_1_12_2
-				GuiTextField widget = new GuiTextField(0, #if MC_VER <= MC_1_7_10 this.fontRendererObj #else this.fontRenderer #endif,
+				GuiTextField widget = new GuiTextField( #if MC_VER <= MC_1_7_10 this.fontRendererObj #else 0, this.fontRenderer #endif,
 					optionFieldPosX, optionFieldPosZ,
 					ClassicConfigGUI.ConfigScreenConfigs.OPTION_FIELD_WIDTH - 4, ClassicConfigGUI.ConfigScreenConfigs.CATEGORY_BUTTON_HEIGHT);
 				widget.setMaxStringLength(3_000_000); // hopefully 3 million characters should be enough for any normal use-case, lol
@@ -1172,7 +1172,9 @@ class DhConfigScreen extends DhScreen
 	public void handleMouseInput() #if MC_VER > MC_1_7_10 throws java.io.IOException #endif
 	{
 		super.handleMouseInput();
+		#if MC_VER > MC_1_7_10
 		this.configListWidget.handleMouseInput();
+		#endif
 	}
 	#endif
 	

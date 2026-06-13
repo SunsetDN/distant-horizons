@@ -186,7 +186,7 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
         LongOpenHashSet pendingChunks = chunksPendingResetByWorld.get(event.world);
         long chunkKey = ChunkCoordIntPair.chunkXZ2Int(chunk.xPosition, chunk.zPosition);
         if (pendingChunks != null && pendingChunks.remove(chunkKey)) {
-            BatchGenerator generator = (BatchGenerator) WorldGeneratorInjector.INSTANCE.get(levelWrapper);
+            /*BatchGenerator generator = (BatchGenerator) WorldGeneratorInjector.INSTANCE.get(levelWrapper);
             if (generator != null) {
                 BatchGenerationEnvironment batchGenerationEnvironment = (BatchGenerationEnvironment) generator.generationEnvironment;
 
@@ -195,7 +195,7 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
                     batchGenerationEnvironment.internalServerGenerator.updateManager
                         .removePosToIgnore(new DhChunkPos(chunk.xPosition, chunk.zPosition));
                 }
-            }
+            }*/
             if (ForgeMain.isHodgePodgeInstalled) {
                 HodgePodgeCompat.preventChunkSimulation(event.world, chunk.xPosition, chunk.zPosition, false);
             }

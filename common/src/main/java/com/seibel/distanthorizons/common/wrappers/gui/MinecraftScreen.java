@@ -274,7 +274,9 @@ public class MinecraftScreen
 			#else
 			super(minecraftClient, canvasWidth, canvasHeight - (topMargin + botMargin), topMargin, itemSpacing);
 			#endif
+			#if MC_VER > MC_1_7_10
 			this.centerListVertically = false;
+			#endif
 		}
 		
 		#if MC_VER <= MC_1_12_2

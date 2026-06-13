@@ -26,6 +26,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 #endif
 import com.seibel.distanthorizons.core.logging.DhLogger;
+import net.minecraft.client.renderer.Tessellator;
 
 
 #if MC_VER >= MC_1_17_1
@@ -235,7 +236,9 @@ public class ChangelogScreen extends DhScreen
 		}
 		
 		int maxScroll;
-		#if MC_VER <= MC_1_21_3
+		#if MC_VER <= MC_1_7_10
+		maxScroll = this.changelogArea.func_148135_f();
+		#elif MC_VER <= MC_1_21_3
 		maxScroll = this.changelogArea.getMaxScroll();
 		#else
 		maxScroll = this.changelogArea.maxScrollAmount();
@@ -404,9 +407,12 @@ public class ChangelogScreen extends DhScreen
 		{ return new ButtonEntry(text); }
 		
 		@Override
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, Tessellator tessellator, int mouseX, int mouseY, boolean isSelected)
+		{ textRenderer.drawString(text, 12, y + 5, 0xFFFFFF); }
+		#elif MC_VER <= MC_1_12_2
 		public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float tickDelta)
-		{ textRenderer.drawString(#if MC_VER <= MC_1_7_10 text #else text.getFormattedText() #endif, 12, y + 5, 0xFFFFFF); }
+		{ textRenderer.drawString(text.getFormattedText(), 12, y + 5, 0xFFFFFF); }
         #elif MC_VER < MC_1_20_1
 		public void render(PoseStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta)
 		{ GuiComponent.drawString(matrices, textRenderer, text, 12, y + 5, 0xFFFFFF); }
@@ -432,8 +438,10 @@ public class ChangelogScreen extends DhScreen
 		#endif
 		
 		#if MC_VER <= MC_1_12_2
+		#if MC_VER > MC_1_7_10
 		@Override
 		public void updatePosition(int slotIndex, int x, int y, float partialTicks) { }
+		#endif
 
 		@Override
 		public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY) { return false; }

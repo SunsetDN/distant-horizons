@@ -26,6 +26,7 @@ import com.seibel.distanthorizons.api.interfaces.world.IDhApiLevelWrapper;
 import com.seibel.distanthorizons.api.interfaces.factories.IDhApiWrapperFactory;
 import com.seibel.distanthorizons.common.wrappers.block.BiomeWrapper;
 import com.seibel.distanthorizons.common.wrappers.block.BlockStateWrapper;
+import com.seibel.distanthorizons.common.wrappers.block.FakeBlockState;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import com.seibel.distanthorizons.common.wrappers.world.ClientLevelWrapper;
 import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
@@ -363,7 +364,15 @@ public class WrapperFactory implements IWrapperFactory
 		}
 		#endif
 		
-		#if MC_VER < MC_1_18_2
+		#if MC_VER <= MC_1_7_10
+		if (!(objectArray[0] instanceof BiomeGenBase))
+		{
+			throw new ClassCastException(createBiomeWrapperErrorMessage(objectArray));
+		}
+		
+		BiomeGenBase biome = (BiomeGenBase) objectArray[0];
+		return BiomeWrapper.getBiomeWrapper(biome, coreLevelWrapper);
+		#elif MC_VER < MC_1_18_2
 		if (!(objectArray[0] instanceof Biome))
 		{
 			throw new ClassCastException(createBiomeWrapperErrorMessage(objectArray));
@@ -389,7 +398,9 @@ public class WrapperFactory implements IWrapperFactory
 	{
 		String[] expectedClassNames;
 		
-		#if MC_VER < MC_1_18_2
+		#if MC_VER <= MC_1_7_10
+		expectedClassNames = new String[] { BiomeGenBase.class.getName() };
+		#elif MC_VER < MC_1_18_2
 		expectedClassNames = new String[] { Biome.class.getName() };
 		#else
 		expectedClassNames = new String[] { Holder.class.getName()+"<"+Biome.class.getName()+">" };
@@ -415,7 +426,9 @@ public class WrapperFactory implements IWrapperFactory
 		}
 		
 		boolean blockClassCorrect;
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		blockClassCorrect = (objectArray[0] instanceof FakeBlockState);
+		#elif MC_VER <= MC_1_12_2
 		blockClassCorrect = (objectArray[0] instanceof IBlockState);
 		#else
 		blockClassCorrect = (objectArray[0] instanceof BlockState);
@@ -425,7 +438,10 @@ public class WrapperFactory implements IWrapperFactory
 			throw new ClassCastException(createBlockStateWrapperErrorMessage(objectArray));
 		}
 		
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		FakeBlockState blockState = (FakeBlockState) objectArray[0];
+		return BlockStateWrapper.fromBlockAndMeta(blockState.block, blockState.meta, coreLevelWrapper);
+		#elif MC_VER <= MC_1_12_2
 		IBlockState blockState = (IBlockState) objectArray[0];
 		return BlockStateWrapper.fromBlockState(blockState, coreLevelWrapper);
 		#else
@@ -441,7 +457,9 @@ public class WrapperFactory implements IWrapperFactory
 	{
 		String[] expectedClassNames;
 		
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		expectedClassNames = new String[] { FakeBlockState.class.getName() };
+		#elif MC_VER <= MC_1_12_2
 		expectedClassNames = new String[] { IBlockState.class.getName() };
 		#elif MC_VER <= MC_1_17_1
 		expectedClassNames = new String[] { Biome.class.getName() };
