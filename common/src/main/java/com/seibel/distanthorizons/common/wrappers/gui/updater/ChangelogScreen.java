@@ -13,8 +13,10 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiListExtended;
 import net.minecraft.client.gui.GuiScreen;
+#if MC_VER > MC_1_7_10
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.text.ITextComponent;
+#endif
 #else
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -315,16 +317,18 @@ public class ChangelogScreen extends DhScreen
 			super(minecraftClient, canvasWidth, canvasHeight - (topMargin + botMargin), topMargin, itemSpacing);
 			#endif
 			
+			#if MC_VER > MC_1_7_10
 			this.centerListVertically = false;
+			#endif
 			#if MC_VER <= MC_1_12_2
-			this.textRenderer = minecraftClient.fontRenderer;
+			this.textRenderer = #if MC_VER <= MC_1_7_10 minecraftClient.fontRenderer #else minecraftClient.fontRenderer #endif;
 			#else
 			this.textRenderer = minecraftClient.font;
 			#endif
 		}
 		
 		#if MC_VER <= MC_1_12_2
-		public void addButton(ITextComponent text)
+		public void addButton(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text)
 		#else
 		public void addButton(Component text)
 		#endif
@@ -375,7 +379,7 @@ public class ChangelogScreen extends DhScreen
 		#endif
 		
 		#if MC_VER <= MC_1_12_2
-		private final ITextComponent text;
+		private final #if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text;
 		#else
 		private final Component text;
 		#endif
@@ -387,13 +391,13 @@ public class ChangelogScreen extends DhScreen
 		#endif
 		
 		#if MC_VER <= MC_1_12_2
-		private ButtonEntry(ITextComponent text) { this.text = text; }
+		private ButtonEntry(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text) { this.text = text; }
 		#else
 		private ButtonEntry(Component text) { this.text = text; }
 		#endif
 		
 		#if MC_VER <= MC_1_12_2
-		public static ButtonEntry create(ITextComponent text)
+		public static ButtonEntry create(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text)
 		#else
 		public static ButtonEntry create(Component text)
 		#endif
@@ -402,7 +406,7 @@ public class ChangelogScreen extends DhScreen
 		@Override
 		#if MC_VER <= MC_1_12_2
 		public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float tickDelta)
-		{ textRenderer.drawString(text.getFormattedText(), 12, y + 5, 0xFFFFFF); }
+		{ textRenderer.drawString(#if MC_VER <= MC_1_7_10 text #else text.getFormattedText() #endif, 12, y + 5, 0xFFFFFF); }
         #elif MC_VER < MC_1_20_1
 		public void render(PoseStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta)
 		{ GuiComponent.drawString(matrices, textRenderer, text, 12, y + 5, 0xFFFFFF); }
