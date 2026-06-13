@@ -8,7 +8,10 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
+#if MC_VER <= MC_1_7_10
+#else
 import net.minecraft.util.text.TextComponentString;
+#endif
 #else
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
