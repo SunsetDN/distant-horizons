@@ -23,12 +23,12 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.chunk.IChunkWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IC2meAccessor;
 import com.seibel.distanthorizons.coreapi.ModInfo;
 
-import com.seibel.distanthorizons.forge.HodgePodgeCompat;
 import org.jetbrains.annotations.Nullable;
 #if MC_VER <= MC_1_7_10
+import com.seibel.distanthorizons.forge.HodgePodgeCompat;
 import com.seibel.distanthorizons.forge.ForgeMain;
 import com.seibel.distanthorizons.forge.ForgeServerProxy;
-import copy.com.gtnewhorizons.angelica.compat.mojang.ChunkPos;
+import com.seibel.distanthorizons.common.util.ChunkPos;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;

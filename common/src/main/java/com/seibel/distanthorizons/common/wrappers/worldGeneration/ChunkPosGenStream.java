@@ -1,7 +1,7 @@
 package com.seibel.distanthorizons.common.wrappers.worldGeneration;
 
 #if MC_VER <= MC_1_7_10
-import copy.com.gtnewhorizons.angelica.compat.mojang.ChunkPos;
+import com.seibel.distanthorizons.common.util.ChunkPos;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.util.math.ChunkPos;
 #else

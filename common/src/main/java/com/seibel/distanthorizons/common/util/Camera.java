@@ -1,5 +1,5 @@
-package copy.com.gtnewhorizons.angelica.compat.mojang;
-
+package com.seibel.distanthorizons.common.util;
+#if MC_VER <= MC_1_7_10
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MathHelper;
@@ -10,9 +10,10 @@ import org.joml.Vector4f;
 
 import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
 import com.seibel.distanthorizons.RenderHelper;
+#endif
 
 public class Camera {
-
+	#if MC_VER <= MC_1_7_10
     final Vector3d pos = new Vector3d();
     final BlockPos blockPos = new BlockPos();
     float pitch;
@@ -44,5 +45,5 @@ public class Camera {
         thirdPerson = Minecraft.getMinecraft().gameSettings.thirdPersonView == 1;
 
     }
-
+	#endif
 }

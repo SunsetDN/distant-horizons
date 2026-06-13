@@ -28,7 +28,7 @@ import com.seibel.distanthorizons.core.util.math.DhMat4f;
 
 #if MC_VER <= MC_1_7_10
 import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
-import copy.com.gtnewhorizons.angelica.compat.mojang.ChunkPos;
+import com.seibel.distanthorizons.common.util.ChunkPos;
 import net.minecraftforge.common.util.ForgeDirection;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.util.EnumFacing;

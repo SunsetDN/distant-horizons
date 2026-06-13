@@ -1,10 +1,11 @@
-package copy.com.gtnewhorizons.angelica.compat.mojang;
+package com.seibel.distanthorizons.common.util;
 
+#if MC_VER <= MC_1_7_10
 import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
+#endif
 
-// See if we can merge/mixin/extend ChunkCoordIntPair?
 public class ChunkPos {
-
+	#if MC_VER <= MC_1_7_10
     public static long INT_MASK = (1L << Integer.SIZE) - 1;
 
     public final int x;
@@ -58,4 +59,5 @@ public class ChunkPos {
         }
         return false;
     }
+    #endif
 }

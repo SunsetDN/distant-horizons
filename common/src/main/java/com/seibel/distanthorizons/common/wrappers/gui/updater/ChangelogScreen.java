@@ -26,14 +26,15 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 #endif
 import com.seibel.distanthorizons.core.logging.DhLogger;
-import net.minecraft.client.renderer.Tessellator;
 
 
 #if MC_VER >= MC_1_17_1
 import net.minecraft.client.gui.narration.NarratableEntry;
 #endif
 
-#if MC_VER <= MC_1_12_2
+#if MC_VER <= MC_1_7_10
+import net.minecraft.client.renderer.Tessellator;
+#elif MC_VER <= MC_1_12_2
 #elif MC_VER < MC_1_20_1
 import net.minecraft.client.gui.GuiComponent;
 import com.mojang.blaze3d.vertex.PoseStack;
