@@ -406,7 +406,30 @@ public class InternalServerGenerator
 			provider.loadChunk(x, z);
 		}
 	}
+
+	private static void queueUnloadIfNotWatched(WorldServer level, ChunkProviderServer provider, int x, int z)
+	{
+		if (!level.getPlayerManager().func_152621_a(x, z))
+		{
+			provider.unloadChunksIfNotNearSpawn(x, z);
+		}
+	}
 	#endif
+
+	private void scheduleRemovePosToIgnore(DhChunkPos chunkPos)
+	{
+		this.chunkSaveIgnoreTimer.schedule(new TimerTask()
+		{
+			@Override
+			public void run()
+			{
+				if (InternalServerGenerator.this.updateManager != null)
+				{
+					InternalServerGenerator.this.updateManager.removePosToIgnore(chunkPos);
+				}
+			}
+		}, MS_TO_IGNORE_CHUNK_AFTER_COMPLETION);
+	}
 
 	#if MC_VER <= MC_1_12_2
 	private CompletableFuture<Chunk> requestChunkFromServerAsync(ChunkPos chunkPos)
@@ -549,14 +572,20 @@ public class InternalServerGenerator
 		#if MC_VER <= MC_1_7_10
 		return ForgeServerProxy.schedule(false, () ->
 		{
-			ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x, chunkPos.z));
-
+			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
 			for (int dx = -1; dx <= 1; dx++)
 			{
 				for (int dz = -1; dz <= 1; dz++)
 				{
-					if (dx == 0 && dz == 0) continue;
-					ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x + dx, chunkPos.z + dz));
+					int x = chunkPos.x + dx;
+					int z = chunkPos.z + dz;
+					ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(x, z));
+					if (ForgeMain.isHodgePodgeInstalled)
+					{
+						HodgePodgeCompat.preventChunkSimulation(level, x, z, false);
+					}
+					queueUnloadIfNotWatched(level, provider, x, z);
+					this.scheduleRemovePosToIgnore(new DhChunkPos(x, z));
 				}
 			}
 
@@ -598,17 +627,7 @@ public class InternalServerGenerator
 				
 				// give MC a few seconds to save the chunk before
 				// we can process update events there again
-				this.chunkSaveIgnoreTimer.schedule(new TimerTask()
-				{
-					@Override
-					public void run()
-					{
-						if (InternalServerGenerator.this.updateManager != null)
-						{
-							InternalServerGenerator.this.updateManager.removePosToIgnore(McObjectConverter.Convert(chunkPos));
-						}
-					}
-				}, MS_TO_IGNORE_CHUNK_AFTER_COMPLETION);
+				this.scheduleRemovePosToIgnore(McObjectConverter.Convert(chunkPos));
 				
 			}
 			catch (Exception e)

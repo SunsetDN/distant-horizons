@@ -1,8 +1,6 @@
 package com.seibel.distanthorizons.forge;
 
-import java.util.IdentityHashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -10,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
@@ -25,21 +22,16 @@ import com.seibel.distanthorizons.common.util.ProxyUtil;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import com.seibel.distanthorizons.common.wrappers.misc.ServerPlayerWrapper;
 import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
-import com.seibel.distanthorizons.common.wrappers.worldGeneration.BatchGenerationEnvironment;
 import com.seibel.distanthorizons.core.api.internal.ServerApi;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
-import com.seibel.distanthorizons.core.generation.BatchGenerator;
-import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IServerPlayerWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapper;
-import com.seibel.distanthorizons.coreapi.DependencyInjection.WorldGeneratorInjector;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
 
@@ -98,7 +90,6 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
     }
 
     private static final Queue<ChunkLoadEvent> chunkLoadEvents = new ConcurrentLinkedQueue<>();
-    private static final Map<World, LongOpenHashSet> chunksPendingResetByWorld = new IdentityHashMap<>();
 
     // ServerTickEvent (at end)
     @SubscribeEvent
@@ -144,7 +135,6 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
     public void serverLevelLoadEvent(WorldEvent.Load event) {
         if (GetEventLevel(event) instanceof WorldServer) {
             this.serverApi.serverLevelLoadEvent(getServerLevelWrapper((WorldServer) GetEventLevel(event)));
-            chunksPendingResetByWorld.put(event.world, new LongOpenHashSet());
         }
     }
 
@@ -156,7 +146,6 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
             this.serverApi.serverLevelUnloadEvent(new ServerLevelWrapper((WorldServer) GetEventLevel(event)));
         }
         chunkLoadEvents.removeIf(x -> x.level.getWrappedMcObject() == event.world);
-        chunksPendingResetByWorld.remove(event.world);
     }
 
     @SubscribeEvent
@@ -182,38 +171,6 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
         Chunk chunk = event.getChunk();
         ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, levelWrapper);
         ServerApi.INSTANCE.serverChunkSaveEvent(chunkWrapper, levelWrapper);
-
-        LongOpenHashSet pendingChunks = chunksPendingResetByWorld.get(event.world);
-        long chunkKey = ChunkCoordIntPair.chunkXZ2Int(chunk.xPosition, chunk.zPosition);
-        if (pendingChunks != null && pendingChunks.remove(chunkKey)) {
-            /*BatchGenerator generator = (BatchGenerator) WorldGeneratorInjector.INSTANCE.get(levelWrapper);
-            if (generator != null) {
-                BatchGenerationEnvironment batchGenerationEnvironment = (BatchGenerationEnvironment) generator.generationEnvironment;
-
-                if (batchGenerationEnvironment != null
-                    && batchGenerationEnvironment.internalServerGenerator.updateManager != null) {
-                    batchGenerationEnvironment.internalServerGenerator.updateManager
-                        .removePosToIgnore(new DhChunkPos(chunk.xPosition, chunk.zPosition));
-                }
-            }*/
-            if (ForgeMain.isHodgePodgeInstalled) {
-                HodgePodgeCompat.preventChunkSimulation(event.world, chunk.xPosition, chunk.zPosition, false);
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public void serverChunkUnLoadEvent(ChunkEvent.Unload event) {
-        if (!(event.world instanceof WorldServer)) {
-            return;
-        }
-        Chunk chunk = event.getChunk();
-
-        LongOpenHashSet pendingChunks = chunksPendingResetByWorld.get(event.world);
-        if (pendingChunks != null) {
-            // Unload comes before save in 1.7.10... Store it for handling in next save
-            pendingChunks.add(ChunkCoordIntPair.chunkXZ2Int(chunk.xPosition, chunk.zPosition));
-        }
     }
 
     @SubscribeEvent
