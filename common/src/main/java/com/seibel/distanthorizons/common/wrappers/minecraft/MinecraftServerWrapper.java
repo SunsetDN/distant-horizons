@@ -11,6 +11,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 #else
 import net.minecraft.world.WorldServer;
+#if MC_VER <= MC_1_7_10
+import net.minecraftforge.common.DimensionManager;
+#endif
 #endif
 
 #if  MC_VER <= MC_1_12_2
@@ -62,7 +65,11 @@ public class MinecraftServerWrapper extends AbstractMinecraftSharedWrapper
 		}
 		
 		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		return new File(".");
+		#else
 		return this.dedicatedServer.getDataDirectory();
+		#endif
 		#elif MC_VER < MC_1_21_1
 		return this.dedicatedServer.getServerDirectory();
 		#else
@@ -101,7 +108,11 @@ public class MinecraftServerWrapper extends AbstractMinecraftSharedWrapper
 		{
 			return null;
 		}
+		#if MC_VER <= MC_1_7_10
+		WorldServer mcLevel = DimensionManager.getWorld(dimensionKey);
+		#else
 		WorldServer mcLevel = dedicatedServer.getWorld(dimensionKey);
+		#endif
 		#else
 		ResourceKey<Level> dimensionKey = this.deserializeDimensionResourceKey(dimensionResourceLocation);
 		ServerLevel mcLevel = dedicatedServer.getLevel(dimensionKey);
