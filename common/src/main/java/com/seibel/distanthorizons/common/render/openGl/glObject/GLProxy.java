@@ -174,11 +174,13 @@ public class GLProxy
 		}
 	 	LOGGER.info("minecraftGlCapabilities:\n" + this.versionInfoToString(this.glCapabilities));
 		
+		#if MC_VER > MC_1_7_10
+		// Disabled since it causes JVM to never exit in 1.7.10
 		if (Config.Client.Advanced.Debugging.OpenGl.overrideVanillaGLLogger.get())
 		{
 			GLUtil.setupDebugMessageCallback(new PrintStream(new GLMessageOutputStream(GLProxy::logMessage, this.vanillaDebugMessageBuilder), true));
 		}
-		
+		#endif
 		
 		
 		//======================//
