@@ -33,6 +33,27 @@ minecraft {
     // extraRunJvmArguments.addAll("-Dlegacy.debugClassLoading=true", "-Dlegacy.debugClassLoadingFiner=false", "-Dlegacy.debugClassLoadingSave=true")
 }
 
+// GTNHGradle creates several resolvable configurations (java17Dependencies in
+// ModernJavaModule; shadowImplementation/shadeCompile/shadowCompile in ShadowModule)
+// without copying runtimeClasspath's attributes. extendsFrom only inherits dependencies,
+// not attributes, so libraryelements/usage/etc. end up unset. Without them Gradle can't
+// disambiguate the jar/classes/resources variants of plain Java projects like :core and
+// :api, and runClient*/shadowJar dependency resolution fails. Mirror runtimeClasspath's
+// attrs onto each affected config.
+afterEvaluate {
+    def src = configurations.runtimeClasspath.attributes
+    ["java17Dependencies", "shadowImplementation", "shadeCompile", "shadowCompile"].each { name ->
+        def cfg = configurations.findByName(name)
+        if (cfg == null) return
+        def dst = cfg.attributes
+        src.keySet().each { attr ->
+            if (dst.getAttribute(attr) == null) {
+                dst.attribute(attr, src.getAttribute(attr))
+            }
+        }
+    }
+}
+
 repositories {
     mavenLocal()
     maven {
