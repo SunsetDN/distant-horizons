@@ -329,22 +329,19 @@ public class MinecraftClientWrapper extends AbstractMinecraftSharedWrapper imple
 		
 		#if MC_VER <= MC_1_7_10
 		return new DhChunkPos(player.chunkCoordX, player.chunkCoordZ);
-		#else
-		#if MC_VER <= MC_1_12_2
+		#elif MC_VER <= MC_1_12_2
 		ChunkPos playerPos = new ChunkPos(player.getPosition());
 		return new DhChunkPos(playerPos.x, playerPos.z);
         #elif MC_VER < MC_1_17_1
         ChunkPos playerPos = new ChunkPos(player.blockPosition());
-        #else
+        return new DhChunkPos(playerPos.x, playerPos.z);
+        #elif MC_VER <= MC_1_21_11
 		ChunkPos playerPos = player.chunkPosition();
-        #endif
-		
-		#if MC_VER <= MC_1_21_11
 		return new DhChunkPos(playerPos.x, playerPos.z);
 		#else
+		ChunkPos playerPos = player.chunkPosition();
 		return new DhChunkPos(playerPos.x(), playerPos.z());
-		#endif
-		#endif
+        #endif
 	}
 	
 	//endregion
