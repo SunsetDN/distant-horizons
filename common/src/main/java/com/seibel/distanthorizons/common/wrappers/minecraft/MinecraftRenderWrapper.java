@@ -713,7 +713,14 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	//region
 	
 	@Override
+	#if MC_VER <= MC_1_7_10
+	// No mixin populates the map on 1.7.10 (LightMapWrapper.getOpenGlId() queries MC
+	// directly there, so the wrapper instance is effectively stateless). Lazy-create
+	// one per dimension to keep the same map semantics as the other loaders.
+	public ILightMapWrapper getLightmapWrapper(@NotNull ILevelWrapper level) { return this.lightmapByDimensionType.computeIfAbsent(level.getDimensionType(), k -> new LightMapWrapper()); }
+	#else
 	public ILightMapWrapper getLightmapWrapper(@NotNull ILevelWrapper level) { return this.lightmapByDimensionType.get(level.getDimensionType()); }
+	#endif
 	
 	/** 
 	 * It's better to use {@link MinecraftRenderWrapper#setLightmapId(int)} if possible,
