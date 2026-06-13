@@ -26,6 +26,27 @@ if (gradle.ext.minecraft_version != "1.7.10") {
     // forge17 run config up manually via idea-ext on the root project.
     apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
 
+    gradle.projectsEvaluated {
+        def forge17Project = project(':forge17')
+        def publishableDevJar = forge17Project.ext.publishableDevJar
+
+        def copyForge17MergedJar = tasks.register('copyForge17MergedJar', Copy) {
+            group = 'build'
+            description = 'Copies the 1.7.10 Forge jar to the same directory and naming convention used by Forgix.'
+            dependsOn(publishableDevJar)
+            from(publishableDevJar.flatMap { it.archiveFile })
+            into(layout.buildDirectory.dir('forgix'))
+            rename { "${mod_name}-${mod_version}-${minecraft_version}-${builds_for}.jar" }
+        }
+
+        tasks.named('assemble').configure {
+            dependsOn(copyForge17MergedJar)
+        }
+        tasks.named('build').configure {
+            dependsOn(copyForge17MergedJar)
+        }
+    }
+
     idea {
         project {
             settings {
