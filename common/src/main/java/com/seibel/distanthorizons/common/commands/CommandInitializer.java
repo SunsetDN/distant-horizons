@@ -8,10 +8,6 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
-#if MC_VER <= MC_1_7_10
-#else
-import net.minecraft.util.text.TextComponentString;
-#endif
 #else
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -48,6 +44,19 @@ public class CommandInitializer
 	{
 		return new CommandBase()
 		{
+			#if MC_VER <= MC_1_7_10
+			@Override
+			public String getCommandName() { return "dh"; }
+			
+			@Override
+			public String getCommandUsage(ICommandSender sender) { return "/dh <debug|config|pregen>"; }
+			
+			@Override
+			public void processCommand(ICommandSender sender, String[] args)
+			{
+				this.executeCommand(MinecraftServer.getServer(), sender, args);
+			}
+			#else
 			@Override
 			public String getName() { return "dh"; }
 			
@@ -57,15 +66,21 @@ public class CommandInitializer
 			@Override
 			public void execute(MinecraftServer server, ICommandSender sender, String[] args)
 			{
+				this.executeCommand(server, sender, args);
+			}
+			#endif
+			
+			private void executeCommand(MinecraftServer server, ICommandSender sender, String[] args)
+			{
 				if (args.length == 0)
 				{
 					if (DEBUG_CODEC_CRASH_MESSAGE)
 					{
-						sender.sendMessage(new TextComponentString("Usage: /dh <debug|config|crash|pregen>"));
+						AbstractCommand.sendMessage(sender, "Usage: /dh <debug|config|crash|pregen>");
 					}
 					else
 					{
-						sender.sendMessage(new TextComponentString("Usage: /dh <debug|config|pregen"));
+						AbstractCommand.sendMessage(sender, "Usage: /dh <debug|config|pregen>");
 					}
 					return;
 				}
@@ -90,14 +105,14 @@ public class CommandInitializer
 					case "pregen":
 						if (!server.isDedicatedServer())
 						{
-							sender.sendMessage(new TextComponentString("Pregen command is only available on dedicated servers"));
+							AbstractCommand.sendMessage(sender, "Pregen command is only available on dedicated servers");
 							break;
 						}
 						PregenCommand pregenCommand = new PregenCommand();
 						pregenCommand.execute(server, sender, args);
 						break;
 					default:
-						sender.sendMessage(new TextComponentString("Unknown subcommand: " + args[0]));
+						AbstractCommand.sendMessage(sender, "Unknown subcommand: " + args[0]);
 				}
 			}
 		};

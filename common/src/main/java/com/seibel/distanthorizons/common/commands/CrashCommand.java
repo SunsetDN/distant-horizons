@@ -8,7 +8,6 @@ import com.seibel.distanthorizons.core.network.messages.base.CodecCrashMessage;
 import com.seibel.distanthorizons.common.wrappers.misc.ServerPlayerWrapper;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.text.TextComponentString;
 #else
 import net.minecraft.commands.CommandSourceStack;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -24,13 +23,13 @@ public class CrashCommand extends AbstractCommand
 	{
 		if (!(sender instanceof EntityPlayerMP))
 		{
-			sender.sendMessage(new TextComponentString("This command can only be run by a player"));
+			sendMessage(sender, "This command can only be run by a player");
 			return;
 		}
 		
 		if (args.length < 2)
 		{
-			sender.sendMessage(new TextComponentString("Usage: /dh crash <encode|decode>"));
+			sendMessage(sender, "Usage: /dh crash <encode|decode>");
 			return;
 		}
 		
@@ -51,7 +50,7 @@ public class CrashCommand extends AbstractCommand
 				serverPlayerState.networkSession.sendMessage(new CodecCrashMessage(CodecCrashMessage.ECrashPhase.DECODE));
 				break;
 			default:
-				sender.sendMessage(new TextComponentString("Usage: /dh crash <encode|decode>"));
+				sendMessage(sender, "Usage: /dh crash <encode|decode>");
 		}
 	}
 	#else

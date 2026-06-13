@@ -1,7 +1,24 @@
 package com.seibel.distanthorizons.common.commands;
 
 #if MC_VER <= MC_1_12_2
-public abstract class AbstractCommand {}
+import net.minecraft.command.ICommandSender;
+#if MC_VER <= MC_1_7_10
+import net.minecraft.util.ChatComponentText;
+#else
+import net.minecraft.util.text.TextComponentString;
+#endif
+
+public abstract class AbstractCommand
+{
+	protected static void sendMessage(ICommandSender sender, String message)
+	{
+		#if MC_VER <= MC_1_7_10
+		sender.addChatMessage(new ChatComponentText(message));
+		#else
+		sender.sendMessage(new TextComponentString(message));
+		#endif
+	}
+}
 
 #else
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;

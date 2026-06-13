@@ -6,7 +6,6 @@ import com.seibel.distanthorizons.core.config.types.ConfigEntry;
 
 #if MC_VER <= MC_1_12_2
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.text.TextComponentString;
 #else
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -54,7 +53,7 @@ public class ConfigCommand extends AbstractCommand
 	{
 		if (args.length < 2)
 		{
-			sender.sendMessage(new TextComponentString("Usage: /dh config <name> [value]"));
+			sendMessage(sender, "Usage: /dh config <name> [value]");
 			return;
 		}
 		
@@ -71,14 +70,14 @@ public class ConfigCommand extends AbstractCommand
 		
 		if (found == null)
 		{
-			sender.sendMessage(new TextComponentString("Unknown config: " + configName));
+			sendMessage(sender, "Unknown config: " + configName);
 			return;
 		}
 		
 		ConfigEntry<?> configEntry = (ConfigEntry<?>) found;
 		if (args.length == 2)
 		{
-			sender.sendMessage(new TextComponentString("Current value of " + configName + " is " + configEntry.get()));
+			sendMessage(sender, "Current value of " + configName + " is " + configEntry.get());
 		}
 		else
 		{
@@ -86,11 +85,11 @@ public class ConfigCommand extends AbstractCommand
 			try
 			{
 				setConfigValue(configEntry, value);
-				sender.sendMessage(new TextComponentString("Changed " + configName + " to " + value));
+				sendMessage(sender, "Changed " + configName + " to " + value);
 			}
 			catch (Exception e)
 			{
-				sender.sendMessage(new TextComponentString("Invalid value: " + value));
+				sendMessage(sender, "Invalid value: " + value);
 			}
 		}
 	}

@@ -43,6 +43,8 @@ import java.util.function.Supplier;
 #if MC_VER > MC_1_12_2
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
+#else
+import net.minecraft.command.ServerCommandManager;
 #endif
 
 /**
@@ -154,12 +156,16 @@ public abstract class AbstractModInitializer
 			this.postServerInit();
 			#if MC_VER > MC_1_12_2
 			this.commandInitializer.onServerReady();
+			#else
+			((ServerCommandManager) server.getCommandManager()).registerCommand(CommandInitializer.initCommands());
 			#endif
 			
 			this.checkForUpdates();
 			
 			String serverFolderPath;
-			#if MC_VER <= MC_1_12_2
+			#if MC_VER <= MC_1_7_10
+			serverFolderPath = ".";
+			#elif MC_VER <= MC_1_12_2
 			serverFolderPath = server.getDataDirectory() + "";
 			#else
 			serverFolderPath = server.getServerDirectory() + "";
