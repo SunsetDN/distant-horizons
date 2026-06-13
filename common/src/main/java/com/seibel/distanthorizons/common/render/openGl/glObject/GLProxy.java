@@ -34,7 +34,9 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftCli
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import com.seibel.distanthorizons.coreapi.ModInfo;
+#if MC_VER > MC_1_7_10
 import org.lwjgl.glfw.GLFW;
+#endif
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL32;
 import org.lwjgl.opengl.GLCapabilities;
@@ -137,7 +139,7 @@ public class GLProxy
 		
 		
 		// this must be created on minecraft's render context to work correctly
-		if (GLFW.glfwGetCurrentContext() == 0L)
+		if (runningOnRenderThread())
 		{
 			String message = "[" + GLProxy.class.getSimpleName() + "] was created outside the render thread!";
 			IllegalStateException exception = new IllegalStateException(message);
@@ -261,8 +263,22 @@ public class GLProxy
 	
 	public static boolean runningOnRenderThread()
 	{
-		long currentContext = GLFW.glfwGetCurrentContext();
-		return currentContext != 0L; // if the context isn't null, it's the MC context
+		#if MC_VER <= MC_1_7_10
+			// lwjgl3ify on 1.7.10 provides LWJGL 3 but strips out GLFW (windowing still goes through Display).
+			// GL.getCapabilities() reads the per-thread GLCapabilities slot LWJGL 3 sets when a context is
+			// made current, and throws IllegalStateException if none is set — same semantic as the GLFW check.
+			try
+			{
+				return GL.getCapabilities() != null;
+			}
+			catch (IllegalStateException e)
+			{
+				return false;
+			}
+		#else
+			long currentContext = GLFW.glfwGetCurrentContext();
+			return currentContext != 0L; // if the context isn't null, it's the MC context
+		#endif
 	}
 	
 	//endregion

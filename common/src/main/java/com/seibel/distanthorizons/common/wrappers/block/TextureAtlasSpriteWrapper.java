@@ -22,6 +22,10 @@ package com.seibel.distanthorizons.common.wrappers.block;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
+#if MC_VER <= MC_1_7_10
+import com.seibel.distanthorizons.interfaces.IMixinTextureAtlasSprite;
+#endif
+
 #if MC_VER < MC_1_17_1
 #elif MC_VER < MC_1_21_3
 #else
@@ -38,7 +42,18 @@ public class TextureAtlasSpriteWrapper
 {
 	public static int getPixelRGBA(TextureAtlasSprite sprite, int frameIndex, int x, int y)
 	{
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		// In 1.7.10 the sprite's pixel array isn't publicly accessible, so we rely on a Mixin
+		// (see forge17/.../MixinTextureAtlasSprite) which caches the base mipmap level in RGB-low order.
+		IMixinTextureAtlasSprite spriteExt = (IMixinTextureAtlasSprite) sprite;
+		int[] spriteData = spriteExt.distanthorizons$getSpriteData();
+		if (spriteData == null)
+		{
+			// missing texture sentinel (matches the magenta "missing" colour used elsewhere)
+			return 0xFFFF00FF;
+		}
+		return spriteData[sprite.getIconWidth() * y + x];
+		#elif MC_VER <= MC_1_12_2
 		int[][] frameData = sprite.getFrameTextureData(frameIndex);
 		return frameData[0][y * sprite.getIconWidth() + x];
         #elif MC_VER < MC_1_17_1

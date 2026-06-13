@@ -93,7 +93,12 @@ public class KeyedClientLevelManager implements IKeyedClientLevelManager
 		synchronized (this.keyedLevelsCache)
 		{
 			this.keyedLevelsCache.keySet().removeIf(level -> {
-	            #if MC_VER <= MC_1_12_2
+	            #if MC_VER <= MC_1_7_10
+	            // 1.7.10's WorldProvider has no DimensionType, so route through the wrapper
+	            // (which already knows the right way to derive the name on this MC version).
+	            IClientLevelWrapper wrappedLevel = ClientLevelWrapper.getWrapper(level, true);
+	            String levelDim = (wrappedLevel != null) ? wrappedLevel.getDimensionName() : null;
+	            #elif MC_VER <= MC_1_12_2
 	            String levelDim = level.provider.getDimensionType().getName() + ":" + level.provider.getDimension();
 	            #elif MC_VER <= MC_1_21_10
 				String levelDim = level.dimension().location().toString();

@@ -26,7 +26,11 @@ import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
 
-#if MC_VER <= MC_1_12_2
+#if MC_VER <= MC_1_7_10
+import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
+import copy.com.gtnewhorizons.angelica.compat.mojang.ChunkPos;
+import net.minecraftforge.common.util.ForgeDirection;
+#elif MC_VER <= MC_1_12_2
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -114,7 +118,9 @@ public class McObjectConverter
 	//===========//
 	//region
 	
-	#if MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_7_10
+	private static final ForgeDirection[] mcDirections;
+	#elif MC_VER <= MC_1_12_2
 	private static final EnumFacing[] mcDirections;
 	#else
 	private static final Direction[] mcDirections;
@@ -125,61 +131,77 @@ public class McObjectConverter
 	{
 		EDhDirection[] lodDirs = EDhDirection.values();
 		
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		mcDirections = new ForgeDirection[lodDirs.length];
+		#elif MC_VER <= MC_1_12_2
 		mcDirections = new EnumFacing[lodDirs.length];
 		#else
 		mcDirections = new Direction[lodDirs.length];
 		#endif
-		
+
 		dhDirections = new EDhDirection[lodDirs.length];
 		for (EDhDirection lodDir : lodDirs)
 		{
-			#if MC_VER <= MC_1_12_2 
+			#if MC_VER <= MC_1_7_10
+			ForgeDirection dir;
+			#elif MC_VER <= MC_1_12_2
 			EnumFacing dir;
-			#else 
-			Direction dir; 
+			#else
+			Direction dir;
 			#endif
 			switch (lodDir.name().toUpperCase())
 			{
 				case "DOWN":
-					#if MC_VER <= MC_1_12_2
+					#if MC_VER <= MC_1_7_10
+					dir = ForgeDirection.DOWN;
+					#elif MC_VER <= MC_1_12_2
 					dir = EnumFacing.DOWN;
-					#else 
+					#else
 					dir = Direction.DOWN;
 					#endif
 					break;
 				case "UP":
-					#if MC_VER <= MC_1_12_2
+					#if MC_VER <= MC_1_7_10
+					dir = ForgeDirection.UP;
+					#elif MC_VER <= MC_1_12_2
 					dir = EnumFacing.UP;
-					#else 
+					#else
 					dir = Direction.UP;
 					#endif
 					break;
 				case "NORTH":
-					#if MC_VER <= MC_1_12_2
+					#if MC_VER <= MC_1_7_10
+					dir = ForgeDirection.NORTH;
+					#elif MC_VER <= MC_1_12_2
 					dir = EnumFacing.NORTH;
-					#else 
+					#else
 					dir = Direction.NORTH;
 					#endif
 					break;
 				case "SOUTH":
-					#if MC_VER <= MC_1_12_2
+					#if MC_VER <= MC_1_7_10
+					dir = ForgeDirection.SOUTH;
+					#elif MC_VER <= MC_1_12_2
 					dir = EnumFacing.SOUTH;
-					#else 
+					#else
 					dir = Direction.SOUTH;
 					#endif
 					break;
 				case "WEST":
-					#if MC_VER <= MC_1_12_2
+					#if MC_VER <= MC_1_7_10
+					dir = ForgeDirection.WEST;
+					#elif MC_VER <= MC_1_12_2
 					dir = EnumFacing.WEST;
-					#else 
+					#else
 					dir = Direction.WEST;
 					#endif
 					break;
 				case "EAST":
-					#if MC_VER <= MC_1_12_2
+					#if MC_VER <= MC_1_7_10
+					dir = ForgeDirection.EAST;
+					#elif MC_VER <= MC_1_12_2
 					dir = EnumFacing.EAST;
-					#else 
+					#else
 					dir = Direction.EAST;
 					#endif
 					break;
@@ -197,18 +219,22 @@ public class McObjectConverter
 		}
 	}
 	
-	#if MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_7_10
+	public static ForgeDirection Convert(EDhDirection lodDirection)
+	#elif MC_VER <= MC_1_12_2
 	public static EnumFacing Convert(EDhDirection lodDirection)
 	#else
 	public static Direction Convert(EDhDirection lodDirection)
 	#endif
 	{ return mcDirections[lodDirection.ordinal()]; }
-	
-	
-	#if MC_VER <= MC_1_12_2
-	public static EDhDirection Convert(EnumFacing direction) 
+
+
+	#if MC_VER <= MC_1_7_10
+	public static EDhDirection Convert(ForgeDirection direction)
+	#elif MC_VER <= MC_1_12_2
+	public static EDhDirection Convert(EnumFacing direction)
 	#else
-	public static EDhDirection Convert(Direction direction) 
+	public static EDhDirection Convert(Direction direction)
 	#endif
 	{ return dhDirections[direction.ordinal()]; }
 	
