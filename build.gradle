@@ -28,13 +28,13 @@ if (gradle.ext.minecraft_version != "1.7.10") {
 
     gradle.projectsEvaluated {
         def forge17Project = project(':forge17')
-        def publishableDevJar = forge17Project.ext.publishableDevJar
+        def publishableObfJar = forge17Project.ext.publishableObfJar
 
         def copyForge17MergedJar = tasks.register('copyForge17MergedJar', Copy) {
             group = 'build'
             description = 'Copies the 1.7.10 Forge jar to the same directory and naming convention used by Forgix.'
-            dependsOn(publishableDevJar)
-            from(publishableDevJar.flatMap { it.archiveFile })
+            dependsOn(publishableObfJar)
+            from(publishableObfJar.flatMap { it.archiveFile })
             into(layout.buildDirectory.dir('forgix'))
             rename { "${mod_name}-${mod_version}-${minecraft_version}-${builds_for}.jar" }
         }
