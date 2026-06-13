@@ -70,15 +70,19 @@ dependencies {
     compileOnly "com.falsepattern:rple-mc1.7.10:2.1.0:api"
 }
 
-// Source-include :common ONLY in the main compileJava: it has Manifold's preprocessor
-// plugin active, so //#if / #if MC_VER directives in :common's sources are evaluated.
-// RFG's compileInjectedInterfacesJava handles only auto-generated interface stubs and
-// must not see :common's preprocessor-laden sources. Read via fileTree so :common
-// itself needs no plugin.
 def commonDir = project(":common").projectDir
-tasks.named('compileJava').configure {
-    source(fileTree("$commonDir/src/main/java") { include "**/*.java" })
+
+sourceSets {
+    main {
+        java {
+            srcDirs = [file("src/main/java"), file("${commonDir}/src/main/java")]
+        }
+        resources {
+            srcDirs = [file("src/main/resources"), file("${commonDir}/src/main/resources")]
+        }
+    }
 }
+
 processResources {
     from "$commonDir/src/main/resources"
 }
