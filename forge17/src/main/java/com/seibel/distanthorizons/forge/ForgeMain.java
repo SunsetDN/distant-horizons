@@ -167,7 +167,7 @@ public class ForgeMain extends AbstractModInitializer {
 
     @Override
     protected void subscribeClientStartedEvent(Runnable eventHandler) {
-        // FIXME What event is this?
+        eventHandler.run();
     }
 
     @Mod.EventHandler

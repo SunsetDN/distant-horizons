@@ -25,7 +25,6 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 import com.seibel.distanthorizons.MixinFlags;
 import com.seibel.distanthorizons.common.AbstractModInitializer;
-import com.seibel.distanthorizons.common.render.openGl.GlDhRenderApiDefinition;
 import com.seibel.distanthorizons.common.util.ProxyUtil;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
@@ -61,9 +60,6 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy {
             .bus()
             .register(this);
         ForgePluginPacketSender.setPacketHandler(ClientApi.INSTANCE::pluginMessageReceived);
-
-        GlDhRenderApiDefinition renderDefinition = new GlDhRenderApiDefinition();
-        renderDefinition.bindRenderers();
     }
 
     // ==============//
