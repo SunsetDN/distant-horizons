@@ -6,10 +6,10 @@ import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IServerPlayerWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapper;
 import com.seibel.distanthorizons.core.util.math.DhVec3d;
+import net.minecraft.server.MinecraftServer;
 #if MC_VER <= MC_1_12_2
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 #else
@@ -136,6 +136,13 @@ public class ServerPlayerWrapper implements IServerPlayerWrapper
 		#endif
 	}
 	
+	@Override
+	public int getVanillaRenderDistance()
+	{
+		MinecraftServer server = this.getServerPlayer().level().getServer();
+		return server.getPlayerList().getViewDistance();
+	}
+
 	//endregion
 	
 
