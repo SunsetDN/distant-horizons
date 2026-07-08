@@ -35,11 +35,14 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
 #if MC_VER <= MC_1_12_2
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 #else
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ProtoChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -733,7 +736,8 @@ public class ChunkWrapper implements IChunkWrapper
 			
 			//1.12.2 doesn't store lights we must bruteforce it
 			#if MC_VER <= MC_1_12_2
-			for (ExtendedBlockStorage section : this.chunk.getBlockStorageArray()) {
+			for (ExtendedBlockStorage section : this.chunk.getBlockStorageArray())
+			{
 				if (section == null || section.isEmpty())
 				{
 					continue;
@@ -776,6 +780,18 @@ public class ChunkWrapper implements IChunkWrapper
 		}
 		
 		return this.blockLightPosList;
+	}
+	
+	@Override
+	public int getBlockLight(int relX, int y, int relZ)
+	{
+		this.throwIndexOutOfBoundsIfRelativePosOutsideChunkBounds(relX, y, relZ);
+		#if MC_VER <= MC_1_12_2
+		return this.chunk.getLightFor(EnumSkyBlock.BLOCK, new BlockPos(relX, y, relZ));
+		#else
+		Level level = (Level) this.wrappedLevel.getWrappedMcObject();
+		return level.getBrightness(LightLayer.BLOCK, new BlockPos(relX, y, relZ));
+		#endif
 	}
 	
 	//endregion
