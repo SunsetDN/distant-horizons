@@ -88,11 +88,10 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 		
 		// nearest filtering keeps the blocky look and prevents
 		// texels bleeding between unrelated tiles on adjacent layers
-		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MIN_FILTER, GL32.GL_NEAREST);
+		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MIN_FILTER, GL32.GL_NEAREST_MIPMAP_LINEAR);
 		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MAG_FILTER, GL32.GL_NEAREST);
 		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_WRAP_S, GL32.GL_REPEAT);
 		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_WRAP_T, GL32.GL_REPEAT);
-		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MAX_LEVEL, 0);
 	}
 	
 	//endregion
@@ -152,7 +151,10 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 	}
 	
 	@Override
-	protected void afterWriteToTexture() { uploadGlState.close(); }
+	protected void afterWriteToTexture() {
+		GL32.glGenerateMipmap(GL32.GL_TEXTURE_2D);
+		uploadGlState.close();
+	}
 	
 	//endregion
 	
