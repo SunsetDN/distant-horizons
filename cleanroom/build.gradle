@@ -28,7 +28,7 @@ def addMod(path, enabled) {
 // ==================== Dependencies ====================
 
 dependencies {
-  
+    modRuntimeOnly("curse.maven:zume-927564:7983502")
 }
 
 

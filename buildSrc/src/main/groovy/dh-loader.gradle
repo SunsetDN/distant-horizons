@@ -211,6 +211,11 @@ configurations {
     
     common
     implementation.extendsFrom(common)
+
+    modCompileOnly
+    compileOnly.extendsFrom(modCompileOnly)
+    modRuntimeOnly
+    runtimeOnly.extendsFrom(modRuntimeOnly)
 }
 
 
