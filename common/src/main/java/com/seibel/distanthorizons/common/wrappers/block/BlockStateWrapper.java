@@ -1398,7 +1398,10 @@ public class BlockStateWrapper implements IBlockStateWrapper
 					#endif
 					{
 						String possibleStatePropertiesString = serializeBlockStateProperties(possibleState);
-						if (possibleStatePropertiesString.equals(blockStatePropertiesString))
+						
+						// ignoring case is important since the plugin may send properties
+						// that don't match with what MC gives us (Bukkit returns all lowercase)
+						if (possibleStatePropertiesString.equalsIgnoreCase(blockStatePropertiesString))
 						{
 							foundState = possibleState;
 							break;
