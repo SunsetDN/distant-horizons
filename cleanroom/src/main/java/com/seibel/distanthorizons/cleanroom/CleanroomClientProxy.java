@@ -73,7 +73,13 @@ public class CleanroomClientProxy implements AbstractModInitializer.IEventProxy
 	{
 		MinecraftForge.EVENT_BUS.register(this);
 		MinecraftForge.EVENT_BUS.register(FMLCommonHandler.instance());
-		CleanroomPluginPacketSender.setPacketHandler(ClientApi.INSTANCE::pluginMessageReceived);
+		
+		// handles singleplayer, LAN, and connecting to a server
+		PACKET_SENDER.setPacketHandler((IServerPlayerWrapper player, @NotNull AbstractNetworkMessage message) ->
+		{
+			ClientApi.INSTANCE.pluginMessageReceived(message);
+			ServerApi.INSTANCE.pluginMessageReceived(player, message);
+		});
 	}
 	
 	
