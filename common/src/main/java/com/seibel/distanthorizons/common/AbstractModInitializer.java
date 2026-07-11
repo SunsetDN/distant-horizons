@@ -326,7 +326,7 @@ public abstract class AbstractModInitializer
 				String message =
 					MinecraftTextFormat.ORANGE + "Distant Horizons: Alex's Cave detected." + MinecraftTextFormat.CLEAR_FORMATTING +
 								"You may have to change Alex's config for DH to render. ";
-				ClientApi.INSTANCE.showChatMessageNextFrame(message);
+				ClientApi.INSTANCE.queueChatMessage(message);
 			}
 			
 			LOGGER.warn(startingString + "[Alex's Caves] may require some config changes in order to render Distant Horizons correctly.");
@@ -356,7 +356,7 @@ public abstract class AbstractModInitializer
 				String message =
 					MinecraftTextFormat.ORANGE + "Distant Horizons: WWOO detected." + MinecraftTextFormat.CLEAR_FORMATTING + "\n" +
 								wwooWarning;
-				ClientApi.INSTANCE.showChatMessageNextFrame(message);
+				ClientApi.INSTANCE.queueChatMessage(message);
 			}
 			
 			LOGGER.warn(startingString + "[WWOO] "+ wwooWarning);
@@ -393,7 +393,7 @@ public abstract class AbstractModInitializer
 				String message =
 					MinecraftTextFormat.ORANGE + "Distant Horizons: Chunky detected." + MinecraftTextFormat.CLEAR_FORMATTING + "\n" +
 								chunkyWarning;
-				ClientApi.INSTANCE.showChatMessageNextFrame(message);
+				ClientApi.INSTANCE.queueChatMessage(message);
 			}
 			
 			LOGGER.warn(startingString + "[Chunky] "+ chunkyWarning);

@@ -361,7 +361,7 @@ public class InternalServerGenerator
 				String message =
 					MinecraftTextFormat.ORANGE + "Distant Horizons: slow world gen." + MinecraftTextFormat.CLEAR_FORMATTING + "\n" +
 						c2meWarning;
-				ClientApi.INSTANCE.showChatMessageNextFrame(message);
+				ClientApi.INSTANCE.queueChatMessage(message);
 			}
 			
 			LOGGER.warn(c2meWarning);
