@@ -25,7 +25,6 @@ package com.seibel.distanthorizons.neoforge.wrappers.modAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 
 #if MC_VER != MC_1_21_9 
-	&& MC_VER != MC_26_2_0
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.api.v0.IrisApi;
 #endif
@@ -34,8 +33,7 @@ public class IrisAccessor implements IIrisAccessor
 {
 	public IrisAccessor()
 	{
-		#if MC_VER == MC_1_21_11 
-			&& MC_VER != MC_26_2_0
+		#if MC_VER == MC_1_21_11
 		throw new UnsupportedOperationException("Iris isn't supported on this version of DH. When this version of DH was created Iris wasn't available for Neoforge yet.");
 		#endif
 	}
@@ -46,7 +44,6 @@ public class IrisAccessor implements IIrisAccessor
 	public String getModName() 
 	{
 		#if MC_VER == MC_1_21_9 
-			|| MC_VER == MC_26_2_0
 		return "iris"; // Iris doesn't support this MC version
 		#else
 		return Iris.MODID;
@@ -57,7 +54,6 @@ public class IrisAccessor implements IIrisAccessor
 	public boolean isShaderPackInUse() 
 	{
 		#if MC_VER == MC_1_21_9 
-			|| MC_VER == MC_26_2_0
 		return true; // Iris doesn't support this MC version
 		#else
 		return IrisApi.getInstance().isShaderPackInUse();
@@ -68,7 +64,6 @@ public class IrisAccessor implements IIrisAccessor
 	public boolean isRenderingShadowPass() 
 	{
 		#if MC_VER == MC_1_21_9 
-			|| MC_VER == MC_26_2_0
 		return false; // Iris doesn't support this MC version
 		#else
 		return IrisApi.getInstance().isRenderingShadowPass();
