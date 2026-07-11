@@ -238,7 +238,7 @@ public class BlazeDhFogRenderer implements IDhFogRenderer
 		
 		
 		this.renderFogToTexture();
-		this.applyRenderer.render(this.fogColorTextureWrapper.texture, BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper.texture, BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.texture);
+		this.applyRenderer.render(this.fogColorTextureWrapper.getTexture(), BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper.getTexture(), BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.getTexture());
 		
 	}
 	

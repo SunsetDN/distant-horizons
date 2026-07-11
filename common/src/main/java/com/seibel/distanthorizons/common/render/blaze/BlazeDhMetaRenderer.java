@@ -12,6 +12,7 @@ import com.seibel.distanthorizons.common.render.blaze.apply.BlazeDhApplyRenderer
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureWrapper;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
+import com.seibel.distanthorizons.core.render.DhApiRenderProxy;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;
@@ -72,6 +73,9 @@ public class BlazeDhMetaRenderer implements IDhMetaRenderer
 		texturesChanged = this.dhDepthTextureWrapper.tryCreateOrResizeToScreenSize() | texturesChanged;
 		texturesChanged = this.dhColorTextureWrapper.tryCreateOrResizeToScreenSize() | texturesChanged;
 		
+		DhApiRenderProxy.activeBlazeDhDepthTextureWrapper = this.dhDepthTextureWrapper;
+		DhApiRenderProxy.activeBlazeDhColorTextureWrapper = this.dhColorTextureWrapper;
+		
 		if (texturesChanged)
 		{
 			int newTextureWidth = MC_RENDER.getTargetFramebufferViewportWidth();
@@ -92,7 +96,7 @@ public class BlazeDhMetaRenderer implements IDhMetaRenderer
 	public void applyToMcTexture(RenderParams renderParams)
 	{
 		GpuTexture mcColorTexture = MinecraftRenderWrapper.INSTANCE.getRenderTarget().getColorTexture();
-		this.applyRenderer.render(this.dhColorTextureWrapper.texture, this.dhDepthTextureWrapper.texture, mcColorTexture);
+		this.applyRenderer.render(this.dhColorTextureWrapper.getTexture(), this.dhDepthTextureWrapper.getTexture(), mcColorTexture);
 	}
 	
 	//endregion

@@ -14,6 +14,9 @@ import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 
 import java.util.OptionalDouble;
 
+/**
+ * Used to wrap around a MC created texture.
+ */
 public class BlazeTextureViewWrapper implements IDhBlazeTexture
 {
 	public static final DhLogger LOGGER = new DhLoggerBuilder().build();

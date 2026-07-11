@@ -221,7 +221,7 @@ public class BlazeDhSsaoRenderer implements IDhSsaoRenderer
 		this.renderSsaoToTexture();
 		
 		this.applyRenderer.setUniform("applyFragUniformBlock", this.applyFragUniformBufferWrapper);
-		this.applyRenderer.render(this.ssaoColorTextureWrapper.texture, BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper.texture, BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.texture);
+		this.applyRenderer.render(this.ssaoColorTextureWrapper.getTexture(), BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper.getTexture(), BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.getTexture());
 		
 	}
 	

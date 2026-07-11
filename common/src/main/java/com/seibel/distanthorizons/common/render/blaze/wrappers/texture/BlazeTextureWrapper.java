@@ -5,12 +5,11 @@ public class BlazeTextureWrapper {}
 
 #else
 
-import com.mojang.blaze3d.platform.NativeImage;
+import com.seibel.distanthorizons.api.interfaces.render.IDhApiBlazeTextureWrapper;
 import com.seibel.distanthorizons.core.dataObjects.render.textures.BlockTextureRegistry;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
-import com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListPool;
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 
@@ -29,7 +28,7 @@ import com.mojang.blaze3d.GpuFormat;
 import org.joml.Vector4f;
 #endif
 
-public class BlazeTextureWrapper implements IDhBlazeTexture
+public class BlazeTextureWrapper implements IDhBlazeTexture, IDhApiBlazeTextureWrapper
 {
 	public static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
@@ -39,7 +38,8 @@ public class BlazeTextureWrapper implements IDhBlazeTexture
 	private static final CommandEncoder COMMAND_ENCODER = GPU_DEVICE.createCommandEncoder();
 	
 	
-	public final String name;
+	private final String name;
+	
 	#if MC_VER <= MC_26_1_2
 	public final TextureFormat textureFormat;
 	#else
@@ -48,14 +48,9 @@ public class BlazeTextureWrapper implements IDhBlazeTexture
 	
 	private final FilterMode samplerFilterMode;
 	
-	public GpuTexture texture = null;
-	
+	private GpuTexture texture = null;
 	private GpuTextureView textureView = null;
-	public GpuTextureView getTextureView() { return this.textureView; }
-	
 	private GpuSampler textureSampler = null;
-	public GpuSampler getTextureSampler() { return this.textureSampler; }
-	
 	
 	private int width = -1;
 	private int height = -1;
@@ -147,12 +142,19 @@ public class BlazeTextureWrapper implements IDhBlazeTexture
 	//=========//
 	//region
 	
-	public boolean isEmpty() { return this.texture == null; }
+	
+	@Override public String getName() { return this.name; }
+	
+	@Override public GpuTexture getTexture() { return this.texture; }
+	@Override public GpuTextureView getTextureView() { return this.textureView; }
+	@Override public GpuSampler getTextureSampler() { return this.textureSampler; }
 	
 	/** @return -1 if the texture is null */
-	public int getWidth() { return this.width; }
+	@Override public int getWidth() { return this.width; }
 	/** @return -1 if the texture is null */
-	public int getHeight() { return this.height; }
+	@Override public int getHeight() { return this.height; }
+	
+	public boolean isEmpty() { return this.texture == null; }
 	
 	//endregion
 	
