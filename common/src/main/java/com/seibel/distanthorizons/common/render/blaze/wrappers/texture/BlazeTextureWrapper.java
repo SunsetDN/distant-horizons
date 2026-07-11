@@ -6,9 +6,11 @@ public class BlazeTextureWrapper {}
 #else
 
 import com.mojang.blaze3d.platform.NativeImage;
+import com.seibel.distanthorizons.core.dataObjects.render.textures.BlockTextureRegistry;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListPool;
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 
@@ -58,6 +60,21 @@ public class BlazeTextureWrapper implements IDhBlazeTexture
 	private int width = -1;
 	private int height = -1;
 	
+	/** should be 1 if only one texture level is needed */
+	private final int mipLevelCount;
+	/** 1 is the default for no anisotropy */
+	private final int maxAnisotropy;
+	
+	/** 
+	 * Setting this to true can be helpful for debugging in renderdoc
+	 * if we aren't planning on writing to the entire texture. <br><br>
+	 * 
+	 * When initially created the texture may be filled with random garbage,
+	 * so zeroing it when resized allows us to see only the data
+	 * we want written.
+	 */
+	private final boolean clearColorTextureOnResize;
+	
 	
 	
 	//==============//
@@ -71,7 +88,9 @@ public class BlazeTextureWrapper implements IDhBlazeTexture
 			#if MC_VER <= MC_26_1_2 TextureFormat.DEPTH32,  
 			#else GpuFormat.D32_FLOAT,
 			#endif
-			FilterMode.LINEAR);
+			FilterMode.LINEAR,
+			1, 1,
+			false);
 	}
 	public static BlazeTextureWrapper createColor(String name) 
 	{
@@ -79,28 +98,44 @@ public class BlazeTextureWrapper implements IDhBlazeTexture
 			#if MC_VER <= MC_26_1_2 TextureFormat.RGBA8,  
 			#else GpuFormat.RGBA8_UNORM,
 			#endif
-			FilterMode.LINEAR);
+			FilterMode.LINEAR,
+			1, 1,
+			false);
 	}
 	public static BlazeTextureWrapper createTextureAtlas(String name) 
 	{
+		int mipLevelCount = (int)Math.sqrt(BlockTextureRegistry.TILE_HEIGHT_AND_WIDTH);
+		mipLevelCount += 1;
+		
 		return new BlazeTextureWrapper(name, 
 			#if MC_VER <= MC_26_1_2 TextureFormat.RGBA8,  
 			#else GpuFormat.RGBA8_UNORM,
 			#endif
 			// nearest filtering keeps the blocky look and prevents
 			// texels bleeding between adjacent tiles in the grid
-			FilterMode.NEAREST);
+			FilterMode.NEAREST,
+			mipLevelCount,
+			// as of James testing on 07-11-2026 with MC 26.1.2
+			// using a higher Anisotropy than 1 caused the distant textures to look grainier
+			// so we're leaving it at 1 for now
+			1,
+			true);
 	}
 	
 	private BlazeTextureWrapper(
 		String name, 
 		#if MC_VER <= MC_26_1_2 TextureFormat #else GpuFormat #endif textureFormat,
-		FilterMode samplerFilterMode
+		FilterMode samplerFilterMode,
+		int mipLevelCount, int maxAnisotropy,
+		boolean clearColorTextureOnResize
 		)
 	{
 		this.name = name;
 		this.textureFormat = textureFormat;
 		this.samplerFilterMode = samplerFilterMode;
+		this.mipLevelCount = mipLevelCount;
+		this.maxAnisotropy = maxAnisotropy;
+		this.clearColorTextureOnResize = clearColorTextureOnResize;
 	}
 	
 	//endregion
@@ -131,14 +166,21 @@ public class BlazeTextureWrapper implements IDhBlazeTexture
 	public void writeToTexture(
 		ByteBuffer pixelBuffer, 
 		int destinationX, int destinationY, 
+		int mipLevel,
 		int width, int height)
 	{
+		if (mipLevel < 0 
+			|| mipLevel > this.mipLevelCount)
+		{
+			throw new IllegalArgumentException("Invalid mipLevel ["+mipLevel+"], must be >= 0 and < ["+this.mipLevelCount+"].");
+		}
+		
 		#if MC_VER <= MC_26_1_2
 		COMMAND_ENCODER.writeToTexture(
 			this.texture,
 			pixelBuffer,
 			NativeImage.Format.RGBA,
-			/*mipLevel*/ 0, /*depthOrLayer*/ 0,
+			mipLevel, /*depthOrLayer*/ 0,
 			destinationX, destinationY,
 			width, height
 		); 
@@ -146,10 +188,10 @@ public class BlazeTextureWrapper implements IDhBlazeTexture
 		COMMAND_ENCODER.writeToTexture(
 			this.texture,
 			pixelBuffer,
-			/*mipLevel*/ 0, /*depthOrLayer*/ 0,
+			mipLevel, /*depthOrLayer*/ 0,
 			destinationX, destinationY,
 			width, height
-		); 
+		);
 		#endif
 	}
 	
@@ -209,8 +251,14 @@ public class BlazeTextureWrapper implements IDhBlazeTexture
 			usage,
 			this.textureFormat,
 			width, height,
-			/*depthOrLayers*/ 1, /*mipLevels*/ 1
+			/*depthOrLayers*/ 1, this.mipLevelCount
 		);
+		
+		if (this.clearColorTextureOnResize)
+		{
+			this.clearColor(ColorUtil.INVISIBLE);
+		}
+		
 		this.textureView = GPU_DEVICE.createTextureView(this.texture);
 		
 		return true;
@@ -222,7 +270,7 @@ public class BlazeTextureWrapper implements IDhBlazeTexture
 			this.textureSampler = GPU_DEVICE.createSampler(
 				AddressMode.CLAMP_TO_EDGE, AddressMode.CLAMP_TO_EDGE, // U,V
 				this.samplerFilterMode, this.samplerFilterMode, // minFilter, magFilter
-				1, // maxAnisotropy 
+				this.maxAnisotropy, 
 				OptionalDouble.empty() // maxLod
 			);
 		}
