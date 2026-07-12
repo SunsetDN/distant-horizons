@@ -472,7 +472,7 @@ public class ClientBlockStateColorCache
 	}
 	
 	/** if multiple frames are present, just the first one will be used */
-	private static int calculateColorFromTexture(TextureAtlasSprite texture, EColorMode colorMode)
+	public static int calculateColorFromTexture(TextureAtlasSprite texture, EColorMode colorMode)
 	{
 		int count = 0;
 		int alpha = 0;
@@ -822,7 +822,7 @@ public class ClientBlockStateColorCache
 	//================//
 	//region
 	
-	private enum EColorMode
+	public enum EColorMode
 	{
 		Default,
 		Flower,
