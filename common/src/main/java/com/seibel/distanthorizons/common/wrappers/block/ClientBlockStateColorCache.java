@@ -784,7 +784,7 @@ public class ClientBlockStateColorCache
 			DhApiBlockColorOverrideEvent.EventParam eventParam = ColorOverrideEventParamGetter.get();
 			eventParam.update(
 				this.clientLevelWrapper, fullDataSource,
-				this.blockStateWrapper, biomeWrapper, returnColor,
+				this.blockStateWrapper, biomeWrapper, returnColor, tintColor, baseColor,
 				blockPos.getX(), blockPos.getY(), blockPos.getZ()
 			);
 			ApiEventInjector.INSTANCE.fireAllEvents(DhApiBlockColorOverrideEvent.class, eventParam);
