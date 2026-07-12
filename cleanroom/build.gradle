@@ -21,14 +21,20 @@ def addMod(path, enabled) {
     if (enabled == "2")
         dependencies { modImplementation(path) }
     else if (enabled == "1")
-        dependencies { compileOnly(path) }
+        dependencies { modCompileOnly(path) }
 }
 
 
 // ==================== Dependencies ====================
 
 dependencies {
-  
+    addMod('curse.maven:autoreglib-250363:2746011', rootProject.enable_quark)
+    addMod('curse.maven:quark-243121:2924091', rootProject.enable_quark)
+    
+    addMod('curse.maven:serene-seasons-291874:2799213', rootProject.enable_serene_seasons)
+    
+    addMod('curse.maven:cofh-core-69162:2920433', rootProject.enable_thermal_dynamics)
+    addMod('curse.maven:thermal-dynamics-227443:2920505', rootProject.enable_thermal_dynamics)
 }
 
 
