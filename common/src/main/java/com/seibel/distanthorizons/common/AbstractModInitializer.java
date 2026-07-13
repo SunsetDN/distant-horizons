@@ -2,6 +2,7 @@ package com.seibel.distanthorizons.common;
 
 import com.seibel.distanthorizons.api.enums.config.EDhApiMcRenderingFadeMode;
 import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingEngine;
+import com.seibel.distanthorizons.api.enums.config.quickOptions.EDhApiThreadPreset;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiTransparency;
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiDistantGeneratorMode;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterDhInitEvent;
@@ -26,17 +27,21 @@ import com.seibel.distanthorizons.core.render.renderer.AbstractDebugWireframeRen
 import com.seibel.distanthorizons.core.render.renderer.StubDebugWireframeRenderer;
 import com.seibel.distanthorizons.common.wrappers.gui.NativeDialogUtil;
 import com.seibel.distanthorizons.core.util.ThreadUtil;
+import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.IVersionConstants;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IC2meAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
 import com.seibel.distanthorizons.coreapi.ModInfo;
+import com.seibel.distanthorizons.coreapi.util.MathUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -397,6 +402,10 @@ public abstract class AbstractModInitializer
 			}
 			
 			LOGGER.warn(startingString + "[Chunky] "+ chunkyWarning);
+			
+			// don't allow for the possibility of DH and chunky to generate chunks at the same time
+			Config.Common.WorldGenerator.enableDistantGeneration.setApiValue(false);
+			Config.Common.LodBuilding.disableUnchangedChunkCheck.setApiValue(true);
 		}
 		
 		//endregion
@@ -435,6 +444,62 @@ public abstract class AbstractModInitializer
 				{
 					LOGGER.warn("Changing Distant Horizons' rendering engine to [" + EDhApiRenderingEngine.OPEN_GL + "] to allow for Iris rendering. This renderer will be unavailable once Minecraft moves to Vulkan and must be fixed on Iris' end.");
 				}
+			}
+		}
+		
+		//endregion
+		
+		
+		
+		//======//
+		// C2ME //
+		//======//
+		//region
+		
+		IC2meAccessor c2me = ModAccessorInjector.INSTANCE.get(IC2meAccessor.class);
+		if (c2me != null)
+		{
+			// find how many C2ME worker threads are active (they should be created by this point)
+			int numberOfC2meThreads = 0;
+			Set<Thread> threads = Thread.getAllStackTraces().keySet();
+			
+			
+			// check for the worker threads first 
+			// (there may be other threads for things like OpenCL or file IO)
+			for (Thread thread : threads)
+			{
+				if (thread.getName().toLowerCase().contains("c2me-worker"))
+				{
+					numberOfC2meThreads++;
+				}
+			}
+			
+			// if C2ME changes how their threads are named, cast our net a little wider
+			if (numberOfC2meThreads == 0)
+			{
+				for (Thread thread : threads)
+				{
+					if (thread.getName().toLowerCase().contains("c2me"))
+					{
+						numberOfC2meThreads++;
+					}
+				}
+			}
+			
+			
+			int cpuThreadCount = Runtime.getRuntime().availableProcessors();
+			int expectedC2meThreadCount = Math.max(cpuThreadCount / 2, 1); // if no C2ME threads were found, default to 50%, C2ME's default
+			int newDhThreadCount = MathUtil.clamp(expectedC2meThreadCount, numberOfC2meThreads, cpuThreadCount);
+			
+			LOGGER.info("Found ["+numberOfC2meThreads+"] C2ME threads. DH needs to use at least the same number of threads as C2ME to prevent issues with Chunky.");
+			
+			if (Config.Common.MultiThreading.useC2meThreadCount.get())
+			{
+				Config.Common.MultiThreading.numberOfThreads.setApiValue(numberOfC2meThreads);
+				Config.Common.MultiThreading.threadRunTimeRatio.setApiValue(1.0); // C2ME threads have 100% uptime, so should we
+				Config.Client.threadPresetSetting.setApiValue(EDhApiThreadPreset.CUSTOM);
+				
+				LOGGER.info("Set DH thread count to: ["+newDhThreadCount+"] to match C2ME.");
 			}
 		}
 		
