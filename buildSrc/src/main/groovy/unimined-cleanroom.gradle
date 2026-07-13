@@ -12,4 +12,9 @@ unimined.minecraft {
             systemProperty("fml.coreMods.load", "com.seibel.distanthorizons.cleanroom.DistantHorizonsLoadingPlugin")
         }
     }
+    
+    mods {
+        remap(configurations.modCompileOnly)
+        remap(configurations.modRuntimeOnly)
+    }
 }

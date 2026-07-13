@@ -21,6 +21,7 @@ package com.seibel.distanthorizons.cleanroom.mixins.client;
 
 import com.seibel.distanthorizons.common.wrappers.world.ClientLevelWrapper;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
+import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.RenderGlobal;
@@ -38,9 +39,14 @@ public class MixinRenderGlobal
 {
 	@Shadow private WorldClient world;
 
-	@Inject(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;DILnet/minecraft/entity/Entity;)I", at = @At("HEAD"))
+	@Inject(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;DILnet/minecraft/entity/Entity;)I", at = @At("HEAD"), cancellable = true)
 	private void renderChunkLayer(BlockRenderLayer blockLayerIn, double partialTicks, int pass, Entity entityIn, CallbackInfoReturnable<Integer> cir)
 	{
+		// Cancelling CUTOUT RenderLayer will cause crash
+		if (Config.Client.Advanced.Debugging.lodOnlyMode.get() && blockLayerIn != BlockRenderLayer.CUTOUT){
+			cir.cancel();
+		}
+		
 		if (blockLayerIn == BlockRenderLayer.SOLID)
 		{
 			float[] mcProjMatrixRaw = new float[16];
