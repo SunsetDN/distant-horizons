@@ -179,7 +179,7 @@ public class MinecraftClientWrapper extends AbstractMinecraftSharedWrapper imple
 		{
 			#if MC_VER <= MC_1_7_10
 			ServerData server = MINECRAFT.func_147104_D();
-			return (server != null) ? server.serverName : "NULL";
+			return (server != null && server.serverName != null) ? server.serverName : "NULL";
 			#elif MC_VER <= MC_1_12_2
 			ServerData server = MINECRAFT.getCurrentServerData();
 			return (server != null) ? server.serverName : "NULL";
