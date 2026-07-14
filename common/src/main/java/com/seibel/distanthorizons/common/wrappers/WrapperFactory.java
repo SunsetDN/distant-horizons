@@ -275,7 +275,7 @@ public class WrapperFactory implements IWrapperFactory
 		
 		boolean isClientSide;
 		#if MC_VER <= MC_1_12_2
-		isClientSide = !level.isRemote;
+		isClientSide = level.isRemote;
 		#else
 		isClientSide = level.isClientSide();
 		#endif
