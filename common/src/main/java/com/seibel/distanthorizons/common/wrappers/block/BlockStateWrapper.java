@@ -773,7 +773,14 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		//=======//
 		//region
 		
-		if (lowercaseSerialString.contains("grass_block")
+		boolean isGrassBlock;
+		#if MC_VER <= MC_1_7_10
+		isGrassBlock = blockState.block instanceof BlockGrass;
+		#else
+		isGrassBlock = lowercaseSerialString.contains("grass_block");
+		#endif
+		
+		if (isGrassBlock
 			|| lowercaseSerialString.contains("grass_slab")
 			)
 		{
