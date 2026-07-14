@@ -77,6 +77,10 @@ public class MixinFramebuffer {
         method = "deleteFramebuffer",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OpenGlHelper;func_153184_g(I)V"))
     private void deleteDepthTexture(int depthTexture) {
+        if (!MixinFlags.framebufferMixinEnabled) {
+            OpenGlHelper.func_153184_g(depthTexture);
+            return;
+        }
         GL11.glDeleteTextures(depthTexture);
 
     }
