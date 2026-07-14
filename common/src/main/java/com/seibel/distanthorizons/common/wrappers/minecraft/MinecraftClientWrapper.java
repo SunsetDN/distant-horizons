@@ -679,9 +679,7 @@ public class MinecraftClientWrapper extends AbstractMinecraftSharedWrapper imple
 		}
 		else
 		{
-			#if MC_VER <= MC_1_7_10
-			return MINECRAFT.isSingleplayer() ? 1 : MINECRAFT.getIntegratedServer().getCurrentPlayerCount();
-			#elif MC_VER <= MC_1_12_2
+			#if MC_VER <= MC_1_12_2
 			return MINECRAFT.getIntegratedServer().getCurrentPlayerCount();
 			#else
 			return MINECRAFT.getSingleplayerServer().getPlayerCount();
