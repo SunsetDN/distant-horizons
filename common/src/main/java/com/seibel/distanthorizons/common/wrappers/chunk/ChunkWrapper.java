@@ -354,7 +354,7 @@ public class ChunkWrapper implements IChunkWrapper
 	@Override
 	public void createDhHeightMaps()
 	{
-		if (heightmapThreadWarningLogged 
+		if (!heightmapThreadWarningLogged
 			&& !DhApi.isDhThread())
 		{
 			heightmapThreadWarningLogged = true;
