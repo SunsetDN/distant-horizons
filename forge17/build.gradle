@@ -92,6 +92,11 @@ dependencies {
 }
 
 def commonDir = project(":common").projectDir
+def coreResourcesDir = project(":core").file("src/main/resources")
+def generatedResourcesDir = layout.buildDirectory.dir("generated/resources/forge17")
+def generatedLangFile = generatedResourcesDir.map {
+    it.file("assets/distanthorizons/lang/en_US.lang")
+}
 
 sourceSets {
     main {
@@ -101,17 +106,35 @@ sourceSets {
     }
 }
 
-processResources {
-    from "$commonDir/src/main/resources"
-    // 1.7.10-specific assets (en_US.lang, textures, shaders, sqlScripts) live in the
-    // legacy mod tree. Exclude the files that forge17/src/main/resources is the
-    // source of truth for.
-    from("${rootDir}/DistantHorizons_1.7.10/src/main/resources") {
-        exclude "mcmod.info"
-        exclude "mixins.distanthorizons.json"
-        exclude "mixins.distanthorizons.early.json"
-        exclude "META-INF/distanthorizons_at.cfg"
+tasks.register("generateForge17Lang") {
+    def inputLangFile = file("${coreResourcesDir}/assets/distanthorizons/lang/en_us.json")
+
+    inputs.file(inputLangFile)
+    outputs.file(generatedLangFile)
+
+    doLast {
+        def output = generatedLangFile.get().asFile
+        output.parentFile.mkdirs()
+        output.withWriter("UTF-8") { writer ->
+            writer.writeLine("#PARSE_ESCAPES")
+            new groovy.json.JsonSlurper()
+                .parse(inputLangFile)
+                .each { key, value ->
+                    def text = value.toString()
+                        .replaceAll(/%(?!((\d+)\$)?s|%)/, "%%")
+                        .replace("\n", "\\n")
+                    writer.writeLine("${key}=${text}")
+                }
+        }
     }
+}
+
+processResources {
+    dependsOn tasks.named("generateForge17Lang")
+
+    from "$commonDir/src/main/resources"
+    from coreResourcesDir
+    from generatedResourcesDir
 }
 
 // RFG's compileInjectedInterfacesJava inherits compilerArgs from compileJava, so it
