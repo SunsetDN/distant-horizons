@@ -1140,7 +1140,7 @@ public class ClientBlockStateColorCache
 			//=============//
 			//region
 			
-			if (block.toString().contains("glass"))
+			if (block.toString().toLowerCase().contains("glass"))
 			{
 				return Glass;
 			}
