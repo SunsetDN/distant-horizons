@@ -28,6 +28,7 @@ import com.seibel.distanthorizons.common.AbstractModInitializer;
 import com.seibel.distanthorizons.common.util.ProxyUtil;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
+import com.seibel.distanthorizons.core.api.internal.ServerApi;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
@@ -59,7 +60,10 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy {
         FMLCommonHandler.instance()
             .bus()
             .register(this);
-        ForgePluginPacketSender.setPacketHandler(ClientApi.INSTANCE::pluginMessageReceived);
+        ForgePluginPacketSender.setPacketHandler((player, message) -> {
+            ClientApi.INSTANCE.pluginMessageReceived(message);
+            ServerApi.INSTANCE.pluginMessageReceived(player, message);
+        });
     }
 
     // ==============//
