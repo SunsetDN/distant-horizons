@@ -1037,7 +1037,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		ObjectOpenHashSet<String> baseIgnoredBlockResourceSet = new ObjectOpenHashSet<>();
 		waterSurfaceReplacementBlocks = getAllBlockWrappers(Config.Client.Advanced.Graphics.Culling.waterSurfaceBlockReplacementCsv, baseIgnoredBlockResourceSet, levelWrapper);
-		waterSubsurfaceReplacementBlocks.remove(AIR);
+		waterSurfaceReplacementBlocks.remove(AIR);
 		
 		return waterSurfaceReplacementBlocks;
 	}
