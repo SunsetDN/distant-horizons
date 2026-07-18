@@ -32,7 +32,7 @@ issueTrackerURL = "${issues}"
 [[dependencies.distanthorizons]]
     modId = "minecraft"
     mandatory = true  # Forge syntax
-    versionRange = "${compatible_forgemc_versions}" # Where we set what version of mc it is avalible for
+    versionRange = "${compatible_forgemc_versions}" # Where we set what version of mc it is available for
     ordering = "AFTER"
     side = "BOTH"
 
