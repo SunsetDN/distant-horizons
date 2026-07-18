@@ -320,7 +320,7 @@ if (isNotCommonProject) {
         configurations = [project.configurations.shadowMe]
         def librariesLocation = "DistantHorizons.libraries"
 
-        // LZ4
+        // LZ4 compression
         relocate "net.jpountz", "${librariesLocation}.jpountz"
 
         // SLF4J
@@ -338,11 +338,14 @@ if (isNotCommonProject) {
             relocateNative "org_sqlite", "dh_1sqlite"
         }
 
-        // ZStd
+        // ZStd compression
         relocate "com.github.luben", "dhcomgithubluben"
         relocate "libzstd-jni", "libzstd-jni_dh"
         relocate "zstd-jni", "zstd-jni_dh"
 
+        // XZ compression
+        relocate "org.tukaani", "${librariesLocation}.tukaani"
+        
         transform(NativeTransformer) {
             rootDir = project.rootDir
             matchFiles { it.contains("libzstd-jni") && !it.contains("aix/ppc64") }
