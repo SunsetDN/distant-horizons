@@ -179,10 +179,16 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		GLMC.glDepthFunc(GL33.GL_LESS);
 		GLMC.enableDepthMask();
 		
-		// This is required for MC versions 1.21.5+
-		// due to MC updating the lightmap by changing the viewport size
-		// and some camera mods that change the viewport size 
+		// don't change the viewport size when Iris is rendering the shadow pass
+		// Iris has a custom shadowmap size, and changing the viewport will cause shadows to render
+		// incorrectly.
+		if (!IRIS_ACCESSOR.isRenderingShadowPass())
+		{
+			// This is required for MC versions 1.21.5+
+			// due to MC updating the lightmap by changing the viewport size
+			// and some camera mods that change the viewport size 
 			GLMC.glViewport(0, 0, viewportWidth, viewportHeight);
+		}
 		
 		this.shaderProgramForThisFrame.bind();
 		
