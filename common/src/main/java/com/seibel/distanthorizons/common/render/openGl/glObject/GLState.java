@@ -236,7 +236,7 @@ public class GLState implements AutoCloseable
 		}
 		GL33.glStencilFunc(this.stencilFunc, this.stencilRef, this.stencilMask);
 		
-		GL33.glViewport(this.view[0], this.view[1], this.view[2], this.view[3]);
+		GLMC.glViewport(this.view[0], this.view[1], this.view[2], this.view[3]);
 		if (this.cull)
 		{
 			GLMC.enableFaceCulling();

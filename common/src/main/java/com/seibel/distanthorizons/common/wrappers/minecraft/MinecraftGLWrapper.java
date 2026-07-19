@@ -64,8 +64,8 @@ public class MinecraftGLWrapper
     private static final StencilState STENCIL;
 	 */
 	
-	
 	// scissor //
+	//region
 	
 	/** @see GL33#GL_SCISSOR_TEST */
 	public void enableScissorTest()
@@ -84,16 +84,24 @@ public class MinecraftGLWrapper
 		#endif
 	}
 	
+	//endregion
+	
+	
 	
 	// stencil //
-//	
+	//region
+
 //	/** @see GL33#GL_SCISSOR_TEST */
 //	public void enableScissorTest() { GlStateManager._stencilFunc(); }
 //	/** @see GL33#GL_SCISSOR_TEST */
 //	public void disableScissorTest() { GlStateManager._disableScissorTest(); }
 	
+	//endregion
+	
+	
 	
 	// depth //
+	//region
 	
 	/** @see GL33#GL_DEPTH_TEST */
 	public void enableDepthTest()
@@ -149,8 +157,12 @@ public class MinecraftGLWrapper
 		#endif
 	}
 	
+	//endregion
+	
+	
 	
 	// blending //
+	//region
 	
 	/** @see GL33#GL_BLEND */
 	public void enableBlend()
@@ -198,8 +210,12 @@ public class MinecraftGLWrapper
 		#endif
 	}
 	
+	//endregion
+	
+	
 	
 	// frame buffers //
+	//region
 	
 	/** @see GL33#glBindFramebuffer */
 	public void glBindFramebuffer(int target, int framebuffer)
@@ -210,8 +226,12 @@ public class MinecraftGLWrapper
 		#endif
 	}
 	
+	//endregion
+	
+	
 	
 	// buffers //
+	//region
 	
 	/** @see GL33#glGenBuffers() */
 	public int glGenBuffers()
@@ -229,8 +249,12 @@ public class MinecraftGLWrapper
 		//GlStateManager._glDeleteBuffers(buffer); 
 	}
 	
+	//endregion
+	
+	
 	
 	// culling //
+	//region
 	
 	/** @see GL33#GL_CULL_FACE */
 	public void enableFaceCulling()
@@ -253,8 +277,12 @@ public class MinecraftGLWrapper
 		#endif
 	}
 	
+	//endregion
+	
+	
 	
 	// textures //
+	//region
 	
 	/** @see GL33#glGenTextures() */
 	public int glGenTextures()
@@ -300,6 +328,25 @@ public class MinecraftGLWrapper
 		GlStateManager._bindTexture(texture);
 		#endif
 	}
+	
+	//endregion
+	
+	
+	
+	// viewport //
+	//region
+	
+	/** @see GL33#glViewport(int, int, int, int) */
+	public void glViewport(int x, int y, int viewportWidth, int viewportHeight)
+	{
+		#if MC_VER <= MC_1_12_2
+		GlStateManager.viewport(x, y, viewportWidth, viewportHeight);
+		#else
+		GlStateManager._viewport(x,y, viewportWidth, viewportHeight);
+		#endif
+	}
+	
+	//endregion
 	
 	
 	

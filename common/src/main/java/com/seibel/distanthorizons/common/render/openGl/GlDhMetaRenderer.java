@@ -182,7 +182,7 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		// This is required for MC versions 1.21.5+
 		// due to MC updating the lightmap by changing the viewport size
 		// and some camera mods that change the viewport size 
-		GL33.glViewport(0, 0, viewportWidth, viewportHeight);
+			GLMC.glViewport(0, 0, viewportWidth, viewportHeight);
 		
 		this.shaderProgramForThisFrame.bind();
 		
