@@ -19,11 +19,11 @@
 
 package com.seibel.distanthorizons.neoforge.mixins.client;
 
+import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingApi;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
-import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
-import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
+import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import com.seibel.distanthorizons.neoforge.wrappers.NeoforgeTextureUnwrapper;
 
 import org.spongepowered.asm.mixin.Final;
@@ -78,7 +78,8 @@ public class MixinLightTexture
 	
 	@Unique
 	private MinecraftRenderWrapper renderWrapper = null;
-	
+	@Unique
+	private AbstractDhRenderApiDefinition renderDef = null;
 	
 	
 	
@@ -94,6 +95,7 @@ public class MixinLightTexture
 		if (this.renderWrapper == null)
 		{
 			this.renderWrapper = (MinecraftRenderWrapper)SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
+			this.renderDef = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 		}
 		
 		
@@ -108,9 +110,12 @@ public class MixinLightTexture
 		GlTexture glTexture = (GlTexture) this.texture;
 		renderWrapper.setLightmapId(glTexture.glId());
 		#else
-		// both options are available since the renderer can be changed to either Blaze3D or OpenGL
-		int id = NeoforgeTextureUnwrapper.getGlTextureIdFromGpuTexture(this.texture);
-		renderWrapper.setLightmapId(id);
+		
+		if (this.renderDef.getRenderApi() == EDhApiRenderingApi.OPEN_GL)
+		{
+			int id = NeoforgeTextureUnwrapper.getGlTextureIdFromGpuTexture(this.texture);
+			renderWrapper.setLightmapId(id);
+		}
 		
 		renderWrapper.setLightmapGpuTexture(this.texture);
 		#endif
