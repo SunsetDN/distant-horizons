@@ -23,6 +23,7 @@ import com.mojang.blaze3d.textures.*;
 
 #if MC_VER <= MC_26_1_2
 import com.mojang.blaze3d.textures.TextureFormat;
+import com.mojang.blaze3d.platform.NativeImage;
 #else
 import com.mojang.blaze3d.GpuFormat;
 import org.joml.Vector4f;
