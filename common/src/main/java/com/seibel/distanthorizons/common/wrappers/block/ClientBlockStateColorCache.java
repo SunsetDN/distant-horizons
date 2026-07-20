@@ -32,15 +32,12 @@ import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.forge.ForgeMain;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.BlockFlower;
 import net.minecraft.block.BlockGrass;
 import net.minecraft.block.BlockLeavesBase;
-import net.minecraft.client.renderer.IconFlipped;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -287,47 +284,17 @@ public class ClientBlockStateColorCache
 		{
 			RESOLVE_LOCK.lock();
 
-			IIcon originalIcon = this.blockState.block.getIcon(ForgeDirection.UP.ordinal(), this.blockState.meta);
-			IIcon icon = null;
-			if (ForgeMain.gtCompat != null)
-			{
-				icon = ForgeMain.gtCompat.resolveIcon(this.blockState.block, this.blockState.meta);
-			}
-			if (icon == null)
-			{
-				icon = originalIcon;
-			}
-			if (icon instanceof IconFlipped)
-			{
-				icon = ((IconFlipped) icon).baseIcon;
-			}
-			if (icon != null && icon.getClass().getName().equals("twilightforest.block.GiantBlockIcon"))
-			{
-				icon = getIconByReflection(icon, "baseIcon");
-			}
-			if (icon != null && icon.getClass().getName().equals("ic2.core.block.BlockTextureStitched"))
-			{
-				IIcon icon2 = getIconByReflection(icon, "mappedTexture");
-				if (icon2 != null)
-				{
-					icon = icon2;
-				}
-			}
-
-			if (icon instanceof TextureAtlasSprite)
+			TextureAtlasSprite sprite = TextureAtlasSpriteWrapper.resolveFaceSprite(
+				this.blockState.block, this.blockState.meta, ForgeDirection.UP.ordinal());
+			if (sprite != null)
 			{
 				this.baseColor = calculateColorFromTexture(
-					(TextureAtlasSprite) icon,
+					sprite,
 					EColorMode.getColorMode(this.blockState.block));
-			}
-			else if (originalIcon != null)
-			{
-				LOGGER.warn("Can't handle icon of type " + originalIcon.getClass().getName());
-				this.baseColor = this.blockState.block.getBlockColor();
 			}
 			else
 			{
-				LOGGER.warn("Can't get icon for block type " + this.blockState.block.getClass());
+				LOGGER.warn("Can't get a usable icon for block type " + this.blockState.block.getClass());
 				this.baseColor = this.blockState.block.getBlockColor();
 			}
 
@@ -526,23 +493,6 @@ public class ClientBlockStateColorCache
 		}
 		#endif
 	}
-
-	#if MC_VER <= MC_1_7_10
-	private static IIcon getIconByReflection(IIcon icon, String name)
-	{
-		try
-		{
-			java.lang.reflect.Field field = icon.getClass().getDeclaredField(name);
-			field.setAccessible(true);
-			return (IIcon) field.get(icon);
-		}
-		catch (NoSuchFieldException | IllegalAccessException e)
-		{
-			LOGGER.warn("Failed to reflect icon field [" + name + "] on [" + icon.getClass().getName() + "]: " + e.getMessage());
-		}
-		return null;
-	}
-	#endif
 
 	#if MC_VER > MC_1_7_10
 	@Nullable

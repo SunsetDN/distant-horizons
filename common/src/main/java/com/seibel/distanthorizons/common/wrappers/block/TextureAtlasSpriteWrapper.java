@@ -24,6 +24,13 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 #if MC_VER <= MC_1_7_10
 import com.seibel.distanthorizons.interfaces.IMixinTextureAtlasSprite;
+import com.seibel.distanthorizons.forge.ForgeMain;
+import net.minecraft.block.Block;
+import net.minecraft.client.renderer.IconFlipped;
+import net.minecraft.util.IIcon;
+import net.minecraftforge.common.util.ForgeDirection;
+import org.jetbrains.annotations.Nullable;
+import java.lang.reflect.Field;
 #endif
 
 #if MC_VER < MC_1_17_1
@@ -160,4 +167,70 @@ public class TextureAtlasSpriteWrapper
 	
 	
 	
+	#if MC_VER <= MC_1_7_10
+	/**
+	 * Resolves the {@link TextureAtlasSprite} for the given block face in 1.7.10. <br>
+	 * 1.7.10 predates the baked model system, so there are no quads to rasterize;
+	 * textures are fetched directly via {@link IIcon} using the same mod-compat
+	 * handling {@link ClientBlockStateColorCache} uses
+	 * (GregTech, {@link IconFlipped}, TwilightForest, IC2).
+	 *
+	 * @param sideOrdinal the {@link net.minecraftforge.common.util.ForgeDirection}/vanilla side
+	 *                    index passed to {@link Block#getIcon(int, int)}
+	 * @return the resolved sprite, or null if none could be found
+	 */
+	@Nullable
+	public static TextureAtlasSprite resolveFaceSprite(Block block, int meta, int sideOrdinal)
+	{
+		IIcon icon = null;
+		if (ForgeMain.gtCompat != null)
+		{
+			// GregTech icons are resolved per block/meta, not per face
+			icon = ForgeMain.gtCompat.resolveIcon(block, meta);
+		}
+		if (icon == null)
+		{
+			icon = block.getIcon(sideOrdinal, meta);
+		}
+
+		if (icon instanceof IconFlipped)
+		{
+			icon = ((IconFlipped) icon).baseIcon;
+		}
+		if (icon != null && icon.getClass().getName().equals("twilightforest.block.GiantBlockIcon"))
+		{
+			icon = unwrapIcon(icon, "baseIcon");
+		}
+		if (icon != null && icon.getClass().getName().equals("ic2.core.block.BlockTextureStitched"))
+		{
+			icon = unwrapIcon(icon, "mappedTexture");
+		}
+
+		return (icon instanceof TextureAtlasSprite) ? (TextureAtlasSprite) icon : null;
+	}
+
+	/**
+	 * Some mods wrap their real atlas sprite inside an {@link IIcon} field
+	 * (IE TwilightForest's GiantBlockIcon, IC2's BlockTextureStitched). <br>
+	 * Returns the icon stored in the named field, or the original {@code icon}
+	 * unchanged if the field is missing, inaccessible, or null.
+	 */
+	private static IIcon unwrapIcon(IIcon icon, String fieldName)
+	{
+		try
+		{
+			Field field = icon.getClass().getDeclaredField(fieldName);
+			field.setAccessible(true);
+			IIcon innerIcon = (IIcon) field.get(icon);
+			return innerIcon != null ? innerIcon : icon;
+		}
+		catch (NoSuchFieldException | IllegalAccessException e)
+		{
+			return icon;
+		}
+	}
+	#endif
+
+
+
 }
