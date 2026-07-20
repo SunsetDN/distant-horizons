@@ -325,7 +325,7 @@ public class ChangelogScreen extends DhScreen
 			this.centerListVertically = false;
 			#endif
 			#if MC_VER <= MC_1_12_2
-			this.textRenderer = #if MC_VER <= MC_1_7_10 minecraftClient.fontRenderer #else minecraftClient.fontRenderer #endif;
+			this.textRenderer = minecraftClient.fontRenderer;
 			#else
 			this.textRenderer = minecraftClient.font;
 			#endif

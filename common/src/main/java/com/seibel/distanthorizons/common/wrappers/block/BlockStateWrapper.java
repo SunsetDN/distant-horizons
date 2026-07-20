@@ -1015,7 +1015,9 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		return propagatesSkyLightDown;
 	}
 	
-	#if MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_7_10
+	private static boolean blockTagInCsv(@Nullable FakeBlockState blockState, String blockTagsCsv)
+	#elif MC_VER <= MC_1_12_2
 	private static boolean blockTagInCsv(@Nullable IBlockState blockState, String blockTagsCsv)
 	#else
 	private static boolean blockTagInCsv(@Nullable BlockState blockState, String blockTagsCsv)

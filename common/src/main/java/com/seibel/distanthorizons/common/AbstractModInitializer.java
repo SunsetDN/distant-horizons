@@ -523,7 +523,7 @@ public abstract class AbstractModInitializer
 		
 		#if MC_VER <= MC_1_12_2
 		Config.Client.Advanced.Graphics.Experimental.renderingEngine.setMcVersionOverrideValue(EDhApiRenderingEngine.OPEN_GL);
-		#if MC_VER > MC_1_7_10
+		#if MC_VER != MC_1_7_10
 		Config.Client.Advanced.Graphics.Quality.vanillaFadeMode.setMcVersionOverrideValue(EDhApiMcRenderingFadeMode.NONE);
 		#endif
 		Config.Common.WorldGenerator.distantGeneratorMode.setMcVersionOverrideValue(EDhApiDistantGeneratorMode.INTERNAL_SERVER);

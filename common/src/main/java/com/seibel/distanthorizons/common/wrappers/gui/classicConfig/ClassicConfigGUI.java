@@ -316,7 +316,7 @@ public class ClassicConfigGUI
 	#endif
 	{
 		#if MC_VER <= MC_1_12_2
-		private static final FontRenderer textRenderer = #if MC_VER <= MC_1_7_10 Minecraft.getMinecraft().fontRenderer #else Minecraft.getMinecraft().fontRenderer #endif;		
+		private static final FontRenderer textRenderer = Minecraft.getMinecraft().fontRenderer;
 		#else
 		private static final Font textRenderer = Minecraft.getInstance().font;
 		#endif

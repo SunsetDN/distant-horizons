@@ -37,6 +37,9 @@ public class DimensionTypeWrapper implements IDimensionTypeWrapper
 	private static final ConcurrentMap<String, DimensionTypeWrapper> DIMENSION_WRAPPER_BY_NAME = new ConcurrentHashMap<>();
 	#if MC_VER <= MC_1_7_10
 	private final int dimensionType;
+	private final boolean hasCeiling;
+	private final boolean hasSkyLight;
+	private final double coordinateScale;
 	#else
 	private final DimensionType dimensionType;
 	#endif
@@ -59,7 +62,12 @@ public class DimensionTypeWrapper implements IDimensionTypeWrapper
 	{
 		this.dimensionType = dimensionType;
 
-		#if MC_VER <= MC_1_21_10
+		#if MC_VER <= MC_1_7_10
+		this.name = determineName(dimensionType);
+		this.hasCeiling = dimensionType == LegacyDimensionInfo.NETHER;
+		this.hasSkyLight = dimensionType != LegacyDimensionInfo.NETHER;
+		this.coordinateScale = dimensionType == LegacyDimensionInfo.NETHER ? 8.0 : 1.0;
+		#elif MC_VER <= MC_1_21_10
 		this.name = determineName(dimensionType);
 		#else
 		this.name = name;
@@ -74,7 +82,9 @@ public class DimensionTypeWrapper implements IDimensionTypeWrapper
 	public static DimensionTypeWrapper getDimensionTypeWrapper(DimensionType dimensionType, String name)
 	#endif
 	{
-		#if MC_VER <= MC_1_21_10
+		#if MC_VER <= MC_1_7_10
+		String dimName = LegacyDimensionInfo.fullName(dimensionType);
+		#elif MC_VER <= MC_1_21_10
 		String dimName = determineName(dimensionType);
 		#else
 		String dimName = name;
@@ -134,8 +144,7 @@ public class DimensionTypeWrapper implements IDimensionTypeWrapper
 	public boolean hasCeiling()
 	{
 		#if MC_VER <= MC_1_7_10
-		// only the nether has a ceiling in vanilla 1.7.10
-		return this.dimensionType == LegacyDimensionInfo.NETHER;
+		return this.hasCeiling;
 		#elif MC_VER <= MC_1_12_2
 		// 1.12.2 has no hasCeiling() - only the nether has a ceiling in vanilla
 		return this.dimensionType.getId() == -1;
@@ -148,7 +157,7 @@ public class DimensionTypeWrapper implements IDimensionTypeWrapper
 	public boolean hasSkyLight()
 	{
 		#if MC_VER <= MC_1_7_10
-		return this.dimensionType != LegacyDimensionInfo.NETHER;
+		return this.hasSkyLight;
 		#elif MC_VER <= MC_1_12_2
 		// 1.12.2 DimensionType doesn't store hasSkyLight, it's in the WorldProvider instead
 		return this.dimensionType != DimensionType.NETHER;
@@ -167,7 +176,7 @@ public class DimensionTypeWrapper implements IDimensionTypeWrapper
 	public double getCoordinateScale()
 	{
 		#if MC_VER <= MC_1_7_10
-		return this.dimensionType == LegacyDimensionInfo.NETHER ? 8.0 : 1.0;
+		return this.coordinateScale;
 		#elif MC_VER <= MC_1_12_2
 		// 1.12.2 DimensionType doesn't store coordinate scale, it's in the WorldProvider instead
 		return this.dimensionType == net.minecraft.world.DimensionType.NETHER ? 8.0 : 1.0;

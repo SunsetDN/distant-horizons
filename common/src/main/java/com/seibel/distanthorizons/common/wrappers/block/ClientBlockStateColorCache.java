@@ -547,10 +547,6 @@ public class ClientBlockStateColorCache
 	#if MC_VER > MC_1_7_10
 	@Nullable
 	private List<BakedQuad> getUnculledQuads() throws Exception { return this.getQuadsForDirection(null); }
-	/**
-	 * throws Exception is to document that rarely MC will throw errors if this method
-	 * is called on the wrong block (even though in that case it should just return null).
-	 */
 	@Nullable
 	private List<BakedQuad> getQuadsForDirection(@Nullable EDhDirection direction) throws Exception
 	{
@@ -558,7 +554,7 @@ public class ClientBlockStateColorCache
 		// specific state handling //
 		//=========================//
 		//region
-
+		
 		#if MC_VER <= MC_1_12_2
 		IBlockState effectiveBlockState = this.blockState;
 		#else
@@ -631,16 +627,11 @@ public class ClientBlockStateColorCache
 					int g = (tempColor & 0x0000FF00) >>> 8;
 					int b = (tempColor & 0x00FF0000) >>> 16;
 					int a = (tempColor & 0xFF000000) >>> 24;
-					#elif MC_VER <= MC_1_12_2
-					int b = (tempColor & 0x000000FF);
-					int g = (tempColor & 0x0000FF00) >>> 8;
-					int r = (tempColor & 0x00FF0000) >>> 16;
-					int a = (tempColor & 0xFF000000) >>> 24;
 					#else
-					int r = (tempColor & 0x000000FF);
-					int g = (tempColor & 0x0000FF00) >>> 8;
-					int b = (tempColor & 0x00FF0000) >>> 16;
-					int a = (tempColor & 0xFF000000) >>> 24;
+					int r = ColorUtil.getRed(tempColor);
+					int g = ColorUtil.getGreen(tempColor);
+					int b = ColorUtil.getBlue(tempColor);
+					int a = ColorUtil.getAlpha(tempColor);
 					#endif
 					
 					int scale = 1;
@@ -799,7 +790,7 @@ public class ClientBlockStateColorCache
 				}
 				else if (block instanceof BlockLiquid) // We don't want lava to fall into the else block
 				{
-					if(block == Blocks.WATER
+					if(block == Blocks.WATER 
 						|| block == Blocks.FLOWING_WATER)
 					{
 						tintColor = biomeWrapper.biome.getWaterColor();

@@ -63,10 +63,10 @@ public class McObjectConverter
 	/** 4x4 float matrix converter */
 	public static DhMat4f convert(
 			#if MC_VER <= MC_1_12_2 org.joml.Matrix4f
-			#elif MC_VER < MC_1_19_4 com.mojang.math.Matrix4f
+			#elif MC_VER < MC_1_19_4 com.mojang.math.Matrix4f 
 			#elif MC_VER < MC_1_21_6 org.joml.Matrix4f
-			#else org.joml.Matrix4fc
-			#endif
+			#else org.joml.Matrix4fc 
+			#endif 
 			mcMatrix)
 	{
 		FloatBuffer buffer = FloatBuffer.allocate(16);
@@ -183,48 +183,11 @@ public class McObjectConverter
 			case WEST: return Direction.WEST;
 			case EAST: return Direction.EAST;
 			#endif
-
+			
 			default: throw new IllegalArgumentException("No Minecraft direction defined for [" + dhDirection + "].");
 		}
 	}
 	
-	#if MC_VER <= MC_1_7_10
-	public static EDhDirection convert(ForgeDirection direction)
-	#elif MC_VER <= MC_1_12_2
-	public static EDhDirection convert(EnumFacing direction)
-	#else
-	public static EDhDirection convert(Direction direction)
-	#endif
-	{
-		switch (direction)
-		{
-			#if MC_VER <= MC_1_7_10
-			case DOWN: return EDhDirection.DOWN;
-			case UP: return EDhDirection.UP;
-			case NORTH: return EDhDirection.NORTH;
-			case SOUTH: return EDhDirection.SOUTH;
-			case WEST: return EDhDirection.WEST;
-			case EAST: return EDhDirection.EAST;
-			#elif MC_VER <= MC_1_12_2
-			case DOWN: return EDhDirection.DOWN;
-			case UP: return EDhDirection.UP;
-			case NORTH: return EDhDirection.NORTH;
-			case SOUTH: return EDhDirection.SOUTH;
-			case WEST: return EDhDirection.WEST;
-			case EAST: return EDhDirection.EAST;
-			#else
-			case DOWN: return EDhDirection.DOWN;
-			case UP: return EDhDirection.UP;
-			case NORTH: return EDhDirection.NORTH;
-			case SOUTH: return EDhDirection.SOUTH;
-			case WEST: return EDhDirection.WEST;
-			case EAST: return EDhDirection.EAST;
-			#endif
-
-			default: throw new IllegalArgumentException("No DH direction defined for [" + direction + "].");
-		}
-	}
-
 	//endregion
 	
 	
@@ -237,7 +200,7 @@ public class McObjectConverter
 	public static BlockPos convert(DhBlockPos wrappedPos) { return new BlockPos(wrappedPos.getX(), wrappedPos.getY(), wrappedPos.getZ()); }
 	
 	public static ChunkPos convert(DhChunkPos wrappedPos) { return new ChunkPos(wrappedPos.getX(), wrappedPos.getZ()); }
-	public static DhChunkPos convert(ChunkPos mcPos)
+	public static DhChunkPos convert(ChunkPos mcPos) 
 	{ 
 		#if MC_VER <= MC_1_21_11
 		return new DhChunkPos(mcPos.x, mcPos.z);
