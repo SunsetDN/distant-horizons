@@ -786,11 +786,13 @@ public class ChunkWrapper implements IChunkWrapper
 	public int getBlockLight(int relX, int y, int relZ)
 	{
 		this.throwIndexOutOfBoundsIfRelativePosOutsideChunkBounds(relX, y, relZ);
+		BlockPos worldPos = new BlockPos(this.getMinBlockX() + relX, y, this.getMinBlockZ() + relZ);
+		
 		#if MC_VER <= MC_1_12_2
-		return this.chunk.getLightFor(EnumSkyBlock.BLOCK, new BlockPos(relX, y, relZ));
+		return this.chunk.getLightFor(EnumSkyBlock.BLOCK, worldPos);
 		#else
 		Level level = (Level) this.wrappedLevel.getWrappedMcObject();
-		return level.getBrightness(LightLayer.BLOCK, new BlockPos(relX, y, relZ));
+		return level.getBrightness(LightLayer.BLOCK, worldPos);
 		#endif
 	}
 	
