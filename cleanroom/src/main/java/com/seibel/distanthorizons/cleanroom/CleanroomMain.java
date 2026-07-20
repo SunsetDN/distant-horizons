@@ -19,26 +19,41 @@
 
 package com.seibel.distanthorizons.cleanroom;
 
+import cofh.thermaldynamics.block.BlockDuct;
+import com.seibel.distanthorizons.api.DhApi;
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBlockColorOverrideEvent;
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBlockStateWrapperCreatedEvent;
+import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiEventParam;
 import com.seibel.distanthorizons.cleanroom.modAccessor.ModChecker;
+import com.seibel.distanthorizons.cleanroom.modCompat.quark.Quark;
+import com.seibel.distanthorizons.cleanroom.modCompat.sereneseasons.SereneSeasons;
+import com.seibel.distanthorizons.cleanroom.modCompat.thermaldynamics.ThermalDynamics;
 import com.seibel.distanthorizons.common.AbstractModInitializer;
 import com.seibel.distanthorizons.common.commands.CommandInitializer;
-import com.seibel.distanthorizons.common.wrappers.worldGeneration.InternalServerGenerator;
 import com.seibel.distanthorizons.core.api.internal.ServerApi;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IPluginPacketSender;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker;
 import com.seibel.distanthorizons.coreapi.ModInfo;
+import com.seibel.distanthorizons.coreapi.util.ColorUtil;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockBush;
+import net.minecraft.block.BlockGrass;
+import net.minecraft.block.BlockLeaves;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.*;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
+import vazkii.quark.base.module.ModuleLoader;
+import vazkii.quark.client.feature.GreenerGrass;
 
 
-import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -49,6 +64,14 @@ import java.util.function.Consumer;
 @Mod(modid = ModInfo.ID, name = ModInfo.NAME, version = ModInfo.VERSION)
 public class CleanroomMain extends AbstractModInitializer
 {
+	public static final boolean IS_QUARK_LOADED = Loader.isModLoaded("quark");
+	public static final boolean IS_FURENIKUSROADS_LOADED = Loader.isModLoaded("furenikusroads");
+	public static final boolean IS_IMMERSIVERAILRAODING_LOADED = Loader.isModLoaded("immersiverailroading");
+	public static final boolean IS_BOTANIA_LOADED = Loader.isModLoaded("botania");
+	public static final boolean IS_LUCRAFT_LOADED = Loader.isModLoaded("lucraftcore");
+	public static final boolean IS_THERMAL_DYNAMICS_LOADED = Loader.isModLoaded("thermaldynamics");
+	public static final boolean IS_SERENE_SEASONS_LOADED = Loader.isModLoaded("sereneseasons");
+	
 	@Mod.Instance
 	public static CleanroomMain instance;
 	
@@ -56,7 +79,8 @@ public class CleanroomMain extends AbstractModInitializer
 	public void preinit(FMLPreInitializationEvent event)
 	{
 		Configurator.setLevel("org.sqlite", Level.INFO);
-		ForgeChunkManager.setForcedChunkLoadingCallback(CleanroomMain.instance, (tickets, world) -> { });	
+		ForgeChunkManager.setForcedChunkLoadingCallback(CleanroomMain.instance, (tickets, world) -> { });
+		
 	}
 	
 	@Mod.EventHandler
@@ -70,6 +94,9 @@ public class CleanroomMain extends AbstractModInitializer
 		{
 			this.onInitializeServer();
 		}
+		
+		DhApi.events.bind(DhApiBlockStateWrapperCreatedEvent.class, new BlockWrapperCreated());
+		DhApi.events.bind(DhApiBlockColorOverrideEvent.class, new BlockColorOverrider());
 	}
 	
 	@Override
@@ -118,6 +145,8 @@ public class CleanroomMain extends AbstractModInitializer
 		{
 			eventHandlerStartServer.accept(event.getServer());
 		}
+		
+		ServerApi.INSTANCE.serverLoadEvent(event.getServer().isDedicatedServer());
 	}
 	
 	Consumer<MinecraftServer> eventHandlerStartServer;
@@ -131,17 +160,91 @@ public class CleanroomMain extends AbstractModInitializer
 	@Override
 	protected void runDelayedSetup() { SingletonInjector.INSTANCE.runDelayedSetup(); }
 	
-	// ServerWorldLoadEvent
-	@Mod.EventHandler
-	public void dedicatedWorldLoadEvent(FMLServerAboutToStartEvent event)
-	{
-		ServerApi.INSTANCE.serverLoadEvent(event.getServer().isDedicatedServer());
-	}
-	
 	// ServerWorldUnloadEvent
 	@Mod.EventHandler
 	public void serverWorldUnloadEvent(FMLServerStoppingEvent event)
 	{
 		ServerApi.INSTANCE.serverUnloadEvent();
 	}
+	
+	
+	
+	public static class BlockColorOverrider extends DhApiBlockColorOverrideEvent
+	{
+		@Override
+		public void onBlockColorOverridden(DhApiEventParam<EventParam> event)
+		{
+			IBlockState blockState = (IBlockState) event.value.getBlockStateWrapper().getWrappedMcObject();
+			Block block = blockState.getBlock();
+			
+			int tintColor = event.value.getTintColorAsInt();
+			
+			if (block instanceof BlockGrass || block instanceof BlockBush)
+			{
+				if (IS_SERENE_SEASONS_LOADED)
+				{
+					tintColor = SereneSeasons.applySereneSeasonsGrassTint((Biome) event.value.getBiomeWrapper().getWrappedMcObject(), tintColor);
+				}
+				if (IS_QUARK_LOADED && ModuleLoader.isFeatureEnabled(GreenerGrass.class))
+				{
+					tintColor = Quark.applyQuarksGreenerGrassFoliageTint(tintColor);
+				}
+				
+				int finalReturnColor = ColorUtil.multiplyARGBwithRGB(event.value.getBaseColorAsInt(), tintColor);
+				event.value.setColor(ColorUtil.getRed(finalReturnColor), ColorUtil.getGreen(finalReturnColor), ColorUtil.getBlue(finalReturnColor));
+			}
+			else if (block instanceof BlockLeaves)
+			{
+				if (IS_SERENE_SEASONS_LOADED)
+				{
+					tintColor = SereneSeasons.applySereneSeasonsFoliageTint((Biome) event.value.getBiomeWrapper().getWrappedMcObject(), tintColor);
+				}
+				if (IS_QUARK_LOADED && ModuleLoader.isFeatureEnabled(GreenerGrass.class) && GreenerGrass.affectFoliage)
+				{
+					tintColor = Quark.applyQuarksGreenerGrassFoliageTint(tintColor);
+				}
+				
+				int finalReturnColor = ColorUtil.multiplyARGBwithRGB(event.value.getBaseColorAsInt(), tintColor);
+				event.value.setColor(ColorUtil.getRed(finalReturnColor), ColorUtil.getGreen(finalReturnColor), ColorUtil.getBlue(finalReturnColor));
+			}
+			else if (IS_THERMAL_DYNAMICS_LOADED && block instanceof BlockDuct)
+			{
+				int finalReturnColor = ThermalDynamics.getThermalDynamicDuctColor(blockState);
+				event.value.setColor(ColorUtil.getRed(finalReturnColor), ColorUtil.getGreen(finalReturnColor), ColorUtil.getBlue(finalReturnColor));
+			}
+			
+		}
+		
+	}
+	
+	public static class BlockWrapperCreated extends DhApiBlockStateWrapperCreatedEvent
+	{
+		@Override
+		public void blockStateWrapperCreated(DhApiEventParam<EventParam> event)
+		{
+			IBlockState blockState = (IBlockState) event.value.getBlockStateWrapper().getWrappedMcObject();
+			Block block = blockState.getBlock();
+			if (block instanceof BlockGrass || block instanceof BlockBush)
+			{
+				if ((IS_QUARK_LOADED && ModuleLoader.isFeatureEnabled(GreenerGrass.class)) || (IS_SERENE_SEASONS_LOADED))
+				{
+					event.value.setAllowApiColorOverride(true);
+				}
+			}
+			else if (block instanceof BlockLeaves)
+			{
+				if ((IS_QUARK_LOADED && ModuleLoader.isFeatureEnabled(GreenerGrass.class) && GreenerGrass.affectFoliage) || (IS_SERENE_SEASONS_LOADED))
+				{
+					event.value.setAllowApiColorOverride(true);
+				}
+			}
+			else if (IS_THERMAL_DYNAMICS_LOADED && block instanceof BlockDuct)
+			{
+				event.value.setAllowApiColorOverride(true);
+			}
+			
+		}
+		
+	}
+	
 }

@@ -92,11 +92,11 @@ public class RenderHelper {
     }
 
     public static DhMat4f getModelViewMatrix() {
-        return McObjectConverter.Convert(modelViewMatrix);
+        return McObjectConverter.convert(modelViewMatrix);
     }
 
     public static DhMat4f getProjectionMatrix() {
-        return McObjectConverter.Convert(projectionMatrix);
+        return McObjectConverter.convert(projectionMatrix);
     }
 
     public static void setModelViewMatrix(FloatBuffer modelview) {

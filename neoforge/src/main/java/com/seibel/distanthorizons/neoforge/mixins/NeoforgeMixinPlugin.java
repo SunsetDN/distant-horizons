@@ -1,5 +1,10 @@
 package com.seibel.distanthorizons.neoforge.mixins;
 
+import com.seibel.distanthorizons.common.commonMixins.AbstractDhMixinPlugin;
+import com.seibel.distanthorizons.core.logging.DhLogger;
+import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersivePortalsAccessor;
+import com.seibel.distanthorizons.neoforge.wrappers.modAccessor.ModChecker;
 import net.neoforged.fml.ModList;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -12,8 +17,10 @@ import java.util.Set;
  * @author coolGi
  * @author cortex
  */
-public class NeoforgeMixinPlugin implements IMixinConfigPlugin
+public class NeoforgeMixinPlugin extends AbstractDhMixinPlugin implements IMixinConfigPlugin
 {
+	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
+	
 	private boolean firstRun = false;
 	private boolean isNeoforgeMixinFile;
 	
@@ -21,19 +28,26 @@ public class NeoforgeMixinPlugin implements IMixinConfigPlugin
 	@Override
 	public boolean shouldApplyMixin(String targetClassName, String mixinClassName)
 	{
-		if (!this.firstRun) {
-			try {
+		if (!this.firstRun)
+		{
+			try
+			{
 				Class<?> cls = Class.forName("net.neoforged.fml.common.Mod"); // Check if a NeoForge exclusive class exists
 				this.isNeoforgeMixinFile = true;
-			} catch (ClassNotFoundException e) {
+			}
+			catch (ClassNotFoundException e)
+			{
 				this.isNeoforgeMixinFile = false;
 			}
 		}
 		if (!this.isNeoforgeMixinFile)
+		{
 			return false;
+		}
 		
 		if (mixinClassName.contains(".mods."))
-		{ // If the mixin wants to go into a mod then we check if that mod is loaded or not
+		{ 
+			// If the mixin wants to go into a mod then we check if that mod is loaded or not
 			return ModList.get().isLoaded(
 					mixinClassName
 							// What these 2 regex's do is get the mod name that we are checking out of the mixinClassName
@@ -41,6 +55,12 @@ public class NeoforgeMixinPlugin implements IMixinConfigPlugin
 							.replaceAll("^.*mods.", "") // Replaces everything before the mods
 							.replaceAll("\\..*$", "") // Replaces everything after the mod name
 			);
+		}
+		
+		
+		if (!this.shouldApplyDhMixin(targetClassName, mixinClassName))
+		{
+			return false;
 		}
 		
 		return true;

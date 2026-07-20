@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.neoforge;
 
+import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingApi;
 import com.seibel.distanthorizons.common.AbstractModInitializer;
 import com.seibel.distanthorizons.common.util.ProxyUtil;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapper;
@@ -30,6 +31,7 @@ import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
+import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
 import net.minecraft.world.level.LevelAccessor;
 
@@ -48,7 +50,7 @@ import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import net.minecraft.client.Minecraft;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.bus.api.SubscribeEvent;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 import java.util.concurrent.AbstractExecutorService;
 
@@ -57,7 +59,19 @@ public class NeoforgeClientProxy implements AbstractModInitializer.IEventProxy
 {
 	private static final IMinecraftClientWrapper MC = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
-
+	
+	private AbstractDhRenderApiDefinition renderDef = null;
+	/** delayed get due to this class being created before the {@link AbstractDhRenderApiDefinition} is bound */
+	private AbstractDhRenderApiDefinition getRenderDef()
+	{
+		if (this.renderDef == null)
+		{
+			this.renderDef = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
+		}
+		
+		return this.renderDef;
+	}
+	
 	
 	
 	@Override
@@ -68,6 +82,7 @@ public class NeoforgeClientProxy implements AbstractModInitializer.IEventProxy
 	//==============//
 	// chunk events //
 	//==============//
+	//region
 	
 	@SubscribeEvent
 	public void rightClickBlockEvent(PlayerInteractEvent.RightClickBlock event)
@@ -137,11 +152,14 @@ public class NeoforgeClientProxy implements AbstractModInitializer.IEventProxy
 		);
 	}
 	
+	//endregion
+	
 	
 	
 	//==============//
 	// key bindings //
 	//==============//
+	//region
 	
 	@SubscribeEvent
 	public void registerKeyBindings(InputEvent.Key event)
@@ -158,11 +176,14 @@ public class NeoforgeClientProxy implements AbstractModInitializer.IEventProxy
 		ClientApi.INSTANCE.keyPressedEvent(event.getKey());
 	}
 	
+	//endregion
+	
 	
 	
 	//===========//
 	// rendering //
 	//===========//
+	//region
 	
 	#if MC_VER < MC_1_21_6
 	@SubscribeEvent
@@ -175,7 +196,7 @@ public class NeoforgeClientProxy implements AbstractModInitializer.IEventProxy
 				// should generally only need to be set once per game session
 				// allows DH to render directly to Optifine's level frame buffer,
 				// allowing better shader support
-				MinecraftRenderWrapper.INSTANCE.finalLevelFrameBufferId = GL32.glGetInteger(GL32.GL_FRAMEBUFFER_BINDING);
+				MinecraftRenderWrapper.INSTANCE.finalLevelFrameBufferId = GL33.glGetInteger(GL33.GL_FRAMEBUFFER_BINDING);
 			}
 			catch (Exception | Error e)
 			{
@@ -228,13 +249,16 @@ public class NeoforgeClientProxy implements AbstractModInitializer.IEventProxy
 		#else
 		// handled via the same mixin as fabric for consistency
 		#endif
-
+		
 		try
 		{
-			// should generally only need to be set once per game session
-			// allows DH to render directly to Optifine's level frame buffer,
-			// allowing better shader support
-			MinecraftRenderWrapper.INSTANCE.finalLevelFrameBufferId = GL32.glGetInteger(GL32.GL_FRAMEBUFFER_BINDING);
+			if (this.getRenderDef().getRenderApi() == EDhApiRenderingApi.OPEN_GL)
+			{
+				// should generally only need to be set once per game session
+				// allows DH to render directly to Optifine's level frame buffer,
+				// allowing better shader support
+				MinecraftRenderWrapper.INSTANCE.finalLevelFrameBufferId = GL33.glGetInteger(GL33.GL_FRAMEBUFFER_BINDING);
+			}
 		}
 		catch (Exception | Error e)
 		{
@@ -246,6 +270,8 @@ public class NeoforgeClientProxy implements AbstractModInitializer.IEventProxy
 	}
 	
 	#endif
+	
+	//endregion
 	
 	
 	

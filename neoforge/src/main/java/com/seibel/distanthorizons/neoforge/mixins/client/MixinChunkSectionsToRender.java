@@ -56,7 +56,10 @@ public class MixinChunkSectionsToRender
 	@Inject(at = @At("HEAD"), method = "renderGroup", order = 800)
 	private void renderDeferredLayerHead(ChunkSectionLayerGroup chunkSectionLayerGroup, GpuSampler gpuSampler, CallbackInfo ci)
 	{
+		#if MC_VER <= MC_26_1_2
 		ClientApi.RENDER_STATE.clientLevelWrapper = ClientLevelWrapper.getWrapperIfDifferent(ClientApi.RENDER_STATE.clientLevelWrapper, Minecraft.getInstance().levelRenderer.level);
+		#else
+		#endif
 		
 		
 		ClientApi.RENDER_STATE.canRenderOrThrow();

@@ -41,8 +41,6 @@ import com.seibel.distanthorizons.core.render.EDhRenderDepth;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
-import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
-import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhFogRenderer;
 
@@ -170,8 +168,8 @@ public class BlazeDhFogRenderer implements IDhFogRenderer
 		
 		
 		
-		this.fogColorTextureWrapper.tryCreateOrResize();
-		this.fogDepthTextureWrapper.tryCreateOrResize();
+		this.fogColorTextureWrapper.tryCreateOrResizeToScreenSize();
+		this.fogDepthTextureWrapper.tryCreateOrResizeToScreenSize();
 		
 		{
 			// create data //
@@ -240,7 +238,7 @@ public class BlazeDhFogRenderer implements IDhFogRenderer
 		
 		
 		this.renderFogToTexture();
-		this.applyRenderer.render(this.fogColorTextureWrapper.texture, BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper.texture, BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.texture);
+		this.applyRenderer.render(this.fogColorTextureWrapper.getTexture(), BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper.getTexture(), BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.getTexture());
 		
 	}
 	

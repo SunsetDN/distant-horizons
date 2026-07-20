@@ -85,6 +85,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import static com.seibel.distanthorizons.common.wrappers.gui.GuiHelper.*;
 import static com.seibel.distanthorizons.common.wrappers.gui.GuiHelper.Translatable;
 
+@SuppressWarnings("deprecation") // ResourceLocation constructor is deprecated on some MC versions
 class DhConfigScreen extends DhScreen
 {
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();

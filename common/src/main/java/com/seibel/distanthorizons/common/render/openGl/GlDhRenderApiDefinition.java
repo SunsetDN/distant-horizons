@@ -36,6 +36,7 @@ public class GlDhRenderApiDefinition extends AbstractDhRenderApiDefinition
 	}
 	
 	public EDhApiRenderingApi getRenderApi() { return EDhApiRenderingApi.OPEN_GL; }
+	public EDhApiRenderingEngine getRenderingEngine() { return EDhApiRenderingEngine.OPEN_GL; }
 	public boolean isNativeRenderer() { return true; }
 	
 	//endregion

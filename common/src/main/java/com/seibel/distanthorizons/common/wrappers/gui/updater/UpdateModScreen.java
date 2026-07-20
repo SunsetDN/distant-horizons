@@ -41,6 +41,7 @@ import static com.seibel.distanthorizons.common.wrappers.gui.GuiHelper.*;
  *
  * @author coolGi
  */
+@SuppressWarnings("deprecation") // ResourceLocation constructor is deprecated on some MC versions
 public class UpdateModScreen extends DhScreen
 {
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();

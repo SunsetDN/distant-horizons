@@ -160,10 +160,10 @@ public class ChunkWrapper implements IChunkWrapper
 	}
 	
 	#if MC_VER <= MC_1_7_10
-	private ChunkWrapper(ChunkWrapper other)
+	private ChunkWrapper(ChunkWrapper other, ILevelWrapper wrappedLevel)
 	{
 		this.chunk = other.chunk;
-		this.wrappedLevel = other.wrappedLevel;
+		this.wrappedLevel = wrappedLevel;
 		this.chunkPos = new DhChunkPos(other.chunkPos.getX(), other.chunkPos.getZ());
 		this.biomeList = other.biomeList;
 	}
@@ -173,9 +173,19 @@ public class ChunkWrapper implements IChunkWrapper
 	public ChunkWrapper copy()
 	{
 		#if MC_VER <= MC_1_7_10
-		return new ChunkWrapper(this);
+		return new ChunkWrapper(this, this.wrappedLevel);
 		#else
 		return new ChunkWrapper(this.chunk, this.wrappedLevel);
+		#endif
+	}
+
+	@Override
+	public ChunkWrapper copyWithLevel(ILevelWrapper levelWrapper)
+	{
+		#if MC_VER <= MC_1_7_10
+		return new ChunkWrapper(this, levelWrapper);
+		#else
+		return new ChunkWrapper(this.chunk, levelWrapper);
 		#endif
 	}
 	

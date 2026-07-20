@@ -52,8 +52,10 @@ public class MixinClientLevel
 		if (chunk != null && !chunk.isClientLightReady())
 		{
 			SharedApi.INSTANCE.applyChunkUpdate(
-					new ChunkWrapper(chunk, ClientLevelWrapper.getWrapper(clientLevel)), 
-					ClientLevelWrapper.getWrapper(clientLevel));
+				new ChunkWrapper(chunk, ClientLevelWrapper.getWrapper(clientLevel)), 
+				ClientLevelWrapper.getWrapper(clientLevel),
+				true
+			);
 		}
 	}
 	#endif

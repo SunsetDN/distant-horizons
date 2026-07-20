@@ -2,7 +2,7 @@ package com.seibel.distanthorizons.common.render.openGl.glObject;
 
 import com.seibel.distanthorizons.api.interfaces.override.rendering.IDhApiFramebuffer;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 public class GlDhFramebuffer implements IDhApiFramebuffer
 {
@@ -17,7 +17,7 @@ public class GlDhFramebuffer implements IDhApiFramebuffer
 	//=============//
 	//region
 	
-	public GlDhFramebuffer() { this.id = GL32.glGenFramebuffers(); }
+	public GlDhFramebuffer() { this.id = GL33.glGenFramebuffers(); }
 
 	/** For internal use by Iris, do not remove. */
 	public GlDhFramebuffer(int id) { this.id = id; }
@@ -36,8 +36,8 @@ public class GlDhFramebuffer implements IDhApiFramebuffer
 	{
 		this.bind();
 		
-		int depthAttachment = isCombinedStencil ? GL32.GL_DEPTH_STENCIL_ATTACHMENT : GL32.GL_DEPTH_ATTACHMENT;
-		GL32.glFramebufferTexture2D(GL32.GL_FRAMEBUFFER, depthAttachment, GL32.GL_TEXTURE_2D, textureId, 0);
+		int depthAttachment = isCombinedStencil ? GL33.GL_DEPTH_STENCIL_ATTACHMENT : GL33.GL_DEPTH_ATTACHMENT;
+		GL33.glFramebufferTexture2D(GL33.GL_FRAMEBUFFER, depthAttachment, GL33.GL_TEXTURE_2D, textureId, 0);
 	}
 	
 	@Override
@@ -45,7 +45,7 @@ public class GlDhFramebuffer implements IDhApiFramebuffer
 	{
 		this.bind();
 		
-		GL32.glFramebufferTexture2D(GL32.GL_FRAMEBUFFER, GL32.GL_COLOR_ATTACHMENT0 + textureIndex, GL32.GL_TEXTURE_2D, textureId, 0);
+		GL33.glFramebufferTexture2D(GL33.GL_FRAMEBUFFER, GL33.GL_COLOR_ATTACHMENT0 + textureIndex, GL33.GL_TEXTURE_2D, textureId, 0);
 	}
 
 	@Override
@@ -55,13 +55,13 @@ public class GlDhFramebuffer implements IDhApiFramebuffer
 		{
 			throw new IllegalStateException("Framebuffer does not exist!");
 		} 
-		GLMC.glBindFramebuffer(GL32.GL_FRAMEBUFFER, this.id);
+		GLMC.glBindFramebuffer(GL33.GL_FRAMEBUFFER, this.id);
 	}
 	
 	@Override
 	public void destroy()
 	{
-		GL32.glDeleteFramebuffers(this.id); 
+		GL33.glDeleteFramebuffers(this.id); 
 		this.id = -1;
 	}
 	
@@ -69,7 +69,7 @@ public class GlDhFramebuffer implements IDhApiFramebuffer
 	public int getStatus()
 	{
 		this.bind(); 
-		int status = GL32.glCheckFramebufferStatus(GL32.GL_FRAMEBUFFER);
+		int status = GL33.glCheckFramebufferStatus(GL33.GL_FRAMEBUFFER);
 		return status;
 	}
 	

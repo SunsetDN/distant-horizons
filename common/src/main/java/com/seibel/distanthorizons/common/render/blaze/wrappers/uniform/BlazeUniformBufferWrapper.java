@@ -17,6 +17,9 @@ import com.seibel.distanthorizons.common.render.blaze.util.BlazeUniformUtil;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
+import com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListCheckout;
+import com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListPool;
+import net.minecraft.world.entity.monster.Phantom;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -29,12 +32,15 @@ public class BlazeUniformBufferWrapper implements AutoCloseable
 	private static final GpuDevice GPU_DEVICE = RenderSystem.getDevice();
 	private static final CommandEncoder COMMAND_ENCODER = GPU_DEVICE.createCommandEncoder();
 	
+	private static final PhantomArrayListPool ARRAY_LIST_POOL = new PhantomArrayListPool("BlazeUniform"); 
+	
 	
 	private final String name;
 	
 	/** measured in bytes */
 	private int bufferSize = 0;
 	
+	private final PhantomArrayListCheckout byteBufferCheckout = ARRAY_LIST_POOL.checkoutByteBuffers(2);
 	private ByteBuffer cpuBuffer = null;
 	
 	private GpuBuffer gpuBuffer = null;
@@ -128,20 +134,30 @@ public class BlazeUniformBufferWrapper implements AutoCloseable
 	}
 	private void recreateCpuBuffer()
 	{
-		ByteBuffer oldBuffer = this.cpuBuffer;
+		int newSize = calcBufferSize(this.uniformElementTypes);
+		int oldSize = this.bufferSize;
 		
-		int size = calcBufferSize(this.uniformElementTypes);
-		this.cpuBuffer = ByteBuffer.allocateDirect(size);
-		this.cpuBuffer.order(ByteOrder.nativeOrder());
+		this.bufferSize = newSize;
+		this.previousElementCount = this.elementCount;
 		
-		if (oldBuffer != null)
+		if (this.cpuBuffer == null
+			|| oldSize == 0)
 		{
-			oldBuffer.position(0);
-			this.cpuBuffer.put(oldBuffer);
+			// nothing written to the buffer yet, just make a new buffer with the requested size
+			this.cpuBuffer = byteBufferCheckout.getByteBuffer(0, newSize);
+			return;
 		}
 		
-		this.bufferSize = size;
-		this.previousElementCount = this.elementCount;
+		
+		// copy current data into temp
+		ByteBuffer temp = byteBufferCheckout.getByteBuffer(1, oldSize);
+		temp.put(this.cpuBuffer);
+		temp.position(0);
+		
+		// resize stable buffer...
+		this.cpuBuffer = byteBufferCheckout.getByteBuffer(0, newSize);
+		// ...and copy old data back in
+		this.cpuBuffer.put(temp);
 	}
 	private static int calcBufferSize(ArrayList<EUniformElement> uniformElements)
 	{
@@ -208,6 +224,8 @@ public class BlazeUniformBufferWrapper implements AutoCloseable
 		{
 			this.gpuBuffer.close();
 		}
+		
+		byteBufferCheckout.close();
 	}
 	
 	//endregion

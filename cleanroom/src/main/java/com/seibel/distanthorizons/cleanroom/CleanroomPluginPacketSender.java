@@ -43,7 +43,7 @@ public class CleanroomPluginPacketSender extends AbstractPluginPacketSender
 			AbstractPluginPacketSender.WRAPPER_PACKET_RESOURCE
 		);
 	
-	
+	public CleanroomPluginPacketSender() { super(true); }
 	
 	public static void setPacketHandler(Consumer<AbstractNetworkMessage> consumer)
 	{ setPacketHandler((player, message) -> consumer.accept(message)); }
@@ -93,7 +93,7 @@ public class CleanroomPluginPacketSender extends AbstractPluginPacketSender
 		
 		
 		@Override
-		public void fromBytes(ByteBuf buf) 
+		public void fromBytes(ByteBuf buf)
 		{
 			int messageId = buf.readByte();
 			message = MessageRegistry.INSTANCE.createMessage(messageId);
@@ -101,7 +101,7 @@ public class CleanroomPluginPacketSender extends AbstractPluginPacketSender
 		}
 		
 		@Override
-		public void toBytes(ByteBuf buf) 
+		public void toBytes(ByteBuf buf)
 		{
 			buf.writeByte(MessageRegistry.INSTANCE.getMessageId(message));
 			message.encode(buf);
@@ -110,7 +110,7 @@ public class CleanroomPluginPacketSender extends AbstractPluginPacketSender
 		public static class Handler implements IMessageHandler<MessageWrapper, IMessage>
 		{
 			@Override
-			public IMessage onMessage(MessageWrapper wrapper, MessageContext context) 
+			public IMessage onMessage(MessageWrapper wrapper, MessageContext context)
 			{
 				if (wrapper.message != null)
 				{
@@ -118,7 +118,7 @@ public class CleanroomPluginPacketSender extends AbstractPluginPacketSender
 					{
 						consumerPacket.accept(ServerPlayerWrapper.getWrapper(context.getServerHandler().player), wrapper.message);
 					}
-					else 
+					else
 					{
 						consumerPacket.accept(null, wrapper.message);
 					}
@@ -126,7 +126,9 @@ public class CleanroomPluginPacketSender extends AbstractPluginPacketSender
 				
 				return null; // No response needed
 			}
+			
 		}
+		
 	}
 	
 	//endregion

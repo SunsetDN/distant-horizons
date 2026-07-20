@@ -31,8 +31,8 @@ import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.opengl.GL32;
-import org.lwjgl.opengl.GL32C;
+import org.lwjgl.opengl.GL33;
+import org.lwjgl.opengl.GL33C;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.system.NativeType;
@@ -76,20 +76,20 @@ public class GlShader
 		}
 		
 		// Create an empty shader object
-		this.id = GL32.glCreateShader(type);
+		this.id = GL33.glCreateShader(type);
 		if (this.id == 0)
 		{
 			throw new IllegalArgumentException("Failed to create shader with type ["+type+"] and Source: \n["+sourceString+"].");
 		}
 		
 		safeShaderSource(this.id, sourceString);
-		GL32.glCompileShader(this.id);
+		GL33.glCompileShader(this.id);
 		// check if the shader compiled
-		int status = GL32.glGetShaderi(this.id, GL32.GL_COMPILE_STATUS);
-		if (status != GL32.GL_TRUE)
+		int status = GL33.glGetShaderi(this.id, GL33.GL_COMPILE_STATUS);
+		if (status != GL33.GL_TRUE)
 		{
 			
-			String message = "Shader compiler error. Details: [" + GL32.glGetShaderInfoLog(this.id) + "]\n";
+			String message = "Shader compiler error. Details: [" + GL33.glGetShaderInfoLog(this.id) + "]\n";
 			message += "Source: \n[" + sourceString + "]";
 			this.free(); // important!
 			throw new RuntimeException(message);
@@ -107,7 +107,7 @@ public class GlShader
 	//region
 	
 	/**
-	 * Identical in function to {@link GL32C#glShaderSource(int, CharSequence)} but
+	 * Identical in function to {@link GL33C#glShaderSource(int, CharSequence)} but
 	 * passes a null pointer for string length to force the driver to rely on the null
 	 * terminator for string length.  This is a workaround for an apparent flaw with some
 	 * AMD drivers that don't receive or interpret the length correctly, resulting in
@@ -128,7 +128,7 @@ public class GlShader
 			final PointerBuffer pointers = stack.mallocPointer(1);
 			pointers.put(sourceBuffer);
 
-			GL32.nglShaderSource(glId, 1, pointers.address0(), 0);
+			GL33.nglShaderSource(glId, 1, pointers.address0(), 0);
 			org.lwjgl.system.APIUtil.apiArrayFree(pointers.address0(), 1);
 		}
 		finally
@@ -137,7 +137,7 @@ public class GlShader
 		}
 	}
 	
-	public void free() { GL32.glDeleteShader(this.id); }
+	public void free() { GL33.glDeleteShader(this.id); }
 	
 	public static String loadFile(String path, boolean absoluteFilePath)
 	{

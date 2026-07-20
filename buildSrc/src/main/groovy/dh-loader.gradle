@@ -10,7 +10,7 @@ import groovy.json.JsonSlurper
 
 // Convention plugin for all MC-facing subprojects (common + loaders).
 // Common uses this directly; loaders use it via unimined-fabric/forge/neoforge.
-// IMPORTANT: unimined MUST be applied before shadow/jvmdowngrader
+// IMPORTANT: unimined MUST be applied before shadow
 // so its afterEvaluate runs first and can modify configs.
 
 plugins {
@@ -19,7 +19,6 @@ plugins {
     id 'xyz.wagyourtail.unimined'
     id 'com.gradleup.shadow'
     id 'xyz.wagyourtail.manifold'
-    id 'xyz.wagyourtail.jvmdowngrader'
 }
 
 def isNotCommonProject = project.name != "common"
@@ -127,7 +126,6 @@ if (isNotCommonProject) {
             )
             if (project.name == "cleanroom") {
                 attributes(
-                    'ModType': 'CRL',
                     'MixinConfigs': "${mod_id}.default.mixin.json,${mod_id}.mod.mixin.json",
                     'FMLCorePlugin': 'com.seibel.distanthorizons.cleanroom.DistantHorizonsLoadingPlugin',
                     'FMLCorePluginContainsFMLMod': true,
@@ -213,6 +211,11 @@ configurations {
     
     common
     implementation.extendsFrom(common)
+
+    modCompileOnly
+    compileOnly.extendsFrom(modCompileOnly)
+    modRuntimeOnly
+    runtimeOnly.extendsFrom(modRuntimeOnly)
 }
 
 
@@ -317,7 +320,7 @@ if (isNotCommonProject) {
         configurations = [project.configurations.shadowMe]
         def librariesLocation = "DistantHorizons.libraries"
 
-        // LZ4
+        // LZ4 compression
         relocate "net.jpountz", "${librariesLocation}.jpountz"
 
         // SLF4J
@@ -335,11 +338,14 @@ if (isNotCommonProject) {
             relocateNative "org_sqlite", "dh_1sqlite"
         }
 
-        // ZStd
+        // ZStd compression
         relocate "com.github.luben", "dhcomgithubluben"
         relocate "libzstd-jni", "libzstd-jni_dh"
         relocate "zstd-jni", "zstd-jni_dh"
 
+        // XZ compression
+        relocate "org.tukaani", "${librariesLocation}.tukaani"
+        
         transform(NativeTransformer) {
             rootDir = project.rootDir
             matchFiles { it.contains("libzstd-jni") && !it.contains("aix/ppc64") }
@@ -464,9 +470,7 @@ if (isNotCommonProject) {
             }
         }
         
-        tasks.downgradeJar.inputFile.set(tasks.named("remapJar").flatMap { it.archiveFile })
         tasks.jar.finalizedBy(tasks.named("remapJar"))
-        tasks.named("remapJar").configure { finalizedBy(tasks.shadeDowngradedApi) }
     }
 }
 
@@ -487,8 +491,8 @@ if (isNotCommonProject) {
         // incoming format: `["26.2.0","26.2-alpha.9"]`
         // outgoing format: `[26.2.0],[26.2-alpha.9]`
         def compatible_forgemc_versions = "${rootProject.compatible_minecraft_versions}"
-            .replaceAll("\",\"", "],[")
-            .replaceAll("\"", "")
+            .replaceAll('"', '') // remove quotes
+            .replaceAll(', ', '],[') // replace ", " with "],["
 
         // Quilt contributors
         def quilt_contributors = []
@@ -586,9 +590,4 @@ if (isNotCommonProject) {
     }
 
 
-    // ==================== JVMDowngrader ====================
-
-    jvmdg.downgradeTo = JavaVersion.toVersion(rootProject.java_version)
-    downgradeJar.archiveClassifier.set(null)
-    shadeDowngradedApi.archiveClassifier.set(null)
 }

@@ -20,7 +20,7 @@
 package com.seibel.distanthorizons.common.render.openGl.glObject.vertexAttribute;
 
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLProxy;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 /**
  * Base for binding/unbinding Vertex Attribute objects (VAO's).
@@ -42,8 +42,8 @@ public abstract class GlAbstractVertexAttribute
 	// This will bind AbstractVertexAttribute
 	protected GlAbstractVertexAttribute()
 	{
-		this.id = GL32.glGenVertexArrays();
-		GL32.glBindVertexArray(this.id);
+		this.id = GL33.glGenVertexArrays();
+		GL33.glBindVertexArray(this.id);
 	}
 	
 	public static GlAbstractVertexAttribute create()
@@ -64,11 +64,11 @@ public abstract class GlAbstractVertexAttribute
 	// binding //
 	//=========//
 	
-	public void bind() { GL32.glBindVertexArray(this.id); }
-	public void unbind() { GL32.glBindVertexArray(0); }
+	public void bind() { GL33.glBindVertexArray(this.id); }
+	public void unbind() { GL33.glBindVertexArray(0); }
 	
 	/** Always remember to always free your resources! */
-	public void free() { GL32.glDeleteVertexArrays(this.id); }
+	public void free() { GL33.glDeleteVertexArrays(this.id); }
 	
 	
 	

@@ -44,6 +44,7 @@ import java.util.Objects;
  * @version 12-02-2021
  */
 @Mixin(OptionsScreen.class)
+@SuppressWarnings("deprecation") // ResourceLocation constructor is deprecated on some MC versions
 public class MixinOptionsScreen extends Screen
 {
 	// Get the texture for the button

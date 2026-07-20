@@ -25,7 +25,7 @@ import com.seibel.distanthorizons.core.util.math.DhVec3f;
 import net.minecraft.client.renderer.RenderType;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 #elif MC_VER < MC_1_21_6
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
@@ -152,24 +152,24 @@ public class MixinLevelRenderer
 		#if MC_VER <= MC_1_16_5
 	    // get the matrices from the OpenGL fixed pipeline
 	    float[] mcProjMatrixRaw = new float[16];
-	    GL32.glGetFloatv(GL32.GL_PROJECTION_MATRIX, mcProjMatrixRaw);
+	    GL33.glGetFloatv(GL33.GL_PROJECTION_MATRIX, mcProjMatrixRaw);
 	    ClientApi.RENDER_STATE.mcProjectionMatrix = new DhMat4f(mcProjMatrixRaw);
 	    ClientApi.RENDER_STATE.mcProjectionMatrix.transpose();
 	    
-	    ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(matrixStackIn.last().pose());
+	    ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(matrixStackIn.last().pose());
 		
 		#elif MC_VER <= MC_1_20_4
 		// get the matrices directly from MC
-		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(modelViewMatrixStack.last().pose());
-		ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.Convert(projectionMatrix);
+		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(modelViewMatrixStack.last().pose());
+		ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.convert(projectionMatrix);
 		#elif MC_VER < MC_1_21_9
 		// MC combined the model view and projection matricies
-	    ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(projectionMatrix);
+	    ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(projectionMatrix);
 	    ClientApi.RENDER_STATE.mcProjectionMatrix = new DhMat4f();
 	    ClientApi.RENDER_STATE.mcProjectionMatrix.setIdentity();
 		#else
-		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(positionMatrix);
-		ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.Convert(projectionMatrix);
+		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(positionMatrix);
+		ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.convert(projectionMatrix);
 		#endif
 		
 		ClientApi.RENDER_STATE.partialTickTime = MinecraftRenderWrapper.INSTANCE.getPartialTickTime();
@@ -195,7 +195,7 @@ public class MixinLevelRenderer
 	@Inject(at = @At("HEAD"), method = "prepareChunkRenders")
 	private void prepareChunkRenders(Matrix4fc modelViewMatrix, double d, double e, double f, CallbackInfoReturnable<ChunkSectionsToRender> callback)
 	{
-		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(modelViewMatrix);
+		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(modelViewMatrix);
 		ClientApi.RENDER_STATE.clientLevelWrapper = ClientLevelWrapper.getWrapperIfDifferent(ClientApi.RENDER_STATE.clientLevelWrapper, this.level);
 		
 		// only crash during development
@@ -239,7 +239,7 @@ public class MixinLevelRenderer
 		final ChunkSectionsToRender chunkSectionsToRender,
 		CallbackInfo callback)
 	{
-		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(modelViewMatrix);
+		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(modelViewMatrix);
 		
 		ClientApi.RENDER_STATE.partialTickTime = MinecraftRenderWrapper.INSTANCE.getPartialTickTime();
 		

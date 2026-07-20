@@ -10,6 +10,7 @@ import com.seibel.distanthorizons.common.render.openGl.glObject.GLProxy;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GlDhFramebuffer;
 import com.seibel.distanthorizons.common.render.openGl.glObject.texture.*;
 import com.seibel.distanthorizons.common.render.openGl.postProcessing.apply.GlDhApplyShader;
+import com.seibel.distanthorizons.common.render.openGl.terrain.GlBlockTextureAtlas;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.wrappers.misc.LightMapWrapper;
 import com.seibel.distanthorizons.core.config.Config;
@@ -21,12 +22,13 @@ import com.seibel.distanthorizons.core.render.DhApiRenderProxy;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.ILightMapWrapper;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IOptifineAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhMetaRenderer;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.OverrideInjector;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 public class GlDhMetaRenderer implements IDhMetaRenderer
 {
@@ -46,6 +48,7 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 	private static final MinecraftGLWrapper GLMC = MinecraftGLWrapper.INSTANCE;
 	
 	private static final IOptifineAccessor OPTIFINE_ACCESSOR = ModAccessorInjector.INSTANCE.get(IOptifineAccessor.class);
+	private static final IIrisAccessor IRIS_ACCESSOR = ModAccessorInjector.INSTANCE.get(IIrisAccessor.class);
 	
 	
 	private int activeFramebufferId = -1;
@@ -76,6 +79,7 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 	private int previousBoundTextureId;
 	private int previousDepthFunc;
 	#endif
+	
 	
 	
 	//============//
@@ -113,15 +117,34 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		this.setGLState(renderParams, firstPass);
 		
 		this.bindLightmap(renderParams.lightmap);
+		
+		if (Config.Client.Advanced.Graphics.Texture.enableTexturedLods.get()
+			&& irisShadersInactive())
+		{
+			GlBlockTextureAtlas.INSTANCE.uploadPendingTiles();
+			GlBlockTextureAtlas.INSTANCE.bind();
+		}
 	}
 	private void setGLState(
 		DhApiRenderParam renderEventParam,
 		boolean firstPass)
 	{
+		//=================//
+		// local var setup //
+		//=================//
+		
 		#if MC_VER <= MC_1_12_2
 		this.previousBoundTextureId = GLMC.getActiveTexture();
 		this.previousDepthFunc = GLMC.getActiveDepthFunc();
 		#endif
+		
+		// view sizes are used in a few places and
+		// should be used instead of the instance variables
+		// to prevent using the last frame's value
+		int viewportWidth = MC_RENDER.getTargetFramebufferViewportWidth();
+		int viewportHeight = MC_RENDER.getTargetFramebufferViewportHeight();
+		
+		
 		
 		//===================//
 		// framebuffer setup //
@@ -144,22 +167,30 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		//==========//
 		
 		// by default draw everything as triangles
-		GL32.glPolygonMode(GL32.GL_FRONT_AND_BACK, GL32.GL_FILL);
+		GL33.glPolygonMode(GL33.GL_FRONT_AND_BACK, GL33.GL_FILL);
 		GLMC.enableFaceCulling();
 		
-		GLMC.glBlendFunc(GL32.GL_SRC_ALPHA, GL32.GL_ONE_MINUS_SRC_ALPHA);
-		GLMC.glBlendFuncSeparate(GL32.GL_SRC_ALPHA, GL32.GL_ONE_MINUS_SRC_ALPHA, GL32.GL_ONE, GL32.GL_ZERO);
+		GLMC.glBlendFunc(GL33.GL_SRC_ALPHA, GL33.GL_ONE_MINUS_SRC_ALPHA);
+		GLMC.glBlendFuncSeparate(GL33.GL_SRC_ALPHA, GL33.GL_ONE_MINUS_SRC_ALPHA, GL33.GL_ONE, GL33.GL_ZERO);
 		
-		GL32.glDisable(GL32.GL_SCISSOR_TEST);
+		GL33.glDisable(GL33.GL_SCISSOR_TEST);
 		
 		// Enable depth test and depth mask
 		GLMC.enableDepthTest();
-		GLMC.glDepthFunc(GL32.GL_LESS);
+		GLMC.glDepthFunc(GL33.GL_LESS);
 		GLMC.enableDepthMask();
 		
-		// This is required for MC versions 1.21.5+
-		// due to MC updating the lightmap by changing the viewport size
-		GL32.glViewport(0, 0, this.textureWidth, this.textureHeight);
+		// don't change the viewport size when Iris is rendering the shadow pass
+		// Iris has a custom shadowmap size, and changing the viewport will cause shadows to render
+		// incorrectly.
+		if (IRIS_ACCESSOR != null 
+			&& !IRIS_ACCESSOR.isRenderingShadowPass())
+		{
+			// This is required for MC versions 1.21.5+
+			// due to MC updating the lightmap by changing the viewport size
+			// and some camera mods that change the viewport size 
+			GLMC.glViewport(0, 0, viewportWidth, viewportHeight);
+		}
 		
 		this.shaderProgramForThisFrame.bind();
 		
@@ -184,8 +215,8 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		//===============//
 		
 		// resize the textures if needed
-		if (MC_RENDER.getTargetFramebufferViewportWidth() != this.textureWidth
-			|| MC_RENDER.getTargetFramebufferViewportHeight() != this.textureHeight)
+		if (viewportWidth != this.textureWidth
+			|| viewportHeight != this.textureHeight)
 		{
 			// just resizing the textures doesn't work when Optifine is present,
 			// so recreate the textures with the new size instead
@@ -205,7 +236,7 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		else
 		{
 			// get MC's color texture 
-			int colorTextureId = GL32.glGetFramebufferAttachmentParameteri(GL32.GL_FRAMEBUFFER, GL32.GL_COLOR_ATTACHMENT0, GL32.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME);
+			int colorTextureId = GL33.glGetFramebufferAttachmentParameteri(GL33.GL_FRAMEBUFFER, GL33.GL_COLOR_ATTACHMENT0, GL33.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME);
 			this.setActiveColorTextureId(colorTextureId);
 		}
 		
@@ -214,11 +245,11 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		boolean clearTextures = !ApiEventInjector.INSTANCE.fireAllEvents(DhApiBeforeTextureClearEvent.class, renderEventParam);
 		if (clearTextures)
 		{
-			GL32.glClearDepth(1.0);
+			GL33.glClearDepth(1.0);
 			
 			float[] clearColorValues = new float[4];
-			GL32.glGetFloatv(GL32.GL_COLOR_CLEAR_VALUE, clearColorValues);
-			GL32.glClearColor(clearColorValues[0], clearColorValues[1], clearColorValues[2], 1.0f);
+			GL33.glGetFloatv(GL33.GL_COLOR_CLEAR_VALUE, clearColorValues);
+			GL33.glClearColor(clearColorValues[0], clearColorValues[1], clearColorValues[2], 1.0f);
 			
 			if (this.usingMcFramebuffer && framebufferOverride == null)
 			{
@@ -228,11 +259,11 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 				
 				
 				// don't clear the color texture, that removes the sky 
-				GL32.glClear(GL32.GL_DEPTH_BUFFER_BIT);
+				GL33.glClear(GL33.GL_DEPTH_BUFFER_BIT);
 			}
 			else if (firstPass)
 			{
-				GL32.glClear(GL32.GL_COLOR_BUFFER_BIT | GL32.GL_DEPTH_BUFFER_BIT);
+				GL33.glClear(GL33.GL_COLOR_BUFFER_BIT | GL33.GL_DEPTH_BUFFER_BIT);
 			}
 		}
 	}
@@ -271,7 +302,7 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		// create and bind the necessary textures
 		this.createAndBindTextures();
 		
-		if(this.framebuffer.getStatus() != GL32.GL_FRAMEBUFFER_COMPLETE)
+		if(this.framebuffer.getStatus() != GL33.GL_FRAMEBUFFER_COMPLETE)
 		{
 			// This generally means something wasn't bound, IE missing either the color or depth texture
 			LOGGER.warn("Framebuffer ["+this.framebuffer.getId()+"] isn't complete.");
@@ -307,6 +338,10 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		IDhApiFramebuffer framebufferOverride = OverrideInjector.INSTANCE.get(IDhApiFramebuffer.class);
 		
 		
+		if (this.depthTexture != null)
+		{
+			this.depthTexture.destroy();
+		}
 		this.depthTexture = new GlDhDepthTexture(this.textureWidth, this.textureHeight, EGlDhDepthBufferFormat.DEPTH32F);
 		this.framebuffer.addDepthAttachment(this.depthTexture.getTextureId(), EGlDhDepthBufferFormat.DEPTH32F.isCombinedStencil());
 		if (framebufferOverride != null)
@@ -318,6 +353,11 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		// if we are using MC's frame buffer, a color texture is already present and shouldn't need to be bound
 		if (!this.usingMcFramebuffer)
 		{
+			if (this.nullableColorTexture != null)
+			{
+				this.nullableColorTexture.destroy();
+			}
+			
 			this.nullableColorTexture = GlDhColorTexture.builder()
 				.setDimensions(this.textureWidth, this.textureHeight)
 				.setInternalFormat(EGlDhInternalTextureFormat.RGBA8)
@@ -363,14 +403,21 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 			{
 				// If MC's framebuffer is being used the depth needs to be cleared to prevent rendering on top of MC.
 				// This should only happen when Optifine shaders are being used.
-				GL32.glClear(GL32.GL_DEPTH_BUFFER_BIT);
+				GL33.glClear(GL33.GL_DEPTH_BUFFER_BIT);
 			}
 		}
 		
+		// Restore GL states that 1.12.2 vanilla expects
 		#if MC_VER <= MC_1_12_2
 		GLMC.glDepthFunc(previousDepthFunc);
+		GLMC.glBlendFuncSeparate(GL33.GL_SRC_ALPHA, GL33.GL_ONE, GL33.GL_ONE, GL33.GL_ZERO);
 		#endif
 		this.unbindLightmap();
+		if (Config.Client.Advanced.Graphics.Texture.enableTexturedLods.get()
+			&& irisShadersInactive())
+		{
+			GlBlockTextureAtlas.INSTANCE.unbind();
+		}
 		this.shaderProgramForThisFrame.unbind();
 	}
 	
@@ -397,11 +444,13 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		
 		
 		
-		GL32.glClearDepth(1.0);
+		GL33.glClearDepth(1.0);
 		
 		float[] clearColorValues = new float[4];
-		GL32.glGetFloatv(GL32.GL_COLOR_CLEAR_VALUE, clearColorValues);
-		GL32.glClearColor(clearColorValues[0], clearColorValues[1], clearColorValues[2], 1.0f);
+		GL33.glGetFloatv(GL33.GL_COLOR_CLEAR_VALUE, clearColorValues);
+		// alpha of 0 done as a check to make sure DH is only applied to MC's framebuffer
+		// where DH pixels were drawn
+		GL33.glClearColor(clearColorValues[0], clearColorValues[1], clearColorValues[2], 0.0f);
 		
 		if (this.usingMcFramebuffer 
 			&& framebufferOverride == null)
@@ -412,11 +461,11 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 			
 			
 			// don't clear the color texture, that removes the sky 
-			GL32.glClear(GL32.GL_DEPTH_BUFFER_BIT);
+			GL33.glClear(GL33.GL_DEPTH_BUFFER_BIT);
 		}
 		else if (firstPass)
 		{
-			GL32.glClear(GL32.GL_COLOR_BUFFER_BIT | GL32.GL_DEPTH_BUFFER_BIT);
+			GL33.glClear(GL33.GL_COLOR_BUFFER_BIT | GL33.GL_DEPTH_BUFFER_BIT);
 		}
 		
 	}
@@ -461,7 +510,7 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 	public void bindLightmap(ILightMapWrapper lightMapWrapper)
 	{
 		LightMapWrapper lightMap = (LightMapWrapper)lightMapWrapper;
-		GLMC.glActiveTexture(GL32.GL_TEXTURE0 + LightMapWrapper.GL_BOUND_INDEX);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE0 + LightMapWrapper.GL_BOUND_INDEX);
 		GLMC.glBindTexture(lightMap.getOpenGlId());
 	}
 	
@@ -473,6 +522,12 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		#else
 		GLMC.glBindTexture(0);
 		#endif
+	}
+	
+	private boolean irisShadersInactive()
+	{
+		return !(IRIS_ACCESSOR != null
+			&& IRIS_ACCESSOR.isShaderPackInUse());
 	}
 	
 	//endregion

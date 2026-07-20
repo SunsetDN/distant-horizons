@@ -31,7 +31,7 @@ import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.render.renderer.AbstractDebugWireframeRenderer;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -141,7 +141,7 @@ public class GlDhDebugWireframeRenderer extends AbstractDebugWireframeRenderer
 		boxOutlineBuffer.asIntBuffer().put(BOX_OUTLINE_INDICES);
 		boxOutlineBuffer.rewind();
 		this.indexBuffer = new GLIndexBuffer(false);
-		this.indexBuffer.uploadBuffer(boxOutlineBuffer, EDhApiGpuUploadMethod.DATA, BOX_OUTLINE_INDICES.length * Integer.BYTES, GL32.GL_STATIC_DRAW);
+		this.indexBuffer.uploadBuffer(boxOutlineBuffer, EDhApiGpuUploadMethod.DATA, BOX_OUTLINE_INDICES.length * Integer.BYTES, GL33.GL_STATIC_DRAW);
 		
 	}
 	
@@ -160,7 +160,7 @@ public class GlDhDebugWireframeRenderer extends AbstractDebugWireframeRenderer
 	{
 		this.init();
 		
-		GL32.glPolygonMode(GL32.GL_FRONT_AND_BACK, GL32.GL_LINE);
+		GL33.glPolygonMode(GL33.GL_FRONT_AND_BACK, GL33.GL_LINE);
 		GLMC.enableDepthTest();
 		
 		this.basicShader.bind();
@@ -172,7 +172,7 @@ public class GlDhDebugWireframeRenderer extends AbstractDebugWireframeRenderer
 		super.render(renderParams);
 		
 		// revert to prevent issues with the following passes
-		GL32.glPolygonMode(GL32.GL_FRONT_AND_BACK, GL32.GL_FILL);
+		GL33.glPolygonMode(GL33.GL_FRONT_AND_BACK, GL33.GL_FILL);
 	}
 	
 	@Override
@@ -187,7 +187,7 @@ public class GlDhDebugWireframeRenderer extends AbstractDebugWireframeRenderer
 
 		this.basicShader.setUniform(this.basicShader.getUniformLocation("uColor"), box.color);
 
-		GL32.glDrawElements(GL32.GL_LINES, BOX_OUTLINE_INDICES.length, GL32.GL_UNSIGNED_INT, 0);
+		GL33.glDrawElements(GL33.GL_LINES, BOX_OUTLINE_INDICES.length, GL33.GL_UNSIGNED_INT, 0);
 	}
 	
 	//endregion

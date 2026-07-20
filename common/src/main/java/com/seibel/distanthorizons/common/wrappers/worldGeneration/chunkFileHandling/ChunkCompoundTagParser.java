@@ -38,7 +38,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapper;
 import net.minecraft.core.Registry;
 #if MC_VER >= MC_1_19_4
 import net.minecraft.core.registries.Registries;
@@ -676,7 +675,7 @@ public class ChunkCompoundTagParser
 	{
 		LOGGED_ERROR_MESSAGE_MAP.computeIfAbsent(message, (newMessage) ->
 		{
-			DhChunkPos dhChunkPos = McObjectConverter.Convert(chunkPos);
+			DhChunkPos dhChunkPos = McObjectConverter.convert(chunkPos);
 			
 			LOGGER.warn("Unable to deserialize blocks for chunk section [" + dhChunkPos.getX() + ", " + sectionYIndex + ", " + dhChunkPos.getZ() + "], error: ["+newMessage+"]. " +
 					"This can probably be ignored, although if your world looks wrong, optimizing it via the single player menu then deleting your DH database(s) should fix the problem.");
@@ -688,7 +687,7 @@ public class ChunkCompoundTagParser
 	{
 		LOGGED_ERROR_MESSAGE_MAP.computeIfAbsent(message, (newMessage) -> 
 		{
-			DhChunkPos dhChunkPos = McObjectConverter.Convert(chunkPos);
+			DhChunkPos dhChunkPos = McObjectConverter.convert(chunkPos);
 			
 			LOGGER.warn("Unable to deserialize biomes for chunk section [" + dhChunkPos.getX() + ", " + sectionYIndex + ", " + dhChunkPos.getZ() + "], error: ["+newMessage+"]. " +
 					"This can probably be ignored, although if your world looks wrong, optimizing it via the single player menu then deleting your DH database(s) should fix the problem.");

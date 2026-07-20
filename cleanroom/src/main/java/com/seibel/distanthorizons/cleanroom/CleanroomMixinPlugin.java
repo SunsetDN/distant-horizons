@@ -29,7 +29,7 @@ import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import java.util.List;
 import java.util.Set;
 
-public class DistantHorizonsConfigPlugin implements IMixinConfigPlugin
+public class CleanroomMixinPlugin implements IMixinConfigPlugin
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	

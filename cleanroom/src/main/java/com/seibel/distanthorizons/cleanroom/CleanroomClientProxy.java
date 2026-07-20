@@ -55,7 +55,7 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 import java.util.concurrent.AbstractExecutorService;
 
@@ -73,7 +73,13 @@ public class CleanroomClientProxy implements AbstractModInitializer.IEventProxy
 	{
 		MinecraftForge.EVENT_BUS.register(this);
 		MinecraftForge.EVENT_BUS.register(FMLCommonHandler.instance());
-		CleanroomPluginPacketSender.setPacketHandler(ClientApi.INSTANCE::pluginMessageReceived);
+		
+		// handles singleplayer, LAN, and connecting to a server
+		PACKET_SENDER.setPacketHandler((IServerPlayerWrapper player, @NotNull AbstractNetworkMessage message) ->
+		{
+			ClientApi.INSTANCE.pluginMessageReceived(message);
+			ServerApi.INSTANCE.pluginMessageReceived(player, message);
+		});
 	}
 	
 	
@@ -193,7 +199,7 @@ public class CleanroomClientProxy implements AbstractModInitializer.IEventProxy
 				// should generally only need to be set once per game session
 				// allows DH to render directly to Optifine's level frame buffer,
 				// allowing better shader support
-				MinecraftRenderWrapper.INSTANCE.finalLevelFrameBufferId = GL32.glGetInteger(GL32.GL_FRAMEBUFFER_BINDING);
+				MinecraftRenderWrapper.INSTANCE.finalLevelFrameBufferId = GL33.glGetInteger(GL33.GL_FRAMEBUFFER_BINDING);
 			}
 			catch (Exception | Error e)
 			{

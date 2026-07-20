@@ -27,7 +27,7 @@ import java.util.TreeSet;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 
 public final class GlVertexAttributePreGL43 extends GlAbstractVertexAttribute
@@ -74,7 +74,7 @@ public final class GlVertexAttributePreGL43 extends GlAbstractVertexAttribute
 	{
 		for (int i = 0; i < this.pointers.length; i++)
 		{
-			GL32.glEnableVertexAttribArray(i);
+			GL33.glEnableVertexAttribArray(i);
 		}
 		
 		for (int i = 0; i < this.pointers.length; i++)
@@ -87,12 +87,12 @@ public final class GlVertexAttributePreGL43 extends GlAbstractVertexAttribute
 			
 			if (pointer.useInteger)
 			{
-				GL32.glVertexAttribIPointer(i, pointer.elementCount, pointer.glType,
+				GL33.glVertexAttribIPointer(i, pointer.elementCount, pointer.glType,
 						this.strideSize, this.pointersOffset[i]);
 			}
 			else
 			{
-				GL32.glVertexAttribPointer(i, pointer.elementCount, pointer.glType,
+				GL33.glVertexAttribPointer(i, pointer.elementCount, pointer.glType,
 					pointer.normalized, this.strideSize, this.pointersOffset[i]);
 			}
 		}
@@ -106,7 +106,7 @@ public final class GlVertexAttributePreGL43 extends GlAbstractVertexAttribute
 		
 		for (int bindingPointIndex : bindingPointIndexes)
 		{
-			GL32.glEnableVertexAttribArray(bindingPointIndex);
+			GL33.glEnableVertexAttribArray(bindingPointIndex);
 		}
 		
 		for (int bindingPointIndex : bindingPointIndexes)
@@ -119,12 +119,12 @@ public final class GlVertexAttributePreGL43 extends GlAbstractVertexAttribute
 			
 			if (pointer.useInteger)
 			{
-				GL32.glVertexAttribIPointer(bindingPointIndex, pointer.elementCount, pointer.glType,
+				GL33.glVertexAttribIPointer(bindingPointIndex, pointer.elementCount, pointer.glType,
 						this.strideSize, this.pointersOffset[bindingPointIndex]);
 			}
 			else
 			{
-				GL32.glVertexAttribPointer(bindingPointIndex, pointer.elementCount, pointer.glType,
+				GL33.glVertexAttribPointer(bindingPointIndex, pointer.elementCount, pointer.glType,
 						pointer.normalized, this.strideSize, this.pointersOffset[bindingPointIndex]);
 			}
 		}
@@ -143,7 +143,7 @@ public final class GlVertexAttributePreGL43 extends GlAbstractVertexAttribute
 	{
 		for (int i = 0; i < this.pointers.length; i++)
 		{
-			GL32.glDisableVertexAttribArray(i);
+			GL33.glDisableVertexAttribArray(i);
 		}
 	}
 	
@@ -154,7 +154,7 @@ public final class GlVertexAttributePreGL43 extends GlAbstractVertexAttribute
 		int[] bindingPointIndexes = this.bindingPointsToIndex[bindingPoint];
 		for (int bindingPointIndex : bindingPointIndexes)
 		{
-			GL32.glDisableVertexAttribArray(bindingPointIndex);
+			GL33.glDisableVertexAttribArray(bindingPointIndex);
 		}
 	}
 	

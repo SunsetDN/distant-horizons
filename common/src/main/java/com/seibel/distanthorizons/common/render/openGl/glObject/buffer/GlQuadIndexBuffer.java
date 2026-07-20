@@ -23,7 +23,7 @@ import com.seibel.distanthorizons.api.enums.config.EDhApiGpuUploadMethod;
 import com.seibel.distanthorizons.common.render.openGl.glObject.enums.GLEnums;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 import java.nio.ByteBuffer;
 
@@ -60,9 +60,9 @@ public class GlQuadIndexBuffer extends GLIndexBuffer
 			return;
 		}
 		
-		this.glType = GL32.GL_UNSIGNED_INT;
+		this.glType = GL33.GL_UNSIGNED_INT;
 		super.uploadBuffer(buffer, EDhApiGpuUploadMethod.DATA,
-			this.indicesCount * GLEnums.getTypeSize(this.glType), GL32.GL_STATIC_DRAW);
+			this.indicesCount * GLEnums.getTypeSize(this.glType), GL33.GL_STATIC_DRAW);
 	}
 	
 	//endregion

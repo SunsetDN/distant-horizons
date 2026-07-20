@@ -23,7 +23,7 @@ import com.seibel.distanthorizons.api.enums.config.EDhApiGpuUploadMethod;
 import com.seibel.distanthorizons.common.render.openGl.glObject.buffer.GLVertexBuffer;
 import com.seibel.distanthorizons.common.render.openGl.glObject.vertexAttribute.GlAbstractVertexAttribute;
 import com.seibel.distanthorizons.common.render.openGl.glObject.vertexAttribute.GlVertexPointer;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -104,9 +104,11 @@ public class GlScreenQuad
 		this.va.bind();
 		this.va.bindBufferToAllBindingPoints(this.boxBuffer.getId());
 		
-		GL32.glPolygonMode(GL32.GL_FRONT_AND_BACK, GL32.GL_FILL);
+		GL33.glPolygonMode(GL33.GL_FRONT_AND_BACK, GL33.GL_FILL);
 		
-		GL32.glDrawArrays(GL32.GL_TRIANGLES, 0, 6);
+		GL33.glDrawArrays(GL33.GL_TRIANGLES, 0, 6);
+		
+		this.boxBuffer.unbind();
 	}
 	
 	//endregion

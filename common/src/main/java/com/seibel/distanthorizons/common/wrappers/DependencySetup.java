@@ -33,6 +33,8 @@ import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftServerWrapp
 import com.seibel.distanthorizons.core.level.IKeyedClientLevelManager;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.common.wrappers.block.BlockStateTextureProvider;
+import com.seibel.distanthorizons.core.wrapperInterfaces.block.IBlockStateFaceTextureProvider;
 import com.seibel.distanthorizons.core.wrapperInterfaces.config.IConfigGui;
 import com.seibel.distanthorizons.core.wrapperInterfaces.config.ILangWrapper;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftClientWrapper;
@@ -79,6 +81,7 @@ public class DependencySetup
 		SingletonInjector.INSTANCE.bind(IMinecraftSharedWrapper.class, MinecraftClientWrapper.INSTANCE);
 		SingletonInjector.INSTANCE.bind(IMinecraftRenderWrapper.class, MinecraftRenderWrapper.INSTANCE);
 		SingletonInjector.INSTANCE.bind(IConfigGui.class, ClassicConfigGUI.CONFIG_CORE_INTERFACE);
+		SingletonInjector.INSTANCE.bind(IBlockStateFaceTextureProvider.class, BlockStateTextureProvider.INSTANCE);
 	}
 	
 	private static boolean renderingApiBindingsSet = false;

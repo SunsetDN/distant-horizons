@@ -35,7 +35,7 @@ import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.ILightMapWrapper;
 import com.seibel.distanthorizons.core.logging.DhLogger;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 #if MC_VER < MC_1_21_3
 import java.nio.ByteBuffer;
@@ -54,7 +54,7 @@ public class LightMapWrapper implements ILightMapWrapper
 	
 	/**
 	 * which texture index IE 0,1,2... the lightmap will be bound to. <Br> 
-	 * Related to but different from {@link GL32#GL_TEXTURE0}.
+	 * Related to but different from {@link GL33#GL_TEXTURE0}.
 	 */
 	public static final int GL_BOUND_INDEX = 0;
 	
@@ -101,7 +101,7 @@ public class LightMapWrapper implements ILightMapWrapper
 		
 		// getActiveTexture() may return textures that aren't valid and attempting to bind them will
 		// throw a GL error in MC 1.21.1
-		if (GL32.glIsTexture(currentTexture))
+		if (GL33.glIsTexture(currentTexture))
 		{
 			GLMC.glBindTexture(currentTexture);
 		}
@@ -114,8 +114,8 @@ public class LightMapWrapper implements ILightMapWrapper
 		#if MC_VER < MC_1_21_3
 		this.textureId = GLMC.glGenTextures();
 		GLMC.glBindTexture(this.textureId);
-		GL32.glTexImage2D(GL32.GL_TEXTURE_2D, 0, image.format().glFormat(), image.getWidth(), image.getHeight(),
-				0, image.format().glFormat(), GL32.GL_UNSIGNED_BYTE, (ByteBuffer) null);
+		GL33.glTexImage2D(GL33.GL_TEXTURE_2D, 0, image.format().glFormat(), image.getWidth(), image.getHeight(),
+				0, image.format().glFormat(), GL33.GL_UNSIGNED_BYTE, (ByteBuffer) null);
 		#else
 		throw new UnsupportedOperationException("setLightmapId should be used for MC versions after 1.21.3");
 		#endif

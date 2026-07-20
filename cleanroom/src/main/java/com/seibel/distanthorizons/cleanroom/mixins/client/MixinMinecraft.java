@@ -2,7 +2,9 @@ package com.seibel.distanthorizons.cleanroom.mixins.client;
 
 import com.seibel.distanthorizons.common.commonMixins.DhUpdateScreenBase;
 import com.seibel.distanthorizons.core.config.Config;
-import com.seibel.distanthorizons.coreapi.ModInfo;
+import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
+import com.seibel.distanthorizons.core.jar.updater.SelfUpdater;
+import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftSharedWrapper;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,9 +18,25 @@ public class MixinMinecraft
 	@Inject(method = "init", at = @At("TAIL"))
 	private void onInit(CallbackInfo ci)
 	{
-		if(Config.Client.Advanced.AutoUpdater.enableAutoUpdater.get()) // weird lib class not found error can occur if we don't check if we are in dev
+		// Singletons will be null if FML errored (for example other mod missing dependency or cleanroom as duplicate mod in dev)
+		IMinecraftSharedWrapper mcShared = SingletonInjector.INSTANCE.get(IMinecraftSharedWrapper.class);
+		if (mcShared == null)
+		{
+			return;
+		}
+		
+		if (Config.Client.Advanced.AutoUpdater.enableAutoUpdater.get())
 		{
 			DhUpdateScreenBase.tryShowUpdateScreenAndRunAutoUpdateStartup(null);
+		}
+	}
+	
+	@Inject(method = "shutdownMinecraftApplet", at = @At("HEAD"))
+	private void onShutdownMinecraftApplet(CallbackInfo ci)
+	{
+		if(Config.Client.Advanced.AutoUpdater.enableAutoUpdater.get())
+		{
+			SelfUpdater.onClose();
 		}
 	}
 }

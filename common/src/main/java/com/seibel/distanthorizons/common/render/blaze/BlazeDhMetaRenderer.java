@@ -12,13 +12,13 @@ import com.seibel.distanthorizons.common.render.blaze.apply.BlazeDhApplyRenderer
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureWrapper;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
+import com.seibel.distanthorizons.core.render.DhApiRenderProxy;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhMetaRenderer;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
-import net.minecraft.client.Minecraft;
 
 import java.awt.*;
 
@@ -70,8 +70,11 @@ public class BlazeDhMetaRenderer implements IDhMetaRenderer
 		int oldHeight = this.dhDepthTextureWrapper.getHeight();
 		
 		boolean texturesChanged = false;
-		texturesChanged = this.dhDepthTextureWrapper.tryCreateOrResize() | texturesChanged;
-		texturesChanged = this.dhColorTextureWrapper.tryCreateOrResize() | texturesChanged;
+		texturesChanged = this.dhDepthTextureWrapper.tryCreateOrResizeToScreenSize() | texturesChanged;
+		texturesChanged = this.dhColorTextureWrapper.tryCreateOrResizeToScreenSize() | texturesChanged;
+		
+		DhApiRenderProxy.activeBlazeDhDepthTextureWrapper = this.dhDepthTextureWrapper;
+		DhApiRenderProxy.activeBlazeDhColorTextureWrapper = this.dhColorTextureWrapper;
 		
 		if (texturesChanged)
 		{
@@ -93,7 +96,7 @@ public class BlazeDhMetaRenderer implements IDhMetaRenderer
 	public void applyToMcTexture(RenderParams renderParams)
 	{
 		GpuTexture mcColorTexture = MinecraftRenderWrapper.INSTANCE.getRenderTarget().getColorTexture();
-		this.applyRenderer.render(this.dhColorTextureWrapper.texture, this.dhDepthTextureWrapper.texture, mcColorTexture);
+		this.applyRenderer.render(this.dhColorTextureWrapper.getTexture(), this.dhDepthTextureWrapper.getTexture(), mcColorTexture);
 	}
 	
 	//endregion
@@ -111,7 +114,17 @@ public class BlazeDhMetaRenderer implements IDhMetaRenderer
 		this.dhDepthTextureWrapper.clearDepth(this.clearDepth);
 		
 		Color color = MC_RENDER.getSkyColor();
-		this.dhColorTextureWrapper.clearColor(ColorUtil.toColorInt(color)); 
+		
+		this.dhColorTextureWrapper.clearColor(
+			// alpha of 0 done as a check to make sure DH is only applied to MC's framebuffer
+			// where DH pixels were drawn
+			ColorUtil.argbToInt(
+				0,
+				color.getRed(),
+				color.getGreen(),
+				color.getBlue()
+			)
+		); 
 	}
 	
 	//endregion

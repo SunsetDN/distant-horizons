@@ -1,5 +1,7 @@
 package com.seibel.distanthorizons.forge.mixins;
 
+import com.seibel.distanthorizons.common.commonMixins.AbstractDhMixinPlugin;
+import com.seibel.distanthorizons.forge.wrappers.modAccessor.ModChecker;
 import net.minecraftforge.fml.ModList;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -12,7 +14,7 @@ import java.util.Set;
  * @author coolGi
  * @author cortex
  */
-public class ForgeMixinPlugin implements IMixinConfigPlugin
+public class ForgeMixinPlugin extends AbstractDhMixinPlugin implements IMixinConfigPlugin
 {
 	private boolean firstRun = false;
 	private boolean isForgeMixinFile;
@@ -21,19 +23,26 @@ public class ForgeMixinPlugin implements IMixinConfigPlugin
 	@Override
 	public boolean shouldApplyMixin(String targetClassName, String mixinClassName)
 	{
-		if (!this.firstRun) {
-			try {
+		if (!this.firstRun)
+		{
+			try
+			{
 				Class<?> cls = Class.forName("net.neoforged.fml.common.Mod"); // Check if a NeoForge exclusive class exists
 				this.isForgeMixinFile = false;
-			} catch (ClassNotFoundException e) {
+			}
+			catch (ClassNotFoundException e)
+			{
 				this.isForgeMixinFile = true;
 			}
 		}
 		if (!this.isForgeMixinFile)
+		{
 			return false;
+		}
 		
 		if (mixinClassName.contains(".mods."))
-		{ // If the mixin wants to go into a mod then we check if that mod is loaded or not
+		{ 
+			// If the mixin wants to go into a mod then we check if that mod is loaded or not
 			return ModList.get().isLoaded(
 					mixinClassName
 							// What these 2 regex's do is get the mod name that we are checking out of the mixinClassName
@@ -41,6 +50,11 @@ public class ForgeMixinPlugin implements IMixinConfigPlugin
 							.replaceAll("^.*mods.", "") // Replaces everything before the mods
 							.replaceAll("\\..*$", "") // Replaces everything after the mod name
 			);
+		}
+		
+		if (!this.shouldApplyDhMixin(targetClassName, mixinClassName))
+		{
+			return false;
 		}
 		
 		return true;

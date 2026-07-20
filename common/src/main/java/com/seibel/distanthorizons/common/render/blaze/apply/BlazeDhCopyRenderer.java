@@ -31,7 +31,6 @@ import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.RenderPassWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.RenderPipelineBuilderWrapper;
-import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureWrapper;
 import com.seibel.distanthorizons.common.render.blaze.util.BlazePostProcessUtil;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.IDhBlazeTexture;
@@ -119,7 +118,7 @@ public class BlazeDhCopyRenderer
 	{
 		this.tryInit();
 		
-		this.dummyDepthTextureWrapper.tryCreateOrResize();
+		this.dummyDepthTextureWrapper.tryCreateOrResizeToScreenSize();
 		
 		try (RenderPassWrapper renderPassWrapper = new RenderPassWrapper(
 			this::getRenderPassName,

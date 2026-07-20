@@ -11,11 +11,13 @@ import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.IndexBufferBuilder;
+import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.LodBufferContainer;
 import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.LodQuadBuilder;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.render.RenderThreadTaskHandler;
+import com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListCheckout;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.objects.IVertexBufferWrapper;
 
@@ -71,17 +73,20 @@ public class BlazeVertexBufferWrapper implements IVertexBufferWrapper
 		{
 			RenderThreadTaskHandler.INSTANCE.queueRunningOnRenderThread("Global IBO Creation", () ->
 			{
-				int maxSize = LodQuadBuilder.getMaxBufferByteSize();
-				int maxVertexCount = maxSize / LodQuadBuilder.BYTES_PER_VERTEX;
-				int maxQuadCount = (maxVertexCount / 4);
-				ByteBuffer indexBuffer = IndexBufferBuilder.createBuffer(maxQuadCount);
-				
-				int usage = GpuBuffer.USAGE_COPY_DST
-					| GpuBuffer.USAGE_INDEX;
-				GLOBAL_INDEX_GPU_BUFFER = GPU_DEVICE.createBuffer(BlazeVertexBufferWrapper::getIndexBufferName, usage, indexBuffer.capacity());
-				
-				GpuBufferSlice bufferSlice = new GpuBufferSlice(GLOBAL_INDEX_GPU_BUFFER, /*offset*/ 0, indexBuffer.capacity());
-				COMMAND_ENCODER.writeToBuffer(bufferSlice, indexBuffer);
+				try (PhantomArrayListCheckout checkout = LodBufferContainer.ARRAY_LIST_POOL.checkoutByteBuffers(1))
+				{
+					int maxSize = LodQuadBuilder.getMaxBufferByteSize();
+					int maxVertexCount = maxSize / LodQuadBuilder.BYTES_PER_VERTEX;
+					int maxQuadCount = (maxVertexCount / 4);
+					ByteBuffer indexBuffer = IndexBufferBuilder.populateBuffer(checkout, 0, maxQuadCount);
+					
+					int usage = GpuBuffer.USAGE_COPY_DST
+						| GpuBuffer.USAGE_INDEX;
+					GLOBAL_INDEX_GPU_BUFFER = GPU_DEVICE.createBuffer(BlazeVertexBufferWrapper::getIndexBufferName, usage, indexBuffer.capacity());
+					
+					GpuBufferSlice bufferSlice = new GpuBufferSlice(GLOBAL_INDEX_GPU_BUFFER, /*offset*/ 0, indexBuffer.capacity());
+					COMMAND_ENCODER.writeToBuffer(bufferSlice, indexBuffer);
+				}
 			});
 		}
 	}

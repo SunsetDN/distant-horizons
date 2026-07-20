@@ -30,7 +30,7 @@ import com.seibel.distanthorizons.common.render.openGl.util.GlAbstractShaderRend
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.RenderUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 public class GlDhVanillaFadeShader extends GlAbstractShaderRenderer 
 {
@@ -167,26 +167,26 @@ public class GlDhVanillaFadeShader extends GlAbstractShaderRenderer
 		
 		
 		
-		GLMC.glBindFramebuffer(GL32.GL_FRAMEBUFFER, this.frameBuffer);
+		GLMC.glBindFramebuffer(GL33.GL_FRAMEBUFFER, this.frameBuffer);
 		GLMC.disableScissorTest();
 		GLMC.disableDepthTest();
 		GLMC.disableBlend();
 		
-		GLMC.glActiveTexture(GL32.GL_TEXTURE0);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE0);
 		GLMC.glBindTexture(MC_RENDER.getGlDepthTextureId());
-		GL32.glUniform1i(this.uMcDepthTexture, 0);
+		GL33.glUniform1i(this.uMcDepthTexture, 0);
 		
-		GLMC.glActiveTexture(GL32.GL_TEXTURE1);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE1);
 		GLMC.glBindTexture(depthTextureId);
-		GL32.glUniform1i(this.uDhDepthTexture, 1);
+		GL33.glUniform1i(this.uDhDepthTexture, 1);
 		
-		GLMC.glActiveTexture(GL32.GL_TEXTURE2);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE2);
 		GLMC.glBindTexture(MC_RENDER.getGlColorTextureId());
-		GL32.glUniform1i(this.uCombinedMcDhColorTexture, 2);
+		GL33.glUniform1i(this.uCombinedMcDhColorTexture, 2);
 		
-		GLMC.glActiveTexture(GL32.GL_TEXTURE3);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE3);
 		GLMC.glBindTexture(colorTextureId);
-		GL32.glUniform1i(this.uDhColorTexture, 3);
+		GL33.glUniform1i(this.uDhColorTexture, 3);
 		
 		
 		GlScreenQuad.INSTANCE.render();

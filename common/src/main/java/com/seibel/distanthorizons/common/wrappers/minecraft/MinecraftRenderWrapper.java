@@ -484,6 +484,19 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		#endif
 	}
 	
+	/** Measured in degrees */
+	@Override
+	public double getFovSetting()
+	{
+		#if MC_VER <= MC_1_12_2
+		return MC.gameSettings.fovSetting;
+		#elif MC_VER <= MC_1_18_2
+		return MC.options.fov;
+		#else
+		return MC.options.fov().get();
+		#endif
+	}
+	
 	@Override
 	public int getFrameLimit()
 	{

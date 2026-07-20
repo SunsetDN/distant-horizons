@@ -31,6 +31,7 @@ import net.minecraft.resources.Identifier;
 import java.io.IOException;
 import java.util.Objects;
 
+@SuppressWarnings("deprecation") // ResourceLocation is deprecated on some MC versions
 public abstract class AbstractPluginPacketSender implements IPluginPacketSender
 {
 	private static final DhLogger LOGGER = new DhLoggerBuilder()

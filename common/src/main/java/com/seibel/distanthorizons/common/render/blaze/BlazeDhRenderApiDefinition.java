@@ -6,6 +6,7 @@ public class BlazeDhRenderApiDefinition {}
 #else
 
 import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingApi;
+import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingEngine;
 import com.seibel.distanthorizons.common.render.blaze.objects.BlazeGenericObjectVertexContainer;
 import com.seibel.distanthorizons.common.render.blaze.postProcessing.BlazeDhFarFadeRenderer;
 import com.seibel.distanthorizons.common.render.blaze.postProcessing.BlazeDhFogRenderer;
@@ -49,6 +50,7 @@ public class BlazeDhRenderApiDefinition extends AbstractDhRenderApiDefinition
 	
 	private final EDhApiRenderingApi renderApi;
 	public EDhApiRenderingApi getRenderApi() { return renderApi; }
+	public EDhApiRenderingEngine getRenderingEngine() { return EDhApiRenderingEngine.BLAZE_3D; }
 	public boolean isNativeRenderer() { return false; }
 	
 	//endregion

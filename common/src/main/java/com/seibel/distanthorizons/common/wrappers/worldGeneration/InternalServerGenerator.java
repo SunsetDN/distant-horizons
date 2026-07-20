@@ -284,7 +284,7 @@ public class InternalServerGenerator
 		{
 			ArrayList<CompletableFuture<Void>> releaseFutures = new ArrayList<>();
 			#if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
-			Set<Long> neighborIgnoreSet = new HashSet<>();
+			Set<ChunkPos> neighborIgnoreChunkPosSet = new HashSet<>();
 			#endif
 			
 			// release all chunks from the server to prevent out of memory issues
@@ -300,8 +300,12 @@ public class InternalServerGenerator
 				{
 					for (int dz = -1; dz <= 1; dz++)
 					{
-						if (dx == 0 && dz == 0) continue;
-						neighborIgnoreSet.add(ChunkPos.asLong(chunkPos.x + dx, chunkPos.z + dz));
+						if (dx == 0 && dz == 0)
+						{
+							continue;
+						}
+						
+						neighborIgnoreChunkPosSet.add(new ChunkPos(chunkPos.x + dx, chunkPos.z + dz));
 					}
 				}
                 #endif
@@ -309,9 +313,8 @@ public class InternalServerGenerator
     
             #if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
 			// release neighbor chunks that were loaded in requestChunkFromServerAsync
-			for (long posLong : neighborIgnoreSet)
+			for (ChunkPos neighborPos : neighborIgnoreChunkPosSet)
 			{
-				ChunkPos neighborPos = new ChunkPos(ChunkPos.getX(posLong), ChunkPos.getZ(posLong));
 				releaseFutures.add(this.releaseChunkFromServerAsync(this.params.mcServerLevel, neighborPos));
 			}
             #endif
@@ -346,9 +349,8 @@ public class InternalServerGenerator
             #endif
     
             #if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
-			for (long posLong : neighborIgnoreSet)
+			for (ChunkPos neighborPos : neighborIgnoreChunkPosSet)
 			{
-				ChunkPos neighborPos = new ChunkPos(ChunkPos.getX(posLong), ChunkPos.getZ(posLong));
 				this.chunkSaveIgnoreTimer.schedule(new TimerTask()
 				{
 					@Override
@@ -356,7 +358,7 @@ public class InternalServerGenerator
 					{
 						if (InternalServerGenerator.this.updateManager != null)
 						{
-							InternalServerGenerator.this.updateManager.removePosToIgnore(McObjectConverter.Convert(neighborPos));
+							InternalServerGenerator.this.updateManager.removePosToIgnore(McObjectConverter.convert(neighborPos));
 						}
 					}
 				}, MS_TO_IGNORE_CHUNK_AFTER_COMPLETION);
@@ -391,7 +393,7 @@ public class InternalServerGenerator
 				String message =
 					MinecraftTextFormat.ORANGE + "Distant Horizons: slow world gen." + MinecraftTextFormat.CLEAR_FORMATTING + "\n" +
 						c2meWarning;
-				ClientApi.INSTANCE.showChatMessageNextFrame(message);
+				ClientApi.INSTANCE.queueChatMessage(message);
 			}
 			
 			LOGGER.warn(c2meWarning);
@@ -442,7 +444,7 @@ public class InternalServerGenerator
 
 		if (this.updateManager != null)
 		{
-			this.updateManager.addPosToIgnore(McObjectConverter.Convert(chunkPos));
+			this.updateManager.addPosToIgnore(McObjectConverter.convert(chunkPos));
 		}
 
 		return ForgeServerProxy.schedule(true, () ->
@@ -483,7 +485,7 @@ public class InternalServerGenerator
 		// ignore chunk update events for this position
 		if (this.updateManager != null)
 		{
-			this.updateManager.addPosToIgnore(McObjectConverter.Convert(chunkPos));
+			this.updateManager.addPosToIgnore(McObjectConverter.convert(chunkPos));
 		}
 		
 		CompletableFuture<Chunk> future = new CompletableFuture<>();
@@ -520,7 +522,7 @@ public class InternalServerGenerator
 			// ignore chunk update events for this position
 			if (this.updateManager != null)
 			{
-				this.updateManager.addPosToIgnore(McObjectConverter.Convert(chunkPos));
+				this.updateManager.addPosToIgnore(McObjectConverter.convert(chunkPos));
 			}
 			
 			#if MC_VER < MC_1_21_5
@@ -627,7 +629,17 @@ public class InternalServerGenerator
 				
 				// give MC a few seconds to save the chunk before
 				// we can process update events there again
-				this.scheduleRemovePosToIgnore(McObjectConverter.Convert(chunkPos));
+				this.chunkSaveIgnoreTimer.schedule(new TimerTask()
+				{
+					@Override
+					public void run()
+					{
+						if (InternalServerGenerator.this.updateManager != null)
+						{
+							InternalServerGenerator.this.updateManager.removePosToIgnore(McObjectConverter.convert(chunkPos));
+						}
+					}
+				}, MS_TO_IGNORE_CHUNK_AFTER_COMPLETION);
 				
 			}
 			catch (Exception e)

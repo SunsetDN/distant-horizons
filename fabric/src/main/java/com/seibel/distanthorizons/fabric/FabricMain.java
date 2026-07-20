@@ -116,7 +116,7 @@ public class FabricMain extends AbstractModInitializer implements ClientModIniti
 		this.tryCreateModCompatAccessor("optifine", IOptifineAccessor.class, OptifineAccessor::new);
 		this.tryCreateModCompatAccessor("bclib", IBCLibAccessor.class, BCLibAccessor::new);
 		this.tryCreateModCompatAccessor("c2me", IC2meAccessor.class, C2meAccessor::new);
-		this.tryCreateModCompatAccessor("imm_ptl_core", IImmersivePortalsAccessor.class, ImmersivePortalsAccessorFabric::new);
+		this.tryCreateModCompatAccessor(IImmersivePortalsAccessor.CORE_MOD_ID, IImmersivePortalsAccessor.class, ImmersivePortalsAccessorFabric::new);
 		#if MC_VER >= MC_1_19_4
 		// 1.19.4 is the lowest version Iris supports DH
 		this.tryCreateModCompatAccessor("iris", IIrisAccessor.class, IrisAccessor::new);
@@ -154,13 +154,6 @@ public class FabricMain extends AbstractModInitializer implements ClientModIniti
 		{
 			ModAccessorInjector.INSTANCE.get(IBCLibAccessor.class).setRenderCustomFog(false); // Remove BCLib's fog
 		}
-		
-		#if MC_VER >= MC_1_20_1
-		if (SingletonInjector.INSTANCE.get(IModChecker.class).isModLoaded("sodium"))
-		{
-			ModAccessorInjector.INSTANCE.get(ISodiumAccessor.class).setFogOcclusion(false);
-		}
-		#endif
 	}
 	
 }

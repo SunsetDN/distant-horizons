@@ -51,7 +51,6 @@ import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.OverrideInjector;
 import com.seibel.distanthorizons.coreapi.ModInfo;
 import org.lwjgl.opengl.ARBInstancedArrays;
-import org.lwjgl.opengl.GL32;
 import org.lwjgl.opengl.GL33;
 
 import java.awt.*;
@@ -240,7 +239,7 @@ public class GlGenericObjectRenderer implements IDhGenericRenderer
 		solidIndexBuffer.asIntBuffer().put(BOX_INDICES);
 		solidIndexBuffer.rewind();
 		this.boxIndexBuffer = new GLIndexBuffer(false);
-		this.boxIndexBuffer.uploadBuffer(solidIndexBuffer, EDhApiGpuUploadMethod.DATA, BOX_INDICES.length * Integer.BYTES, GL32.GL_STATIC_DRAW);
+		this.boxIndexBuffer.uploadBuffer(solidIndexBuffer, EDhApiGpuUploadMethod.DATA, BOX_INDICES.length * Integer.BYTES, GL33.GL_STATIC_DRAW);
 		this.boxIndexBuffer.bind();
 	}
 	private void addGenericDebugObjects()
@@ -425,18 +424,18 @@ public class GlGenericObjectRenderer implements IDhGenericRenderer
 			boolean renderWireframe = Config.Client.Advanced.Debugging.renderWireframe.get();
 			if (renderWireframe)
 			{
-				GL32.glPolygonMode(GL32.GL_FRONT_AND_BACK, GL32.GL_LINE);
+				GL33.glPolygonMode(GL33.GL_FRONT_AND_BACK, GL33.GL_LINE);
 				GLMC.disableFaceCulling();
 			}
 			else
 			{
-				GL32.glPolygonMode(GL32.GL_FRONT_AND_BACK, GL32.GL_FILL);
+				GL33.glPolygonMode(GL33.GL_FRONT_AND_BACK, GL33.GL_FILL);
 				GLMC.enableFaceCulling();
 			}
 			
 			GLMC.enableBlend();
-			GL32.glBlendEquation(GL32.GL_FUNC_ADD);
-			GLMC.glBlendFuncSeparate(GL32.GL_SRC_ALPHA, GL32.GL_ONE_MINUS_SRC_ALPHA, GL32.GL_ONE, GL32.GL_ONE_MINUS_SRC_ALPHA);
+			GL33.glBlendEquation(GL33.GL_FUNC_ADD);
+			GLMC.glBlendFuncSeparate(GL33.GL_SRC_ALPHA, GL33.GL_ONE_MINUS_SRC_ALPHA, GL33.GL_ONE, GL33.GL_ONE_MINUS_SRC_ALPHA);
 			
 			IDhApiGenericObjectShaderProgram shaderProgram = this.instancedRenderingAvailable ? this.instancedShaderProgram : this.directShaderProgram;
 			IDhApiGenericObjectShaderProgram shaderProgramOverride = OverrideInjector.INSTANCE.get(IDhApiGenericObjectShaderProgram.class);
@@ -534,11 +533,19 @@ public class GlGenericObjectRenderer implements IDhGenericRenderer
 			if (renderWireframe)
 			{
 				// default back to GL_FILL since all other rendering uses it 
-				GL32.glPolygonMode(GL32.GL_FRONT_AND_BACK, GL32.GL_FILL);
+				GL33.glPolygonMode(GL33.GL_FRONT_AND_BACK, GL33.GL_FILL);
 				GLMC.enableFaceCulling();
 			}
 			
 			shaderProgram.unbind();
+			boxVertexBuffer.unbind();
+			boxIndexBuffer.unbind();
+			
+			// Restore GL states that 1.12.2 vanilla expects
+			#if MC_VER <= MC_1_12_2
+			GLMC.disableBlend();
+			GLMC.glBlendFuncSeparate(GL33.GL_SRC_ALPHA, GL33.GL_ONE, GL33.GL_ONE, GL33.GL_ZERO);
+			#endif
 		}
 	}
 	
@@ -578,48 +585,48 @@ public class GlGenericObjectRenderer implements IDhGenericRenderer
 			
 			GlGenericObjectVertexContainer container = (GlGenericObjectVertexContainer) (boxGroup.vertexBufferContainer);
 			
-			GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, container.color);
-			GL32.glEnableVertexAttribArray(1);
-			GL32.glVertexAttribPointer(1, 4, GL32.GL_FLOAT, false, 4 * Float.BYTES, 0);
+			GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, container.color);
+			GL33.glEnableVertexAttribArray(1);
+			GL33.glVertexAttribPointer(1, 4, GL33.GL_FLOAT, false, 4 * Float.BYTES, 0);
 			this.vertexAttribDivisor(1, 1);
 			
-			GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, container.scale);
-			GL32.glEnableVertexAttribArray(2);
+			GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, container.scale);
+			GL33.glEnableVertexAttribArray(2);
 			this.vertexAttribDivisor(2, 1);
-			GL32.glVertexAttribPointer(2, 3, GL32.GL_FLOAT, false, 3 * Float.BYTES, 0);
+			GL33.glVertexAttribPointer(2, 3, GL33.GL_FLOAT, false, 3 * Float.BYTES, 0);
 			
-			GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, container.chunkPos);
-			GL32.glEnableVertexAttribArray(3);
+			GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, container.chunkPos);
+			GL33.glEnableVertexAttribArray(3);
 			this.vertexAttribDivisor(3, 1);
-			GL32.glVertexAttribIPointer(3, 3, GL32.GL_INT, 3 * Integer.BYTES, 0);
+			GL33.glVertexAttribIPointer(3, 3, GL33.GL_INT, 3 * Integer.BYTES, 0);
 			
-			GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, container.subChunkPos);
-			GL32.glEnableVertexAttribArray(4);
+			GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, container.subChunkPos);
+			GL33.glEnableVertexAttribArray(4);
 			this.vertexAttribDivisor(4, 1);
-			GL32.glVertexAttribPointer(4, 3, GL32.GL_FLOAT, false, 3 * Float.BYTES, 0);
+			GL33.glVertexAttribPointer(4, 3, GL33.GL_FLOAT, false, 3 * Float.BYTES, 0);
 			
-			GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, container.material);
-			GL32.glEnableVertexAttribArray(5);
+			GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, container.material);
+			GL33.glEnableVertexAttribArray(5);
 			this.vertexAttribDivisor(5, 1);
-			GL32.glVertexAttribIPointer(5, 1, GL32.GL_BYTE, Byte.BYTES, 0);
+			GL33.glVertexAttribIPointer(5, 1, GL33.GL_BYTE, Byte.BYTES, 0);
 			
 			
 			// Draw instanced
 			profiler.popPush("render");
 			if (container.uploadedBoxCount > 0)
 			{
-				GL32.glDrawElementsInstanced(GL32.GL_TRIANGLES, BOX_INDICES.length, GL32.GL_UNSIGNED_INT, 0, container.uploadedBoxCount);
+				GL33.glDrawElementsInstanced(GL33.GL_TRIANGLES, BOX_INDICES.length, GL33.GL_UNSIGNED_INT, 0, container.uploadedBoxCount);
 			}
 			
 			
 			// Clean up
 			profiler.popPush("cleanup");
 			
-			GL32.glDisableVertexAttribArray(1);
-			GL32.glDisableVertexAttribArray(2);
-			GL32.glDisableVertexAttribArray(3);
-			GL32.glDisableVertexAttribArray(4);
-			GL32.glDisableVertexAttribArray(5);
+			GL33.glDisableVertexAttribArray(1);
+			GL33.glDisableVertexAttribArray(2);
+			GL33.glDisableVertexAttribArray(3);
+			GL33.glDisableVertexAttribArray(4);
+			GL33.glDisableVertexAttribArray(5);
 		}
 	}
 	/** 
@@ -677,7 +684,7 @@ public class GlGenericObjectRenderer implements IDhGenericRenderer
 					shaderProgram.fillDirectUniformData(renderEventParam, boxGroup, box, camPos);
 					
 					profiler.popPush("render");
-					GL32.glDrawElements(GL32.GL_TRIANGLES, BOX_INDICES.length, GL32.GL_UNSIGNED_INT, 0);
+					GL33.glDrawElements(GL33.GL_TRIANGLES, BOX_INDICES.length, GL33.GL_UNSIGNED_INT, 0);
 				}
 			}
 			catch (IndexOutOfBoundsException e)

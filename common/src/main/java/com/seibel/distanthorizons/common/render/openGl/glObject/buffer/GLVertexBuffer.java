@@ -23,12 +23,14 @@ import java.nio.ByteBuffer;
 
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLProxy;
 import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.IndexBufferBuilder;
+import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.LodBufferContainer;
 import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.LodQuadBuilder;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.render.RenderThreadTaskHandler;
+import com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListCheckout;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.objects.IVertexBufferWrapper;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 import com.seibel.distanthorizons.api.enums.config.EDhApiGpuUploadMethod;
 
@@ -78,14 +80,17 @@ public class GLVertexBuffer extends GLBuffer implements IVertexBufferWrapper
 		{
 			RenderThreadTaskHandler.INSTANCE.queueRunningOnRenderThread("Global IBO Creation", () ->
 			{
-				GLOBAL_QUAD_IBO = new GlQuadIndexBuffer();
-				
-				int maxSize = LodQuadBuilder.getMaxBufferByteSize();
-				int maxVertexCount = maxSize / LodQuadBuilder.BYTES_PER_VERTEX;
-				int maxQuadCount = (maxVertexCount / 4);
-				
-				ByteBuffer buffer = IndexBufferBuilder.createBuffer(maxQuadCount);
-				GLOBAL_QUAD_IBO.upload(buffer, maxQuadCount);
+				try (PhantomArrayListCheckout checkout = LodBufferContainer.ARRAY_LIST_POOL.checkoutByteBuffers(1))
+				{
+					GLOBAL_QUAD_IBO = new GlQuadIndexBuffer();
+					
+					int maxSize = LodQuadBuilder.getMaxBufferByteSize();
+					int maxVertexCount = maxSize / LodQuadBuilder.BYTES_PER_VERTEX;
+					int maxQuadCount = (maxVertexCount / 4);
+					
+					ByteBuffer buffer = IndexBufferBuilder.populateBuffer(checkout, 0, maxQuadCount);
+					GLOBAL_QUAD_IBO.upload(buffer, maxQuadCount);
+				}
 			});
 		}
 	}
@@ -103,7 +108,7 @@ public class GLVertexBuffer extends GLBuffer implements IVertexBufferWrapper
 	//region
 	
 	@Override
-	public int getBufferBindingTarget() { return GL32.GL_ARRAY_BUFFER; }
+	public int getBufferBindingTarget() { return GL33.GL_ARRAY_BUFFER; }
 	
 	@Override
 	public void uploadVertexBuffer(ByteBuffer buffer, int vertexCount)
@@ -128,7 +133,7 @@ public class GLVertexBuffer extends GLBuffer implements IVertexBufferWrapper
 		// If size is zero, just ignore it.
 		if (byteBuffer.limit() - byteBuffer.position() != 0)
 		{
-			super.uploadBuffer(byteBuffer, uploadMethod, maxExpansionSize, uploadMethod.useBufferStorage ? 0 : GL32.GL_STATIC_DRAW);
+			super.uploadBuffer(byteBuffer, uploadMethod, maxExpansionSize, uploadMethod.useBufferStorage ? 0 : GL33.GL_STATIC_DRAW);
 		}
 		
 		this.vertexCount = vertexCount;

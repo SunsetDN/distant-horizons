@@ -97,7 +97,6 @@ import net.minecraft.world.level.chunk.ChunkStatus;
 #else
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 #endif
-import org.jetbrains.annotations.Nullable;
 
 
 public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironmentWrapper
@@ -365,7 +364,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		while (existingChunkPosIterator.hasNext())
 		{
 			ChunkPos chunkPos = existingChunkPosIterator.next();
-			DhChunkPos dhChunkPos = McObjectConverter.Convert(chunkPos);
+			DhChunkPos dhChunkPos = McObjectConverter.convert(chunkPos);
 			
 			CompletableFuture<ChunkWrapper> getExistingChunkFuture
 				// running async allows file IO to run in parallel when C2ME is present
@@ -397,7 +396,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		while (emptyChunkPosIterator.hasNext())
 		{
 			ChunkPos chunkPos = emptyChunkPosIterator.next();
-			DhChunkPos dhChunkPos = McObjectConverter.Convert(chunkPos);
+			DhChunkPos dhChunkPos = McObjectConverter.convert(chunkPos);
 			
 			// create empty chunks outside the generation radius
 			if (!readFutureByDhChunkPos.containsKey(dhChunkPos))
@@ -551,7 +550,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 			while (iterator.hasNext())
 			{
 				ChunkPos chunkPos = iterator.next();
-				DhChunkPos dhChunkPos = McObjectConverter.Convert(chunkPos);
+				DhChunkPos dhChunkPos = McObjectConverter.convert(chunkPos);
 				ChunkWrapper wrappedChunk = chunkWrappersByDhPos.get(dhChunkPos);
 				
 				// only pass along chunks that have been generated up to BIOMES

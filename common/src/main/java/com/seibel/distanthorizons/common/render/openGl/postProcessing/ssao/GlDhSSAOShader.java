@@ -27,7 +27,7 @@ import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.render.openGl.util.GlAbstractShaderRenderer;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 /**
  * Draws the SSAO to a texture. <br><br>
@@ -115,7 +115,7 @@ public class GlDhSSAOShader extends GlAbstractShaderRenderer
 		this.shader.setUniform(this.uBias, 0.02f);
 		this.shader.setUniform(this.uFadeDistanceInBlocks, 1_600.0f);
 		
-		GL32.glUniform1i(this.uDepthMap, 0);
+		GL33.glUniform1i(this.uDepthMap, 0);
 		
 	}
 	
@@ -128,12 +128,12 @@ public class GlDhSSAOShader extends GlAbstractShaderRenderer
 	@Override
 	protected void onRender()
 	{
-		GLMC.glBindFramebuffer(GL32.GL_FRAMEBUFFER, this.frameBuffer);
+		GLMC.glBindFramebuffer(GL33.GL_FRAMEBUFFER, this.frameBuffer);
 		GLMC.disableScissorTest();
 		GLMC.disableDepthTest();
 		GLMC.disableBlend();
 		
-		GLMC.glActiveTexture(GL32.GL_TEXTURE0);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE0);
 		GLMC.glBindTexture(GlDhMetaRenderer.INSTANCE.getActiveDepthTextureId());
 		
 		GlScreenQuad.INSTANCE.render();

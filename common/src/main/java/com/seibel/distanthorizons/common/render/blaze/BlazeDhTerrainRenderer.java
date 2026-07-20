@@ -18,6 +18,7 @@ import com.seibel.distanthorizons.common.render.blaze.util.BlazeDhVertexFormatUt
 import com.seibel.distanthorizons.common.render.blaze.wrappers.BlazeVertexFormatBuilder;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.RenderPassWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.RenderPipelineBuilderWrapper;
+import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeBlockTextureAtlas;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.uniform.BlazeLodUniformBufferWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.buffer.BlazeVertexBufferWrapper;
@@ -108,9 +109,10 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 			pipelineBuilder.withPolygonMode(RenderPipelineBuilderWrapper.EDhPolygonMode.FILL);
 			
 			pipelineBuilder.withSampler("uLightMap");
+			pipelineBuilder.withSampler("uBlockAtlas");
 			
-			pipelineBuilder.withVertexShader("lod/blaze/vert");
-			pipelineBuilder.withFragmentShader("lod/blaze/frag");
+			pipelineBuilder.withVertexShader("terrain/blaze/vert");
+			pipelineBuilder.withFragmentShader("terrain/blaze/frag");
 			
 			pipelineBuilder.withUniformBuffer("vertUniqueUniformBlock");
 			pipelineBuilder.withUniformBuffer("vertSharedUniformBlock");
@@ -122,8 +124,7 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 				.add("vColor", BlazeDhVertexFormatUtil.RGBA_UBYTE_COLOR)
 				.add("irisMaterial", BlazeDhVertexFormatUtil.IRIS_MATERIAL)
 				.add("irisNormal", BlazeDhVertexFormatUtil.IRIS_NORMAL)
-				.add("paddingTwo", BlazeDhVertexFormatUtil.BYTE_PAD)
-				.add("paddingThree", BlazeDhVertexFormatUtil.BYTE_PAD) // padding is to make sure the format is a multiple of 4
+				.add("textureTile", BlazeDhVertexFormatUtil.TEXTURE_TILE)
 				.build();
 			pipelineBuilder.withVertexFormat(vertexFormat);
 			
@@ -181,9 +182,6 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 			
 			profiler.popPush("vert share uniforms");
 			{
-				DhMat4f combinedMatrix = new DhMat4f(renderEventParam.dhProjectionMatrix);
-				combinedMatrix.multiply(renderEventParam.dhModelViewMatrix);
-				
 				float earthCurveRatio = Config.Client.Advanced.Graphics.Experimental.earthCurveRatio.get();
 				if (earthCurveRatio < -1.0f || earthCurveRatio > 1.0f)
 				{
@@ -211,7 +209,7 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 						(float) renderEventParam.exactCameraPosition.x,
 						(float) renderEventParam.exactCameraPosition.y,
 						(float) renderEventParam.exactCameraPosition.z) // uCameraPos
-					.putMat4f(combinedMatrix) // uCombinedMatrix
+					.putMat4f(renderEventParam.dhMvmProjMatrix) // uCombinedMatrix
 					.finishAndUpload();
 			}
 			
@@ -241,6 +239,9 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 			
 			
 			
+			profiler.popPush("block texture upload");
+			BlazeBlockTextureAtlas.INSTANCE.uploadPendingTiles();
+			
 			// render pass setup
 			{
 				profiler.popPush("rendering");
@@ -257,6 +258,8 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 					LightMapWrapper lightMapWrapper = (LightMapWrapper) renderEventParam.lightmap;
 					BlazeTextureViewWrapper lightmapTextureViewWrapper = lightMapWrapper.getTextureViewWrapper();
 					renderPassWrapper.bindTexture("uLightMap", lightmapTextureViewWrapper);
+					
+					renderPassWrapper.bindTexture("uBlockAtlas", BlazeBlockTextureAtlas.INSTANCE.getTextureWrapper());
 					
 					// set pipeline
 					renderPassWrapper.setPipeline(opaquePass ? this.opaquePipeline : this.transparentPipeline);
@@ -296,7 +299,8 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 						for (int i = 0; i < bufferWrapperList.length; i++)
 						{
 							BlazeVertexBufferWrapper bufferWrapper = (BlazeVertexBufferWrapper) bufferWrapperList[i];
-							if (!bufferWrapper.uploaded
+							if (bufferWrapper == null // not sure how a buffer could be null here, but this did happen at least once 
+								|| !bufferWrapper.uploaded
 								|| bufferWrapper.vertexCount == 0)
 							{
 								continue;

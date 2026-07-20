@@ -157,6 +157,9 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	private final boolean isBeaconBlock; 
 	private final boolean isBeaconBaseBlock;
 	private final boolean allowsBeaconBeamPassage;
+	private final boolean renderTexture;
+	private final boolean useBottomTextureForSides;
+	private final boolean alwaysRasterizeTexture;
 	private final boolean isSolid;
 	private final boolean isLiquid;
 	private final boolean allowApiColorOverride;
@@ -469,16 +472,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			#else
 			if (blockState != null)
 			{
-				// check if this block has any tags 
-				
-				Stream<TagKey<Block>> tags;
-				#if MC_VER <= MC_1_21_11
-				tags = blockState.getTags();
-				#else
-				tags = blockState.tags();
-				#endif
-				
-				this.isBeaconBaseBlock = tags.anyMatch((TagKey<Block> tag) -> tag.location().getPath().toLowerCase().contains("beacon_base_blocks"));
+				this.isBeaconBaseBlock = blockTagInCsv(blockState, "beacon_base_blocks");
 			}
 			else
 			{
@@ -501,13 +495,13 @@ public class BlockStateWrapper implements IBlockStateWrapper
 				#if MC_VER <= MC_1_12_2
 				if (block instanceof BlockStainedGlass)
 				{
-					colorInt = blockState.getValue(BlockStainedGlass.COLOR).getColorValue();
-					beaconTintColor = ColorUtil.toColorObjRGB(colorInt);
+					float[] c = blockState.getValue(BlockStainedGlass.COLOR).getColorComponentValues();
+					beaconTintColor = new Color(c[0], c[1], c[2]);
 				}
 				else if (block instanceof BlockStainedGlassPane)
 				{
-					colorInt = blockState.getValue(BlockStainedGlassPane.COLOR).getColorValue();
-					beaconTintColor = ColorUtil.toColorObjRGB(colorInt);
+					float[] c = blockState.getValue(BlockStainedGlassPane.COLOR).getColorComponentValues();
+					beaconTintColor = new Color(c[0], c[1], c[2]);
 				}
 				#else
 				if (block instanceof BeaconBeamBlock)
@@ -562,6 +556,35 @@ public class BlockStateWrapper implements IBlockStateWrapper
 				allowsBeaconBeamPassage = true;
 			}
 			this.allowsBeaconBeamPassage = allowsBeaconBeamPassage;
+		}
+		
+		
+		// texture handling //
+		{
+			// texture ignoring //
+			{
+				String dontTextureNamesCsv = Config.Client.Advanced.Graphics.Texture.blocksDontRenderTextureCsv.get();
+				this.renderTexture = !blockSerialInCsv(lowerCaseSerial, dontTextureNamesCsv);
+			}
+			
+			
+			// side texture ignoring //
+			{
+				String sideBlockNamesCsv = Config.Client.Advanced.Graphics.Texture.blocksDontUseSideTextureCsv.get();
+				boolean isSideIgnoreBlock = blockSerialInCsv(lowerCaseSerial, sideBlockNamesCsv);
+				
+				String dontUseSideTextureTagsCsv = Config.Client.Advanced.Graphics.Texture.blockTagsDontUseSideTextureCsv.get();
+				boolean hasSideIgnoreTags = blockTagInCsv(blockState, dontUseSideTextureTagsCsv);
+				
+				this.useBottomTextureForSides = hasSideIgnoreTags || isSideIgnoreBlock;
+			}
+			
+			
+			// always raster texture //
+			{
+				String alwaysRasterNamesCsv = Config.Client.Advanced.Graphics.Texture.blocksAlwaysRasterizeTextureCsv.get();
+				this.alwaysRasterizeTexture = blockSerialInCsv(lowerCaseSerial, alwaysRasterNamesCsv);
+			}
 		}
 		
 		
@@ -992,6 +1015,79 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		return propagatesSkyLightDown;
 	}
 	
+	#if MC_VER <= MC_1_12_2
+	private static boolean blockTagInCsv(@Nullable IBlockState blockState, String blockTagsCsv)
+	#else
+	private static boolean blockTagInCsv(@Nullable BlockState blockState, String blockTagsCsv)
+	#endif
+	{
+		// should only trigger for air
+		if (blockState == null)
+		{
+			return false;
+		}
+		
+		
+		
+		#if MC_VER <= MC_1_18_2
+		// tags aren't present in MC 1.17 and older
+		return false;
+		#else
+		
+		Stream<TagKey<Block>> tags;
+		#if MC_VER <= MC_1_21_11
+		tags = blockState.getTags();
+		#else
+		tags = blockState.tags();
+		#endif
+		
+		
+		blockTagsCsv = blockTagsCsv.toLowerCase(); // lowercase to allow for case-insensitive checking
+		List<String> sideBlockTagList = Arrays.asList(blockTagsCsv.split(",")); // duplicates could happen, but that isn't a problem since we'd just end up checking the same block twice, not a big deal
+		
+		
+		boolean tagMatches = tags.anyMatch((TagKey<Block> tag) ->
+		{
+			String lowerTag = tag.location().getPath().toLowerCase();
+			
+			for (int i = 0; i < sideBlockTagList.size(); i++)
+			{
+				String sideBlockTag = sideBlockTagList.get(i);
+				if (lowerTag.contains(sideBlockTag))
+				{
+					return true;
+				}
+			}
+			
+			return false;
+		});
+		
+		return tagMatches;
+		#endif
+	}
+	
+	private static boolean blockSerialInCsv(String lowerCaseSerial, String blockNameCsv)
+	{
+		boolean blockMatches = false;
+		
+		// get block resource names
+		blockNameCsv = blockNameCsv.toLowerCase(); // lowercase to allow for case-insensitive checking
+		List<String> blockNameList = Arrays.asList(blockNameCsv.split(",")); // duplicates could happen, but that isn't a problem since we'd just end up checking the same block twice, not a big deal
+		
+		// check this block against the expected list
+		for (int i = 0; i < blockNameList.size(); i++)
+		{
+			String baseBlockName = blockNameList.get(i);
+			if (lowerCaseSerial.contains(baseBlockName))
+			{
+				blockMatches = true;
+				break;
+			}
+		}
+		
+		return blockMatches;
+	}
+	
 	//endregion
 	//endregion
 	
@@ -1267,28 +1363,21 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		#endif
 	}
 	
-	@Override
-	public boolean isSolid() { return this.isSolid; }
-	@Override
-	public boolean isLiquid() { return this.isLiquid; }
-	@Override
-	public boolean isBeaconBlock() { return this.isBeaconBlock; }
-	@Override
-	public boolean isBeaconBaseBlock() { return this.isBeaconBaseBlock; }
-	@Override
-	public boolean isBeaconTintBlock() { return this.beaconTintColor != null; }
-	@Override
-	public boolean allowsBeaconBeamPassage() { return this.allowsBeaconBeamPassage; }
-	@Override
-	public boolean allowApiColorOverride() { return this.allowApiColorOverride; }
+	@Override public boolean isSolid() { return this.isSolid; }
+	@Override public boolean isLiquid() { return this.isLiquid; }
+	@Override public boolean isBeaconBlock() { return this.isBeaconBlock; }
+	@Override public boolean isBeaconBaseBlock() { return this.isBeaconBaseBlock; }
+	@Override public boolean isBeaconTintBlock() { return this.beaconTintColor != null; }
+	@Override public boolean allowsBeaconBeamPassage() { return this.allowsBeaconBeamPassage; }
+	@Override public boolean allowApiColorOverride() { return this.allowApiColorOverride; }
+	@Override public boolean renderTexture() { return this.renderTexture; }
+	@Override public boolean useBottomTextureForSides() { return this.useBottomTextureForSides; }
+	@Override public boolean alwaysRasterizeTexture() { return this.alwaysRasterizeTexture; }
 	
-	@Override
-	public Color getMapColor() { return this.mapColor; }
-	@Override
-	public Color getBeaconTintColor() { return this.beaconTintColor; }
+	@Override public Color getMapColor() { return this.mapColor; }
+	@Override public Color getBeaconTintColor() { return this.beaconTintColor; }
 	
-	@Override
-	public byte getMaterialId() { return this.blockMaterialId; }
+	@Override public byte getMaterialId() { return this.blockMaterialId; }
 	
 	//endregion
 	
@@ -1525,7 +1614,10 @@ public class BlockStateWrapper implements IBlockStateWrapper
 					#endif
 					{
 						String possibleStatePropertiesString = serializeBlockStateProperties(possibleState);
-						if (possibleStatePropertiesString.equals(blockStatePropertiesString))
+						
+						// ignoring case is important since the plugin may send properties
+						// that don't match with what MC gives us (Bukkit returns all lowercase)
+						if (possibleStatePropertiesString.equalsIgnoreCase(blockStatePropertiesString))
 						{
 							foundState = possibleState;
 							break;

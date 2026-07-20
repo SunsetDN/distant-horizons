@@ -40,6 +40,8 @@ public class BlazeDhVertexFormatUtil
 	@NotNull public static final VertexFormatElement RGBA_UBYTE_COLOR;
 	@NotNull public static final VertexFormatElement IRIS_MATERIAL;
 	@NotNull public static final VertexFormatElement IRIS_NORMAL;
+	/** {@link com.seibel.distanthorizons.core.dataObjects.render.textures.BlockTextureRegistry} tile id, 0 = flat color */
+	@NotNull public static final VertexFormatElement TEXTURE_TILE;
 	
 	@NotNull public static final VertexFormatElement FLOAT_XYZ_POS;
 	
@@ -75,6 +77,8 @@ public class BlazeDhVertexFormatUtil
 				IRIS_NORMAL = VertexFormatElement.register(/*id*/29, /*index*/0, VertexFormatElement.Type.BYTE, VertexFormatElement.Usage.GENERIC, /*count*/ 1);
 				
 				FLOAT_XYZ_POS = VertexFormatElement.register(/*id*/30, /*index*/0, VertexFormatElement.Type.FLOAT, VertexFormatElement.Usage.POSITION, /*count*/ 3);
+				
+				TEXTURE_TILE = VertexFormatElement.register(/*id*/31, /*index*/0, VertexFormatElement.Type.USHORT, VertexFormatElement.Usage.GENERIC, /*count*/ 1);
 				#elif MC_VER <= MC_26_1_2
 				SCREEN_POS = VertexFormatElement.register(/*id*/22, /*index*/0, VertexFormatElement.Type.FLOAT, false, /*count*/ 2);
 				RGBA_FLOAT_COLOR = VertexFormatElement.register(/*id*/23, /*index*/0, VertexFormatElement.Type.FLOAT, false, /*count*/ 4);
@@ -88,6 +92,8 @@ public class BlazeDhVertexFormatUtil
 				IRIS_NORMAL = VertexFormatElement.register(/*id*/29, /*index*/0, VertexFormatElement.Type.BYTE, false, /*count*/ 1);
 				
 				FLOAT_XYZ_POS = VertexFormatElement.register(/*id*/30, /*index*/0, VertexFormatElement.Type.FLOAT, false, /*count*/ 3);
+				
+				TEXTURE_TILE = VertexFormatElement.register(/*id*/31, /*index*/0, VertexFormatElement.Type.USHORT, false, /*count*/ 1);
 				#elif MC_VER <= MC_26_1_2
 				
 				SCREEN_POS = VertexFormatElement.register(/*id*/22, /*index*/0, GpuFormat.RG32_FLOAT); // 2 floats
@@ -103,6 +109,8 @@ public class BlazeDhVertexFormatUtil
 				
 				FLOAT_XYZ_POS = VertexFormatElement.register(/*id*/30, /*index*/0, GpuFormat.RGB32_FLOAT); // 3 floats
 				
+				TEXTURE_TILE = VertexFormatElement.register(/*id*/31, /*index*/0, GpuFormat.R16_UINT); // 1 ushort
+				
 				#else
 				
 				SCREEN_POS = new VertexFormatElement("Screen Pos", Float.BYTES * 2, GpuFormat.RG32_FLOAT);
@@ -117,6 +125,8 @@ public class BlazeDhVertexFormatUtil
 				IRIS_NORMAL = new VertexFormatElement("Iris Normal", 1, GpuFormat.R8_UINT);
 				
 				FLOAT_XYZ_POS = new VertexFormatElement("Float XYZ Pos", Float.BYTES * 3, GpuFormat.RGB32_FLOAT);
+				
+				TEXTURE_TILE = new VertexFormatElement("DH Texture Tile", Short.BYTES, GpuFormat.R16_UINT);
 				#endif
 			}
 			catch (Exception e)
@@ -145,6 +155,7 @@ public class BlazeDhVertexFormatUtil
 			RGBA_UBYTE_COLOR = null;
 			IRIS_MATERIAL = null;
 			IRIS_NORMAL = null;
+			TEXTURE_TILE = null;
 			
 			FLOAT_XYZ_POS = null;
 		}

@@ -65,7 +65,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -133,7 +133,11 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy
 				executor.execute(() ->
 				{
 					ChunkAccess chunk = level.getChunk(event.getPos());
-					SharedApi.INSTANCE.applyChunkUpdate(new ChunkWrapper(chunk, wrappedLevel), wrappedLevel, true);
+					SharedApi.INSTANCE.applyChunkUpdate(
+						new ChunkWrapper(chunk, wrappedLevel), 
+						wrappedLevel, 
+						true
+					);
 				});
 			}
 		}
@@ -161,7 +165,11 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy
 				executor.execute(() ->
 				{
 					ChunkAccess chunk = level.getChunk(event.getPos());
-					SharedApi.INSTANCE.applyChunkUpdate(new ChunkWrapper(chunk, wrappedLevel), wrappedLevel, true);
+					SharedApi.INSTANCE.applyChunkUpdate(
+						new ChunkWrapper(chunk, wrappedLevel), 
+						wrappedLevel,
+						true
+					);
 				});
 			}
 		}
@@ -173,8 +181,11 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy
 		if (MC.clientConnectedToDedicatedServer())
 		{
 			ILevelWrapper wrappedLevel = ProxyUtil.getLevelWrapper(GetEventLevel(event));
-			IChunkWrapper chunkWrapper = new ChunkWrapper(event.getChunk(), wrappedLevel);
-			SharedApi.INSTANCE.applyChunkUpdate(chunkWrapper, wrappedLevel, true);
+			SharedApi.INSTANCE.applyChunkUpdate(
+				new ChunkWrapper(event.getChunk(), wrappedLevel), 
+				wrappedLevel, 
+				true
+			);
 		}
 	}
 	
@@ -224,7 +235,7 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy
 				// should generally only need to be set once per game session
 				// allows DH to render directly to Optifine's level frame buffer,
 				// allowing better shader support
-				MinecraftRenderWrapper.INSTANCE.finalLevelFrameBufferId = GL32.glGetInteger(GL32.GL_FRAMEBUFFER_BINDING);
+				MinecraftRenderWrapper.INSTANCE.finalLevelFrameBufferId = GL33.glGetInteger(GL33.GL_FRAMEBUFFER_BINDING);
 			}
 			catch (Exception | Error e)
 			{

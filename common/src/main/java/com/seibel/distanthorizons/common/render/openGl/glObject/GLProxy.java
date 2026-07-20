@@ -38,7 +38,7 @@ import com.seibel.distanthorizons.coreapi.ModInfo;
 import org.lwjgl.glfw.GLFW;
 #endif
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GLUtil;
 
@@ -80,6 +80,13 @@ public class GLProxy
 			LOGGER.info("Iris detected, Distant Horizons OpenGL error logging won't be sent in the chat due to Iris throwing known (harmless) OpenGL errors. This is a bug with Iris, not Distant Horizons.");
 		}
 	}
+	
+	/** 
+	 * disabled for now since GL 3.3 may not appear in the capabilities
+	 * on older MC versions (James found this issue on 1.17 and 1.20.6 specifically),
+	 * but may still be accessible for our needs. 
+	 */
+	private static final boolean CHECK_GL_VERSION_ON_STARTUP = false;
 	
 	public static final Set<String> LOGGED_GL_MESSAGES = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 	
@@ -148,7 +155,7 @@ public class GLProxy
 		}
 		
 		LOGGER.info("Creating [" + GLProxy.class.getSimpleName() + "]... If this is the last message you see there must have been an OpenGL error.");
-		LOGGER.info("Lod Render OpenGL version [" + GL32.glGetString(GL32.GL_VERSION) + "].");
+		LOGGER.info("Lod Render OpenGL version [" + GL33.glGetString(GL33.GL_VERSION) + "].");
 		
 		
 		
@@ -160,17 +167,20 @@ public class GLProxy
 		// get Minecraft's capabilities
 		this.glCapabilities = GL.getCapabilities();
 		
-		// crash the game if the GPU doesn't support OpenGL 3.2
-		if (!this.glCapabilities.OpenGL32)
+		// crash the game if the GPU doesn't support OpenGL 3.3
+		if (CHECK_GL_VERSION_ON_STARTUP)
 		{
-			String supportedVersionInfo = this.getFailedVersionInfo(this.glCapabilities);
-			
-			// See full requirement at above.
-			String errorMessage = ModInfo.READABLE_NAME + " was initializing " + GLProxy.class.getSimpleName()
+			if (!this.glCapabilities.OpenGL33)
+			{
+				String supportedVersionInfo = this.getFailedVersionInfo(this.glCapabilities);
+				
+				// See full requirement at above.
+				String errorMessage = ModInfo.READABLE_NAME + " was initializing " + GLProxy.class.getSimpleName()
 					+ " and discovered this GPU doesn't meet the OpenGL requirements. Sorry I couldn't tell you sooner :(\n" +
 					"Additional info:\n" + supportedVersionInfo;
-			IMinecraftClientWrapper MC = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
-			MC.crashMinecraft(errorMessage, new UnsupportedOperationException("Distant Horizon OpenGL requirements not met"));
+				IMinecraftClientWrapper MC = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
+				MC.crashMinecraft(errorMessage, new UnsupportedOperationException("Distant Horizon OpenGL requirements not met"));
+			}
 		}
 	 	LOGGER.info("minecraftGlCapabilities:\n" + this.versionInfoToString(this.glCapabilities));
 		
@@ -208,7 +218,7 @@ public class GLProxy
 		this.instancedArraysSupported = this.glCapabilities.GL_ARB_instanced_arrays;
 		
 		// get the best automatic upload method
-		String vendor = GL32.glGetString(GL32.GL_VENDOR).toUpperCase(); // example return: "NVIDIA CORPORATION"
+		String vendor = GL33.glGetString(GL33.GL_VENDOR).toUpperCase(); // example return: "NVIDIA CORPORATION"
 		if (EPlatform.get() != EPlatform.MACOS)
 		{
 			if (vendor.contains("NVIDIA") || vendor.contains("GEFORCE"))
@@ -377,7 +387,7 @@ public class GLProxy
 	private String getFailedVersionInfo(GLCapabilities c)
 	{
 		return "Your OpenGL support:\n" +
-				"openGL version 3.2+: [" + c.OpenGL32 + "] <- REQUIRED\n" +
+				"openGL version 3.3+: [" + c.OpenGL33 + "] <- REQUIRED\n" +
 				"Vertex Attribute Buffer Binding: [" + (c.glVertexAttribBinding != 0) + "] <- optional improvement\n" +
 				"Buffer Storage: [" + (c.glBufferStorage != 0) + "] <- optional improvement\n" +
 				"If you noticed that your computer supports higher OpenGL versions"
@@ -388,7 +398,7 @@ public class GLProxy
 	private String versionInfoToString(GLCapabilities c)
 	{
 		return "Your OpenGL support:\n" +
-				"openGL version 3.2+: [" + c.OpenGL32 + "] <- REQUIRED\n" +
+				"openGL version 3.3+: [" + c.OpenGL33 + "] <- REQUIRED\n" +
 				"Vertex Attribute Buffer Binding: [" + (c.glVertexAttribBinding != 0) + "] <- optional improvement\n" +
 				"Buffer Storage: [" + (c.glBufferStorage != 0) + "] <- optional improvement\n";
 	}

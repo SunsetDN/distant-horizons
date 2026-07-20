@@ -145,10 +145,10 @@ public class BlazeDhFarFadeRenderer implements IDhFarFadeRenderer
 		
 		
 		// textures
-		this.dhFadeColorTextureWrapper.tryCreateOrResize();
+		this.dhFadeColorTextureWrapper.tryCreateOrResizeToScreenSize();
 		this.mcColorTextureViewWrapper.tryWrap(MinecraftRenderWrapper.INSTANCE.getRenderTarget().getColorTexture());
 		
-		this.dhFadeDepthTextureWrapper.tryCreateOrResize();
+		this.dhFadeDepthTextureWrapper.tryCreateOrResizeToScreenSize();
 		
 		{
 			// create data //

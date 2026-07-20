@@ -20,7 +20,6 @@
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject;
 
 #if MC_VER > MC_1_12_2
-import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -141,19 +140,23 @@ public class DhLitWorldGenRegion extends WorldGenRegion
 		#elif MC_VER < MC_1_21_1
 		super(serverLevel, chunkList, chunkStatus, writeRadius);
 		#else
-		super(serverLevel, 
-				StaticCache2D.create(
-					centerChunkX, centerChunkZ,
-					writeRadius * 2, (x,z) -> new DhGenerationChunkHolder(new ChunkPos(x, z))), 
-				new ChunkStep(chunkStatus,
-						// reverse is needed because MC uses the index of the chunkStatus to determine how many items are in the list instead of the actual list count
-						new ChunkDependencies(ImmutableList.copyOf(ChunkStatus.getStatusList()).reverse()),
-						new ChunkDependencies(ImmutableList.copyOf(ChunkStatus.getStatusList()).reverse()),
-						writeRadius, (WorldGenContext var1, ChunkStep var2, StaticCache2D<GenerationChunkHolder> var3, ChunkAccess var4) -> null),
-				centerChunk);
+		super(serverLevel,
+			StaticCache2D.create(
+				centerChunkX, centerChunkZ,
+				writeRadius * 2, (x, z) -> new DhGenerationChunkHolder(new ChunkPos(x, z))),
+			new ChunkStep(
+				chunkStatus,
+				// reverse is needed because MC uses the index of the chunkStatus to determine how many items are in the list instead of the actual list count
+				new ChunkDependencies(ImmutableList.copyOf(ChunkStatus.getStatusList()).reverse()),
+				new ChunkDependencies(ImmutableList.copyOf(ChunkStatus.getStatusList()).reverse()),
+				// write radius is doubled here to prevent a warning on MC's end where it doesn't
+				// want to write to one of our edge chunks (as of MC 26.2.0)
+				writeRadius * 2,
+				(WorldGenContext var1, ChunkStep var2, StaticCache2D<GenerationChunkHolder> var3, ChunkAccess var4) -> null),
+			centerChunk);
 		#endif
 		
-		this.firstPos = McObjectConverter.Convert(chunkList.get(0).getPos());
+		this.firstPos = McObjectConverter.convert(chunkList.get(0).getPos());
 		this.serverLevel = serverLevel;
 		this.generator = generator;
 		this.lightEngine = lightEngine;
@@ -169,7 +172,7 @@ public class DhLitWorldGenRegion extends WorldGenRegion
 	@Override
 	public boolean ensureCanWrite(BlockPos blockPos)
 	{
-		DhChunkPos chunkPos = McObjectConverter.Convert(this.getCenter());
+		DhChunkPos chunkPos = McObjectConverter.convert(this.getCenter());
 		
 		int sectionCoordX = SectionPos.blockToSectionCoord(blockPos.getX());
 		int sectionCoordZ = SectionPos.blockToSectionCoord(blockPos.getZ());

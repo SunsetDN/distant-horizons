@@ -5,7 +5,7 @@
     "target": "@env(MOD)",
     "mixins": [],
     "minVersion": "0.8.7",
-    "plugin": "com.seibel.distanthorizons.cleanroom.DistantHorizonsConfigPlugin",
+    "plugin": "com.seibel.distanthorizons.cleanroom.CleanroomMixinPlugin",
     "client": [
     ]
 }

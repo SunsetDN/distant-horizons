@@ -2,6 +2,8 @@ package com.seibel.distanthorizons.common;
 
 import com.seibel.distanthorizons.api.enums.config.EDhApiMcRenderingFadeMode;
 import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingEngine;
+import com.seibel.distanthorizons.api.enums.config.quickOptions.EDhApiThreadPreset;
+import com.seibel.distanthorizons.api.enums.rendering.EDhApiTransparency;
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiDistantGeneratorMode;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterDhInitEvent;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBeforeDhInitEvent;
@@ -25,17 +27,21 @@ import com.seibel.distanthorizons.core.render.renderer.AbstractDebugWireframeRen
 import com.seibel.distanthorizons.core.render.renderer.StubDebugWireframeRenderer;
 import com.seibel.distanthorizons.common.wrappers.gui.NativeDialogUtil;
 import com.seibel.distanthorizons.core.util.ThreadUtil;
+import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.IVersionConstants;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IC2meAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
 import com.seibel.distanthorizons.coreapi.ModInfo;
+import com.seibel.distanthorizons.coreapi.util.MathUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -62,7 +68,7 @@ public abstract class AbstractModInitializer
 	//==================//
 	// abstract methods //
 	//==================//
-	//region
+	//region abstract methods
 	
 	protected abstract void createInitialSharedBindings();
 	protected abstract void createInitialClientBindings();
@@ -85,7 +91,7 @@ public abstract class AbstractModInitializer
 	//===================//
 	// initialize events //
 	//===================//
-	//region
+	//region initialize events
 	
 	public void onInitializeClient()
 	{
@@ -106,6 +112,7 @@ public abstract class AbstractModInitializer
 		// Client uses config for auto-updater, so it's initialized here instead of post-init stage
 		this.initConfig();
 		logIncompatibilityWarnings(); // needs to be called after config loading
+		setDisabledDhConfigBasedOnMods();
 		setUnsupportedConfigsBasedOnMcVersion();
 		Initializer.postConfigInit();
 		
@@ -182,7 +189,7 @@ public abstract class AbstractModInitializer
 	//===========================//
 	// inner initializer methods //
 	//===========================//
-	//region
+	//region inner initializer methods
 	
 	private void startup()
 	{
@@ -294,7 +301,10 @@ public abstract class AbstractModInitializer
 	//======================//
 	// compatibility checks //
 	//======================//
-	//region
+	//region compatibility checks
+	
+	// TODO merge with ClientApi.detectAndSendBootTimeWarnings
+	//  probably put in a separate class
 	
 	/** 
 	 * Some mods will work with a few tweaks
@@ -306,12 +316,15 @@ public abstract class AbstractModInitializer
 	{
 		boolean showChatWarnings = Config.Common.Logging.Warning.showModCompatibilityWarningsOnStartup.get();
 		IModChecker modChecker = SingletonInjector.INSTANCE.get(IModChecker.class);
+		IVersionConstants versionConstants = SingletonInjector.INSTANCE.get(IVersionConstants.class);
 		
 		String startingString = "Partially Incompatible Distant Horizons mod detected: ";
 		
 		
 		
-		// Alex's caves
+		//==============//
+		// Alex's caves //
+		//==============//
 		//region
 		if (modChecker.isModLoaded("alexscaves"))
 		{
@@ -324,14 +337,20 @@ public abstract class AbstractModInitializer
 				String message =
 					MinecraftTextFormat.ORANGE + "Distant Horizons: Alex's Cave detected." + MinecraftTextFormat.CLEAR_FORMATTING +
 								"You may have to change Alex's config for DH to render. ";
-				ClientApi.INSTANCE.showChatMessageNextFrame(message);
+				ClientApi.INSTANCE.queueChatMessage(message);
 			}
 			
 			LOGGER.warn(startingString + "[Alex's Caves] may require some config changes in order to render Distant Horizons correctly.");
 		}
 		//endregion
 		
+		
+		
+		//======//
+		// WWOO //
+		//======//
 		// William Wythers' Overhauled Overworld (WWOO)
+		
 		//region
 		if (modChecker.isModLoaded("wwoo"))
 		{
@@ -348,14 +367,18 @@ public abstract class AbstractModInitializer
 				String message =
 					MinecraftTextFormat.ORANGE + "Distant Horizons: WWOO detected." + MinecraftTextFormat.CLEAR_FORMATTING + "\n" +
 								wwooWarning;
-				ClientApi.INSTANCE.showChatMessageNextFrame(message);
+				ClientApi.INSTANCE.queueChatMessage(message);
 			}
 			
 			LOGGER.warn(startingString + "[WWOO] "+ wwooWarning);
 		}
 		//endregion
 		
+		
+		
+		//========//
 		// Chunky //
+		//========//
 		//region
 		
 		boolean chunkyPresent = false;
@@ -381,32 +404,35 @@ public abstract class AbstractModInitializer
 				String message =
 					MinecraftTextFormat.ORANGE + "Distant Horizons: Chunky detected." + MinecraftTextFormat.CLEAR_FORMATTING + "\n" +
 								chunkyWarning;
-				ClientApi.INSTANCE.showChatMessageNextFrame(message);
+				ClientApi.INSTANCE.queueChatMessage(message);
 			}
 			
 			LOGGER.warn(startingString + "[Chunky] "+ chunkyWarning);
+			
+			// don't allow for the possibility of DH and chunky to generate chunks at the same time
+			Config.Common.WorldGenerator.enableDistantGeneration.setApiValue(false);
+			Config.Common.LodBuilding.disableUnchangedChunkCheck.setApiValue(true);
 		}
 		
 		//endregion
 		
+		
+		
+		//======//
 		// iris //
+		//======//
 		//region
 		
 		IIrisAccessor iris = ModAccessorInjector.INSTANCE.get(IIrisAccessor.class);
 		if (iris != null)
 		{
 			// get the currently selected rendering API
-			EDhApiRenderingEngine renderApi = Config.Client.Advanced.Graphics.Experimental.renderingEngine.get();
-			if (renderApi == EDhApiRenderingEngine.AUTO)
-			{
-				IVersionConstants versionConstants = SingletonInjector.INSTANCE.get(IVersionConstants.class);
-				renderApi = versionConstants.getDefaultRenderingEngine();
-			}
+			EDhApiRenderingEngine renderEngine = Config.Client.Advanced.Graphics.Experimental.renderingEngine.get();
 			
 			// Iris only supports native OpenGL
-			if (renderApi != EDhApiRenderingEngine.OPEN_GL)
+			if (renderEngine == EDhApiRenderingEngine.BLAZE_3D)
 			{
-				String irisUnsupportedMessage = "Iris doesn't support DH when using the ["+ EDhApiRenderingEngine.BLAZE_3D+"] rendering engine, this will need to be fixed on Iris end. As a temporary fix please change the rendering engine to ["+ EDhApiRenderingEngine.OPEN_GL+"] in the DH config file.";
+				String irisUnsupportedMessage = "Iris doesn't support DH when using the ["+ EDhApiRenderingEngine.BLAZE_3D+"] rendering engine, this will need to be fixed on Iris end. As a temporary fix please change the rendering engine to ["+ EDhApiRenderingEngine.OPEN_GL+"] or ["+ EDhApiRenderingEngine.AUTO+"] in the DH config file.";
 				LOGGER.fatal(irisUnsupportedMessage);
 				NativeDialogUtil.showDialog(ModInfo.READABLE_NAME, irisUnsupportedMessage, "ok", "error");
 				
@@ -414,6 +440,72 @@ public abstract class AbstractModInitializer
 				String errorMessage = "loading Distant Horizons. "+irisUnsupportedMessage;
 				String exceptionError = "Distant Horizons conditional mod config Exception";
 				mc.crashMinecraft(errorMessage, new Exception(exceptionError));
+			}
+			else if (renderEngine == EDhApiRenderingEngine.AUTO)
+			{
+				Config.Client.Advanced.Graphics.Experimental.renderingEngine.setApiValue(EDhApiRenderingEngine.OPEN_GL);
+				
+				EDhApiRenderingEngine recommendedEngine = versionConstants.getDefaultRenderingEngine();
+				if (recommendedEngine != EDhApiRenderingEngine.OPEN_GL)
+				{
+					LOGGER.warn("Changing Distant Horizons' rendering engine to [" + EDhApiRenderingEngine.OPEN_GL + "] to allow for Iris rendering. This renderer will be unavailable once Minecraft moves to Vulkan and must be fixed on Iris' end.");
+				}
+			}
+		}
+		
+		//endregion
+		
+		
+		
+		//======//
+		// C2ME //
+		//======//
+		//region
+		
+		IC2meAccessor c2me = ModAccessorInjector.INSTANCE.get(IC2meAccessor.class);
+		if (c2me != null)
+		{
+			// find how many C2ME worker threads are active (they should be created by this point)
+			int numberOfC2meThreads = 0;
+			Set<Thread> threads = Thread.getAllStackTraces().keySet();
+			
+			
+			// check for the worker threads first 
+			// (there may be other threads for things like OpenCL or file IO)
+			for (Thread thread : threads)
+			{
+				if (thread.getName().toLowerCase().contains("c2me-worker"))
+				{
+					numberOfC2meThreads++;
+				}
+			}
+			
+			// if C2ME changes how their threads are named, cast our net a little wider
+			if (numberOfC2meThreads == 0)
+			{
+				for (Thread thread : threads)
+				{
+					if (thread.getName().toLowerCase().contains("c2me"))
+					{
+						numberOfC2meThreads++;
+					}
+				}
+			}
+			
+			
+			int cpuThreadCount = Runtime.getRuntime().availableProcessors();
+			int expectedC2meThreadCount = Math.max(cpuThreadCount / 2, 1); // if no C2ME threads were found, default to 50%, C2ME's default
+			int newDhThreadCount = MathUtil.clamp(expectedC2meThreadCount, numberOfC2meThreads, cpuThreadCount);
+			
+			LOGGER.info("Found ["+numberOfC2meThreads+"] C2ME threads. DH needs to use at least the same number of threads as C2ME to prevent issues with Chunky.");
+			
+			if (Config.Common.MultiThreading.useC2meThreadCount.get())
+			{
+				Config.Common.MultiThreading.numberOfThreads.setApiValue(numberOfC2meThreads);
+				Config.Common.MultiThreading.threadRunTimeRatio.setApiValue(1.0); // C2ME threads have 100% uptime, so should we
+				Config.Client.threadPresetSetting.setApiValue(EDhApiThreadPreset.CUSTOM);
+				
+				LOGGER.info("Set DH thread count to: ["+newDhThreadCount+"] to match C2ME.");
 			}
 		}
 		
@@ -441,6 +533,23 @@ public abstract class AbstractModInitializer
 		#endif
 	}
 	
+	/**
+	 * Some DH configs should be disabled if a given
+	 * mod is present.
+	 */
+	private static void setDisabledDhConfigBasedOnMods()
+	{
+		IIrisAccessor irisAccessor = ModAccessorInjector.INSTANCE.get(IIrisAccessor.class);
+		if (irisAccessor != null)
+		{
+			// Transparency is required when Iris shaders are present, otherwise
+			// rendering will not work properly.
+			// Note: this fix doesn't prevent disabling transparency
+			// due to a lack of vertical LOD slices, so that may still cause issues.
+			Config.Client.Advanced.Graphics.Quality.transparency.setApiValue(EDhApiTransparency.COMPLETE);
+		}
+	}
+	
 	//endregion
 	
 	
@@ -448,7 +557,7 @@ public abstract class AbstractModInitializer
 	//================//
 	// helper classes //
 	//================//
-	//region
+	//region helper classes
 	
 	public interface IEventProxy
 	{

@@ -27,7 +27,11 @@ public class NativeDialogUtil
 		title = title.replaceAll(unsafeCharsRegex, "");
 		message = message.replaceAll(unsafeCharsRegex, "");
 		
-		#if MC_VER > MC_1_7_10 //MC_VER <= MC_1_21_11
+		#if MC_VER > MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
+		// https://mfbridge.github.io/tinyfiledialogs/reference/messageBox.html
+		TinyFileDialogs.tinyfd_messageBox(title, message, dialogType, iconType, 1 /* ok/yes */);
+		#elif MC_VER <= MC_1_21_11
 		TinyFileDialogs.tinyfd_messageBox(title, message, dialogType, iconType, false);
 		#else
 		// https://mfbridge.github.io/tinyfiledialogs/reference/messageBox.html

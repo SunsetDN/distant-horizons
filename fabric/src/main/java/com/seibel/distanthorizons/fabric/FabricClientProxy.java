@@ -226,12 +226,12 @@ public class FabricClientProxy implements AbstractModInitializer.IEventProxy
 		#if MC_VER < MC_1_21_9
 		WorldRenderEvents.AFTER_SETUP.register((renderContext) ->
 		{
-			ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.Convert(renderContext.projectionMatrix());
+			ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.convert(renderContext.projectionMatrix());
 			
 			#if MC_VER < MC_1_20_6
-			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(renderContext.matrixStack().last().pose());
+			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(renderContext.matrixStack().last().pose());
 			#else
-			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(renderContext.positionMatrix());
+			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(renderContext.positionMatrix());
 			#endif
 			
 			#if MC_VER < MC_1_21_1
@@ -249,12 +249,12 @@ public class FabricClientProxy implements AbstractModInitializer.IEventProxy
 		
 		WorldRenderEvents.AFTER_ENTITIES.register((renderContext) ->
 		{
-			ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.Convert(renderContext.projectionMatrix());
+			ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.convert(renderContext.projectionMatrix());
 			
 			#if MC_VER < MC_1_20_6
-			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(renderContext.matrixStack().last().pose());
+			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(renderContext.matrixStack().last().pose());
 			#else
-			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(renderContext.positionMatrix());
+			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(renderContext.positionMatrix());
 			#endif
 			
 			#if MC_VER < MC_1_21_1
@@ -271,12 +271,12 @@ public class FabricClientProxy implements AbstractModInitializer.IEventProxy
 		
 		WorldRenderEvents.AFTER_TRANSLUCENT.register((renderContext) ->
 		{
-			ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.Convert(renderContext.projectionMatrix());
+			ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.convert(renderContext.projectionMatrix());
 			
 			#if MC_VER < MC_1_20_6
-			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(renderContext.matrixStack().last().pose());
+			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(renderContext.matrixStack().last().pose());
 			#else
-			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(renderContext.positionMatrix());
+			ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(renderContext.positionMatrix());
 			#endif
 			
 			#if MC_VER < MC_1_21_1

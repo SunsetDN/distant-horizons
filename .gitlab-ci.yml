@@ -12,11 +12,6 @@ stages:
 variables:
   # Pull core when building
   GIT_SUBMODULE_STRATEGY: recursive
-  # Where Gradle keeps its distribution, caches, and resolved dependencies.
-  # Defaults to a per-job folder so each runner works out of the box; a runner
-  # with a persistent host mount can override this to that mount in its config.toml
-  # to avoid re-downloading the Gradle distribution and dependencies every job.
-  GRADLE_USER_HOME_DIR: "cache/"
 
 
 # These can be extended so code is a bit less duplicated
@@ -44,12 +39,13 @@ build:
   parallel:
     matrix:
       - MC_VER: [
+      "26.2.0",
       "26.1.2",
-      "1.21.11", "1.21.10", "1.21.9", "1.21.8", "1.21.6", "1.21.5", "1.21.4", "1.21.3", "1.21.1", 
-      "1.20.6", "1.20.4", "1.20.2", "1.20.1", 
+      "1.21.11", "1.21.10", "1.21.9", "1.21.8", "1.21.6", "1.21.5", "1.21.4", "1.21.3", "1.21.1",
+      "1.20.6", "1.20.4", "1.20.2", "1.20.1",
       "1.19.4", "1.19.2",
-      "1.18.2", 
-      "1.17.1", 
+      "1.18.2",
+      "1.17.1",
       "1.16.5",
       "1.12.2"
       ]
@@ -66,7 +62,7 @@ build:
   script:
     # this both runs the unit tests and assembles the code
     # (no separate clean: the container starts fresh, so build/ is already empty)
-    - ./gradlew build -PmcVer="${MC_VER}" -PinfoGitCommit="${CI_COMMIT_SHA}" -PinfoGitBranch="${CI_COMMIT_BRANCH}" -PinfoBuildSource="GitLab CI (${CI_PIPELINE_ID})" --gradle-user-home "${GRADLE_USER_HOME_DIR}";
+    - ./gradlew build -PmcVer="${MC_VER}" -PinfoGitCommit="${CI_COMMIT_SHA}" -PinfoGitBranch="${CI_COMMIT_BRANCH}" -PinfoBuildSource="GitLab CI (${CI_PIPELINE_ID})" --gradle-user-home cache/;
     - cp ./cleanroom/build/libs/* ./fabric/build/libs/* ./forge/build/libs/* ./neoforge/build/libs/* ./build/forgix/* . || true
   artifacts:
     name: "NightlyBuild_${MC_VER}-${CI_COMMIT_SHORT_SHA}-${CI_COMMIT_TIMESTAMP}"
@@ -87,9 +83,9 @@ api:
   script:
     # this should only run for the API
     # this also runs unit tests
-    - ./gradlew api:build --gradle-user-home "${GRADLE_USER_HOME_DIR}";
+    - ./gradlew api:build --gradle-user-home cache/;
     # build the javadoc here so the pages job can publish it without triggering another API build
-    - ./gradlew api:javadoc --gradle-user-home "${GRADLE_USER_HOME_DIR}";
+    - ./gradlew api:javadoc --gradle-user-home cache/;
     - cp ./coreSubProjects/api/build/libs/* .
   artifacts:
     name: "NightlyBuild_Api-${CI_COMMIT_SHORT_SHA}-${CI_COMMIT_TIMESTAMP}"

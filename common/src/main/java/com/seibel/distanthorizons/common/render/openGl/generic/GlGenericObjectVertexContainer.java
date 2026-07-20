@@ -7,7 +7,7 @@ import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.render.renderer.RenderableBoxGroup;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.objects.IDhGenericObjectVertexBufferContainer;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 import java.awt.*;
 import java.util.List;
@@ -113,20 +113,20 @@ public class GlGenericObjectVertexContainer implements IDhGenericObjectVertexBuf
 		this.tryCreateBuffers();
 		
 		// Upload transformation matrices
-		GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, this.chunkPos);
-		GL32.glBufferData(GL32.GL_ARRAY_BUFFER, this.chunkPosData, GL32.GL_DYNAMIC_DRAW);
-		GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, this.subChunkPos);
-		GL32.glBufferData(GL32.GL_ARRAY_BUFFER, this.subChunkPosData, GL32.GL_DYNAMIC_DRAW);
-		GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, this.scale);
-		GL32.glBufferData(GL32.GL_ARRAY_BUFFER, this.scalingData, GL32.GL_DYNAMIC_DRAW);
+		GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, this.chunkPos);
+		GL33.glBufferData(GL33.GL_ARRAY_BUFFER, this.chunkPosData, GL33.GL_DYNAMIC_DRAW);
+		GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, this.subChunkPos);
+		GL33.glBufferData(GL33.GL_ARRAY_BUFFER, this.subChunkPosData, GL33.GL_DYNAMIC_DRAW);
+		GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, this.scale);
+		GL33.glBufferData(GL33.GL_ARRAY_BUFFER, this.scalingData, GL33.GL_DYNAMIC_DRAW);
 		
 		// Upload colors
-		GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, this.color);
-		GL32.glBufferData(GL32.GL_ARRAY_BUFFER, this.colorData, GL32.GL_DYNAMIC_DRAW);
+		GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, this.color);
+		GL33.glBufferData(GL33.GL_ARRAY_BUFFER, this.colorData, GL33.GL_DYNAMIC_DRAW);
 		
 		// Upload materials
-		GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, this.material);
-		GL32.glBufferData(GL32.GL_ARRAY_BUFFER, this.materialData, GL32.GL_DYNAMIC_DRAW);
+		GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, this.material);
+		GL33.glBufferData(GL33.GL_ARRAY_BUFFER, this.materialData, GL33.GL_DYNAMIC_DRAW);
 	}
 	/** needs to be done on the render thread */
 	private void tryCreateBuffers()

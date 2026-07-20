@@ -18,7 +18,7 @@ import com.seibel.distanthorizons.core.render.RenderThreadTaskHandler;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.objects.IDhGenericObjectVertexBufferContainer;
 import com.seibel.distanthorizons.core.render.renderer.RenderableBoxGroup;
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -209,7 +209,7 @@ public class BlazeGenericObjectVertexContainer implements IDhGenericObjectVertex
 		int boxCount = Math.max(this.uploadedBoxCount, 1);
 		
 		int quadCount = boxCount * 6 * 6; // 6 faces with 6 vertices each
-		int byteSize = quadCount * GLEnums.getTypeSize(GL32.GL_UNSIGNED_INT);
+		int byteSize = quadCount * GLEnums.getTypeSize(GL33.GL_UNSIGNED_INT);
 		return byteSize;
 	}
 	

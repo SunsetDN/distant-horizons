@@ -34,7 +34,7 @@ import com.seibel.distanthorizons.core.util.objects.Pair;
 import com.seibel.distanthorizons.core.util.objects.pooling.PhantomLoggingHelper;
 import com.seibel.distanthorizons.coreapi.ModInfo;
 import com.seibel.distanthorizons.coreapi.util.StringUtil;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 import org.lwjgl.opengl.GL44;
 
 import java.lang.ref.PhantomReference;
@@ -130,10 +130,10 @@ public class GLBuffer implements AutoCloseable
 	//region
 	
 	// Should be override by subclasses
-	public int getBufferBindingTarget() { return GL32.GL_COPY_READ_BUFFER; }
+	public int getBufferBindingTarget() { return GL33.GL_COPY_READ_BUFFER; }
 	
-	public void bind() { GL32.glBindBuffer(this.getBufferBindingTarget(), this.id); }
-	public void unbind() { GL32.glBindBuffer(this.getBufferBindingTarget(), 0); }
+	public void bind() { GL33.glBindBuffer(this.getBufferBindingTarget(), this.id); }
+	public void unbind() { GL33.glBindBuffer(this.getBufferBindingTarget(), 0); }
 	
 	//endregion
 	
@@ -299,9 +299,9 @@ public class GLBuffer implements AutoCloseable
 		// re-binding the old buffers is necessary for old MC versions for the following reasons:
 		// for 16.5 and older the screen may be black when on the home menu
 		// and for 1.19.2 - 1.21.4 the inventory/UI will render without a background
-		int vao = GL32.glGetInteger(GL32.GL_VERTEX_ARRAY_BINDING);
-		int vbo = GL32.glGetInteger(GL32.GL_ARRAY_BUFFER_BINDING);
-		int ebo = GL32.glGetInteger(GL32.GL_ELEMENT_ARRAY_BUFFER_BINDING);
+		int vao = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING);
+		int vbo = GL33.glGetInteger(GL33.GL_ARRAY_BUFFER_BINDING);
+		int ebo = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING);
 		
 		try
 		{
@@ -327,9 +327,9 @@ public class GLBuffer implements AutoCloseable
 		}
 		finally
 		{
-			GL32.glBindVertexArray(GL32.glIsVertexArray(vao) ? vao : 0);
-			GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, GL32.glIsBuffer(vbo) ? vbo : 0);
-			GL32.glBindBuffer(GL32.GL_ELEMENT_ARRAY_BUFFER, GL32.glIsBuffer(ebo) ? ebo: 0);
+			GL33.glBindVertexArray(GL33.glIsVertexArray(vao) ? vao : 0);
+			GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, GL33.glIsBuffer(vbo) ? vbo : 0);
+			GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, GL33.glIsBuffer(ebo) ? ebo: 0);
 		}
 	}
 	/** Requires the buffer to be bound */
@@ -358,12 +358,12 @@ public class GLBuffer implements AutoCloseable
 			// glBufferData call:
 			//   1) allocate-only with the size overload (no memcpy)
 			//   2) fill the buffer through chunked glBufferSubData calls
-			GL32.glBufferData(target, (long) bbSize, bufferDataHint);
+			GL33.glBufferData(target, (long) bbSize, bufferDataHint);
 			subDataUploadInChunks(target, 0, bb, MAC_UPLOAD_CHUNK_BYTES);
 		}
 		else
 		{
-			GL32.glBufferData(target, bb, bufferDataHint);
+			GL33.glBufferData(target, bb, bufferDataHint);
 		}
 		this.size = bbSize;
 		
@@ -385,7 +385,7 @@ public class GLBuffer implements AutoCloseable
 			}
 			
 			// allocate-only — no memcpy, safe on macOS regardless of size
-			GL32.glBufferData(target, (long) newSize, bufferDataHint);
+			GL33.glBufferData(target, (long) newSize, bufferDataHint);
 			this.size = newSize;
 		}
 		
@@ -395,7 +395,7 @@ public class GLBuffer implements AutoCloseable
 		}
 		else
 		{
-			GL32.glBufferSubData(target, 0, bb);
+			GL33.glBufferSubData(target, 0, bb);
 		}
 		
 		this.updateAllocationStackTrace();
@@ -472,7 +472,7 @@ public class GLBuffer implements AutoCloseable
 	
 	/**
 	 * Uploads {@code bb} into the currently bound buffer at {@code baseOffset}
-	 * using a sequence of {@link GL32#glBufferSubData(int, long, ByteBuffer)}
+	 * using a sequence of {@link GL33#glBufferSubData(int, long, ByteBuffer)}
 	 * calls of at most {@code chunkBytes} each. The buffer's position/limit are
 	 * restored before returning.
 	 */
@@ -489,7 +489,7 @@ public class GLBuffer implements AutoCloseable
 				int chunk = Math.min(chunkBytes, total - uploaded);
 				bb.position(origPos + uploaded);
 				bb.limit(origPos + uploaded + chunk);
-				GL32.glBufferSubData(target, (long) (baseOffset + uploaded), bb);
+				GL33.glBufferSubData(target, (long) (baseOffset + uploaded), bb);
 				uploaded += chunk;
 				// Force the driver to drain its command queue between chunks
 				// so the OpenGL -> Metal bridge processes (and frees) each
@@ -497,7 +497,7 @@ public class GLBuffer implements AutoCloseable
 				// memmove on top of it.
 				if (uploaded < total)
 				{
-					GL32.glFlush();
+					GL33.glFlush();
 				}
 			}
 		}

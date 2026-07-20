@@ -30,7 +30,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRen
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IProfilerWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhVanillaFadeRenderer;
 import com.seibel.distanthorizons.core.logging.DhLogger;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 import java.nio.ByteBuffer;
 
@@ -81,12 +81,12 @@ public class GlVanillaFadeRenderer implements IDhVanillaFadeRenderer
 	{
 		if (this.fadeFramebuffer != -1)
 		{
-			GL32.glDeleteFramebuffers(this.fadeFramebuffer);
+			GL33.glDeleteFramebuffers(this.fadeFramebuffer);
 			this.fadeFramebuffer = -1;
 		}
 		
-		this.fadeFramebuffer = GL32.glGenFramebuffers();
-		GLMC.glBindFramebuffer(GL32.GL_FRAMEBUFFER, this.fadeFramebuffer);
+		this.fadeFramebuffer = GL33.glGenFramebuffers();
+		GLMC.glBindFramebuffer(GL33.GL_FRAMEBUFFER, this.fadeFramebuffer);
 		
 		
 		// Applying the fade texture is only needed if MC is drawing to their own frame buffer,
@@ -99,16 +99,16 @@ public class GlVanillaFadeRenderer implements IDhVanillaFadeRenderer
 				this.fadeTexture = -1;
 			}
 			
-			this.fadeTexture = GL32.glGenTextures();
+			this.fadeTexture = GL33.glGenTextures();
 			GLMC.glBindTexture(this.fadeTexture);
-			GL32.glTexImage2D(GL32.GL_TEXTURE_2D, 0, GL32.GL_RGBA16, width, height, 0, GL32.GL_RGBA, GL32.GL_UNSIGNED_SHORT_4_4_4_4, (ByteBuffer) null);
-			GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MIN_FILTER, GL32.GL_LINEAR);
-			GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MAG_FILTER, GL32.GL_LINEAR);
-			GL32.glFramebufferTexture2D(GL32.GL_FRAMEBUFFER, GL32.GL_COLOR_ATTACHMENT0, GL32.GL_TEXTURE_2D, this.fadeTexture, 0);
+			GL33.glTexImage2D(GL33.GL_TEXTURE_2D, 0, GL33.GL_RGBA16, width, height, 0, GL33.GL_RGBA, GL33.GL_UNSIGNED_SHORT_4_4_4_4, (ByteBuffer) null);
+			GL33.glTexParameteri(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MIN_FILTER, GL33.GL_LINEAR);
+			GL33.glTexParameteri(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MAG_FILTER, GL33.GL_LINEAR);
+			GL33.glFramebufferTexture2D(GL33.GL_FRAMEBUFFER, GL33.GL_COLOR_ATTACHMENT0, GL33.GL_TEXTURE_2D, this.fadeTexture, 0);
 		}
 		else
 		{
-			GL32.glFramebufferTexture2D(GL32.GL_FRAMEBUFFER, GL32.GL_COLOR_ATTACHMENT0, GL32.GL_TEXTURE_2D, MC_RENDER.getGlColorTextureId(), 0);
+			GL33.glFramebufferTexture2D(GL33.GL_FRAMEBUFFER, GL33.GL_COLOR_ATTACHMENT0, GL33.GL_TEXTURE_2D, MC_RENDER.getGlColorTextureId(), 0);
 		}
 	}
 	

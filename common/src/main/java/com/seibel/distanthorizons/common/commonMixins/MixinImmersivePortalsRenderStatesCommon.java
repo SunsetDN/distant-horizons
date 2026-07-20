@@ -45,7 +45,7 @@ public class MixinImmersivePortalsRenderStatesCommon
         #else
 		ChunkPos playerChunkPos = mc.player.chunkPosition();
         #endif
-		AbstractImmersivePortalsAccessorCommon.actualChunkPos = McObjectConverter.Convert(playerChunkPos);
+		AbstractImmersivePortalsAccessorCommon.actualChunkPos = McObjectConverter.convert(playerChunkPos);
 		
 		// camera pos
 		#if MC_VER <= MC_1_21_10

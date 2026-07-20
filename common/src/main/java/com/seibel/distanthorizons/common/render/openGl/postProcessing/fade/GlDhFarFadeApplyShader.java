@@ -24,7 +24,7 @@ import com.seibel.distanthorizons.common.render.openGl.postProcessing.GlScreenQu
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.render.openGl.util.GlAbstractShaderRenderer;
 import com.seibel.distanthorizons.core.render.RenderParams;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 /**
  * Draws the Fade texture onto Minecraft's FrameBuffer. <br><br>
@@ -78,9 +78,9 @@ public class GlDhFarFadeApplyShader extends GlAbstractShaderRenderer
 	@Override
 	protected void onApplyUniforms(RenderParams renderParams)
 	{
-		GLMC.glActiveTexture(GL32.GL_TEXTURE0);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE0);
 		GLMC.glBindTexture(this.fadeTexture);
-		GL32.glUniform1i(this.uFadeColorTextureUniform, 0);
+		GL33.glUniform1i(this.uFadeColorTextureUniform, 0);
 		
 	}
 	
@@ -102,8 +102,8 @@ public class GlDhFarFadeApplyShader extends GlAbstractShaderRenderer
 		
 		
 		// apply the rendered Fade to Minecraft's framebuffer
-		GLMC.glBindFramebuffer(GL32.GL_READ_FRAMEBUFFER, this.readFramebuffer);
-		GLMC.glBindFramebuffer(GL32.GL_DRAW_FRAMEBUFFER, this.drawFramebuffer);
+		GLMC.glBindFramebuffer(GL33.GL_READ_FRAMEBUFFER, this.readFramebuffer);
+		GLMC.glBindFramebuffer(GL33.GL_DRAW_FRAMEBUFFER, this.drawFramebuffer);
 		
 		GlScreenQuad.INSTANCE.render();
 		

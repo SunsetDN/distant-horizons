@@ -25,6 +25,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 #endif
 
+import java.util.ArrayList;
 import java.util.List;
 #if MC_VER <= MC_1_7_10
 import java.util.Collections;
@@ -107,19 +108,29 @@ public class DhScreen extends Screen
 		#endif
 	}
 	
-	protected void DhRenderComponentTooltip(List<#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif> list, int x, int y) {
+	protected void DhRenderComponentTooltip(List<#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif> list, int x, int y)
+	{
 		#if MC_VER <= MC_1_7_10
 		drawHoveringText(list, x, y, fontRendererObj);
 		#else
-		drawHoveringText(list.stream().map(ITextComponent::getFormattedText).toList(), x, y, fontRenderer);
+		ArrayList<String> formattedText = new ArrayList<>(list.size());
+		for (ITextComponent component : list)
+		{
+			formattedText.add(component.getFormattedText());
+		}
+
+		drawHoveringText(formattedText, x, y, fontRenderer);
 		#endif
 	}
 	
-	protected void DhRenderTooltip(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text, int x, int y) {
+	protected void DhRenderTooltip(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text, int x, int y)
+	{
 		#if MC_VER <= MC_1_7_10
 		drawHoveringText(Collections.singletonList(text), x, y, fontRendererObj);
 		#else
-		drawHoveringText(List.of(text.getFormattedText()), x, y, fontRenderer);
+		ArrayList<String> formattedText = new ArrayList<>(1);
+		formattedText.add(text.getFormattedText());
+		drawHoveringText(formattedText, x, y, fontRenderer);
 		#endif
 	}
 	#elif MC_VER < MC_1_20_1

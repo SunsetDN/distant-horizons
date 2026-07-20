@@ -10,6 +10,7 @@ import com.seibel.distanthorizons.api.objects.data.IDhApiFullDataSource;
 import com.seibel.distanthorizons.common.wrappers.block.BiomeWrapper;
 import com.seibel.distanthorizons.common.wrappers.block.BlockStateWrapper;
 import com.seibel.distanthorizons.common.wrappers.block.ClientBlockStateColorCache;
+import com.seibel.distanthorizons.core.dataObjects.render.textures.BlockTextureRegistry;
 import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.level.KeyedClientLevelManager;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
@@ -429,10 +430,6 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 	public void clearBlockColorCache() 
 	{
 		this.blockColorCacheByBlockState.clear();
-		
-		// this technically only needs to be called once globally, but it's easier
-		// to handle here statically
-		ClientBlockStateColorCache.clearCachedTints();
 	}
 	
 	private IDimensionTypeWrapper dimensionTypeWrapper = null;
@@ -769,7 +766,7 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 				#if MC_VER <= MC_1_12_2
 				// 1.12.2 level doesn't have a getShade method, fall through to ENABLED
 				#else
-					Direction mcDir = McObjectConverter.Convert(lodDirection);
+					Direction mcDir = McObjectConverter.convert(lodDirection);
 					#if MC_VER <= MC_1_21_11
 					return this.level.getShade(mcDir, true);
 					#else

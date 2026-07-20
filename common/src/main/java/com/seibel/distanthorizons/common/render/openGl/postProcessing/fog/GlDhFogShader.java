@@ -28,14 +28,12 @@ import com.seibel.distanthorizons.common.render.openGl.glObject.shader.GlShaderP
 import com.seibel.distanthorizons.common.render.openGl.postProcessing.GlScreenQuad;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.core.config.Config;
-import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.common.render.openGl.util.GlAbstractShaderRenderer;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.LodUtil;
-import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 public class GlDhFogShader extends GlAbstractShaderRenderer
 {
@@ -230,14 +228,14 @@ public class GlDhFogShader extends GlAbstractShaderRenderer
 	@Override
 	protected void onRender()
 	{
-		GLMC.glBindFramebuffer(GL32.GL_FRAMEBUFFER, this.frameBuffer);
+		GLMC.glBindFramebuffer(GL33.GL_FRAMEBUFFER, this.frameBuffer);
 		GLMC.disableScissorTest();
 		GLMC.disableDepthTest();
 		GLMC.disableBlend();
 		
-		GLMC.glActiveTexture(GL32.GL_TEXTURE0);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE0);
 		GLMC.glBindTexture(GlDhMetaRenderer.INSTANCE.getActiveDepthTextureId());
-		GL32.glUniform1i(this.uDepthMap, 0);
+		GL33.glUniform1i(this.uDepthMap, 0);
 		
 		// this is necessary for MC 1.16 (IE Legacy OpenGL)
 		// otherwise the framebuffer isn't cleared correctly and the fog smears across the screen
@@ -245,10 +243,10 @@ public class GlDhFogShader extends GlAbstractShaderRenderer
 		{
 			// in another part of the DH code we set the fog color to opaque, here it needs to be transparent
 			float[] clearColorValues = new float[4];
-			GL32.glGetFloatv(GL32.GL_COLOR_CLEAR_VALUE, clearColorValues);
-			GL32.glClearColor(clearColorValues[0], clearColorValues[1], clearColorValues[2], 0.0f);
+			GL33.glGetFloatv(GL33.GL_COLOR_CLEAR_VALUE, clearColorValues);
+			GL33.glClearColor(clearColorValues[0], clearColorValues[1], clearColorValues[2], 0.0f);
 			
-			GL32.glClear(GL32.GL_COLOR_BUFFER_BIT | GL32.GL_DEPTH_BUFFER_BIT);
+			GL33.glClear(GL33.GL_COLOR_BUFFER_BIT | GL33.GL_DEPTH_BUFFER_BIT);
 		}
 		
 		

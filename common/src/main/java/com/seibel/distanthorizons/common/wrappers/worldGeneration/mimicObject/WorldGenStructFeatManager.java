@@ -227,7 +227,7 @@ public class WorldGenStructFeatManager extends #if MC_VER < MC_1_19_2 StructureF
 	@Override
 	public List<StructureStart> startsForStructure(ChunkPos chunkPos, Predicate<Structure> predicate)
 	{
-		DhChunkPos dhChunkPos = McObjectConverter.Convert(chunkPos);
+		DhChunkPos dhChunkPos = McObjectConverter.convert(chunkPos);
 		ChunkAccess chunk = _getChunk(dhChunkPos.getX(), dhChunkPos.getZ(), ChunkStatus.STRUCTURE_REFERENCES);
 		if (chunk == null) return List.of();
 		

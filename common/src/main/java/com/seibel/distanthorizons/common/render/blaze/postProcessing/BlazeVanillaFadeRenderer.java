@@ -153,8 +153,8 @@ public class BlazeVanillaFadeRenderer implements IDhVanillaFadeRenderer
 		
 		
 		// textures
-		this.fadeColorTextureWrapper.tryCreateOrResize();
-		this.fadeDepthTextureWrapper.tryCreateOrResize();
+		this.fadeColorTextureWrapper.tryCreateOrResizeToScreenSize();
+		this.fadeDepthTextureWrapper.tryCreateOrResizeToScreenSize();
 		
 		this.mcDepthTextureWrapper.tryWrap(MinecraftRenderWrapper.INSTANCE.getRenderTarget().getDepthTexture());
 		this.mcColorTextureWrapper.tryWrap(MinecraftRenderWrapper.INSTANCE.getRenderTarget().getColorTexture());

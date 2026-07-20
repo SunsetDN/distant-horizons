@@ -231,7 +231,7 @@ public class BlazeDhApplyRenderer
 	{
 		this.tryInit(sourceColorTexture, sourceDepthTexture, destinationColorTexture);
 		
-		this.dummyDepthTextureWrapper.tryCreateOrResize();
+		this.dummyDepthTextureWrapper.tryCreateOrResizeToScreenSize();
 		
 		
 		this.fragUniformBufferWrapper

@@ -75,7 +75,9 @@ import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapp
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.coreapi.ModInfo;
-
+import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapper;
+import com.seibel.distanthorizons.core.util.math.DhMat4f;
+import net.minecraft.client.renderer.LevelRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -86,14 +88,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LevelRenderer.class)
 public class MixinLevelRenderer
 {
-	@Shadow
-	#if MC_VER >= MC_1_20_4
-			(remap = false)
-	#endif
-	private ClientLevel level;
-	
 	@Unique
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
+	
+	#if MC_VER <= MC_26_1_2
+	@Shadow #if MC_VER >= MC_1_20_4 (remap = false) #endif
+	private ClientLevel level;
+	#endif
 	
 	
 	
@@ -124,10 +125,10 @@ public class MixinLevelRenderer
 	{
 		#if MC_VER < MC_1_21_6
 		// MC combined the model view and projection matricies
-		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(modelViewMatrix);
-		ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.Convert(projectionMatrix);
+		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(modelViewMatrix);
+		ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.convert(projectionMatrix);
 		#else
-		ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.Convert(projectionMatrix);
+		ClientApi.RENDER_STATE.mcProjectionMatrix = McObjectConverter.convert(projectionMatrix);
 		#endif
 		
 		
@@ -178,7 +179,7 @@ public class MixinLevelRenderer
 	@Inject(at = @At("HEAD"), method = "prepareChunkRenders")
 	private void renderChunkLayer(Matrix4fc modelViewMatrix, double d, double e, double f, CallbackInfoReturnable<ChunkSectionsToRender> callback)
 	{
-		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(modelViewMatrix);
+		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(modelViewMatrix);
 		ClientApi.RENDER_STATE.clientLevelWrapper = ClientLevelWrapper.getWrapperIfDifferent(ClientApi.RENDER_STATE.clientLevelWrapper, this.level);
 		
 		// only crash during development
@@ -204,6 +205,7 @@ public class MixinLevelRenderer
 	#if MC_VER <= MC_1_21_11
 	#else
 	
+	#if MC_VER <= MC_26_1_2
 	@Inject(at = @At("HEAD"), method = "prepareChunkRenders")
 	private void prepareChunkRenders(final Matrix4fc modelViewMatrix, CallbackInfoReturnable<ChunkSectionsToRender> callback)
 	{
@@ -219,11 +221,14 @@ public class MixinLevelRenderer
 		final ChunkSectionsToRender chunkSectionsToRender,
 		CallbackInfo callback)
 	{
-		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.Convert(modelViewMatrix);
+		ClientApi.RENDER_STATE.mcModelViewMatrix = McObjectConverter.convert(modelViewMatrix);
 		
 		ClientApi.RENDER_STATE.partialTickTime = MinecraftRenderWrapper.INSTANCE.getPartialTickTime();
 		
 	}
+	
+    #else
+	#endif
 	
 	#endif
 	//endregion
