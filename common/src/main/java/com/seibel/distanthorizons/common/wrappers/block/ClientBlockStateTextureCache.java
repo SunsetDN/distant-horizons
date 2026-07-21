@@ -715,8 +715,8 @@ public class ClientBlockStateTextureCache
 	//================//
 	//region
 	
-	@Nullable
 	#if MC_VER <= MC_1_7_10
+	@Nullable
 	private static TextureAtlasSprite getFaceSprite(BlockStateWrapper blockStateWrapper, EDhDirection direction)
 	{
 		if (blockStateWrapper.blockState == null)
