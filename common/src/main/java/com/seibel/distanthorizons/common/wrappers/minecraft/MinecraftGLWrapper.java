@@ -274,7 +274,8 @@ public class MinecraftGLWrapper
 	public void enableFaceCulling()
 	{
 		GL33.glEnable(GL33.GL_CULL_FACE);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.enableCull();
 		#else
 		GlStateManager._enableCull();
