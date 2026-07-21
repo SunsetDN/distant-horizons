@@ -19,17 +19,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import com.seibel.distanthorizons.common.DummyC2MEHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
 
 import com.seibel.distanthorizons.common.AbstractModInitializer;
 import com.seibel.distanthorizons.core.api.internal.ServerApi;
-import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IPluginPacketSender;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IC2meAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker;
 import com.seibel.distanthorizons.forge.wrappers.modAccessor.ModChecker;
@@ -158,7 +155,6 @@ public class ForgeMain extends AbstractModInitializer {
     @Override
     protected void initializeModCompat() {
         this.tryCreateModCompatAccessor("angelica", IIrisAccessor.class, IrisAccessor::new);
-        ModAccessorInjector.INSTANCE.bind(IC2meAccessor.class, new DummyC2MEHandler());
         /*
          * TODO
          * ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
