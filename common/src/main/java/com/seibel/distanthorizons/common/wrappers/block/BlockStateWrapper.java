@@ -35,6 +35,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 #if MC_VER <= MC_1_7_10
 import net.minecraft.block.*;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemDye;
 import com.seibel.distanthorizons.forge.ForgeMain;
 import cpw.mods.fml.common.registry.GameData;
 #elif MC_VER <= MC_1_12_2
@@ -334,50 +335,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	private BlockStateWrapper(@Nullable BlockState blockState, ILevelWrapper levelWrapper, @Nullable DhApiBlockStateWrapperCreatedEvent.EventParam overrideEventParam)
 	#endif	
 	{
-		#if MC_VER <= MC_1_7_10
-		this.blockState = blockState;
-		this.serialString = serialize(blockState, levelWrapper);
-		this.hashCode = Objects.hash(this.serialString);
-		String lowerCaseSerial = this.serialString.toLowerCase();
 		
-		this.isLiquid = blockState != null && blockState.block.blockMaterial.isLiquid();
-		this.blockMaterialId = calculateEDhApiBlockMaterialId(blockState, lowerCaseSerial, this.isLiquid).index;
-		this.opacity = calculateOpacity(blockState, isAir(blockState), this.isLiquid);
-		this.allowApiColorOverride = false;
-		
-		boolean isBeaconBaseBlock = false;
-		List<String> oldBeaconBaseBlockNameList = Arrays.asList(
-				"iron_block",
-				"gold_block",
-				"diamond_block",
-				"emerald_block",
-				"netherite_block"
-			);
-		for (int i = 0; i < oldBeaconBaseBlockNameList.size(); i++)
-		{
-			String baseBlockName = oldBeaconBaseBlockNameList.get(i);
-			if (lowerCaseSerial.contains(baseBlockName))
-			{
-				isBeaconBaseBlock = true;
-				break;
-			}
-		}
-		this.isBeaconBaseBlock = isBeaconBaseBlock;
-		this.isBeaconBlock = lowerCaseSerial.contains("minecraft:beacon");
-		
-		Color beaconTintColor = null;
-		if (blockState != null && !this.isBeaconBlock && blockState.block instanceof BlockBeacon)
-		{
-			beaconTintColor = ColorUtil.toColorObjRGB(blockState.block.getBlockColor());
-		}
-		this.beaconTintColor = beaconTintColor;
-		
-		this.allowsBeaconBeamPassage = false;
-		this.mapColor = blockState != null
-				? ColorUtil.toColorObjRGB(blockState.block.blockMaterial.getMaterialMapColor().colorValue)
-				: new Color(0, 0, 0, 0);
-		this.isSolid = blockState != null && blockState.block.blockMaterial.isSolid();
-		#else
 		this.blockState = blockState;
 		this.serialString = serialize(blockState, levelWrapper);
 		this.hashCode = Objects.hash(this.serialString);
@@ -394,7 +352,9 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			}
 			else
 			{
-				#if MC_VER <= MC_1_12_2
+				#if MC_VER <= MC_1_7_10
+				this.isLiquid = blockState.block.blockMaterial.isLiquid();
+				#elif MC_VER <= MC_1_12_2
 				this.isLiquid = this.blockState.getMaterial().isLiquid() || this.blockState.getBlock() instanceof IFluidBlock;
 				#elif MC_VER < MC_1_20_1
 				this.isLiquid = this.blockState.getMaterial().isLiquid() || !this.blockState.getFluidState().isEmpty();
@@ -490,9 +450,16 @@ public class BlockStateWrapper implements IBlockStateWrapper
 				// beacon blocks also show up here, but since they block the beacon beam we don't want their color		
 				&& !this.isBeaconBlock)
 			{
-				Block block = this.blockState.getBlock();
 				int colorInt;
-				#if MC_VER <= MC_1_12_2
+				#if MC_VER <= MC_1_7_10
+				Block block = this.blockState.block;
+				if (block instanceof BlockStainedGlass || block instanceof BlockStainedGlassPane)
+				{
+					colorInt = ItemDye.field_150922_c[BlockColored.func_150032_b(this.blockState.meta)];
+					beaconTintColor = ColorUtil.toColorObjRGB(colorInt);
+				}
+				#elif MC_VER <= MC_1_12_2
+				Block block = this.blockState.getBlock();
 				if (block instanceof BlockStainedGlass)
 				{
 					float[] c = blockState.getValue(BlockStainedGlass.COLOR).getColorComponentValues();
@@ -504,6 +471,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 					beaconTintColor = new Color(c[0], c[1], c[2]);
 				}
 				#else
+				Block block = this.blockState.getBlock();
 				if (block instanceof BeaconBeamBlock)
 				{
 					#if MC_VER <= MC_1_19_4
@@ -594,7 +562,9 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			{
 				int mcColor = 0;
 				
-				#if MC_VER <= MC_1_12_2
+				#if MC_VER <= MC_1_7_10
+				mcColor = this.blockState.block.blockMaterial.getMaterialMapColor().colorValue;
+				#elif MC_VER <= MC_1_12_2
 				mcColor = this.blockState.getMaterial().getMaterialMapColor().colorValue;
 				#elif MC_VER < MC_1_20_1
 				mcColor = this.blockState.getMaterial().getColor().col;
@@ -621,15 +591,16 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			else
 			{
 	        #if MC_VER < MC_1_20_1
+			#if MC_VER <= MC_1_7_10
+			this.isSolid = this.blockState.block.blockMaterial.isSolid();
+			#else
 			this.isSolid = this.blockState.getMaterial().isSolid();
+			#endif
 	        #else
 			this.isSolid = !this.blockState.getCollisionShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO).isEmpty();
             #endif
 			}
 		}
-		#endif
-
-
 	}
 
 	// static constructor helpers //
