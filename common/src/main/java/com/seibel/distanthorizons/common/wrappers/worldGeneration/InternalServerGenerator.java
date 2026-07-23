@@ -439,47 +439,7 @@ public class InternalServerGenerator
 	private CompletableFuture<ChunkAccess> requestChunkFromServerAsync(ChunkPos chunkPos)
 	#endif
 	{
-		#if MC_VER <= MC_1_7_10
-		WorldServer level = this.params.mcServerLevel;
-
-		if (this.updateManager != null)
-		{
-			this.updateManager.addPosToIgnore(McObjectConverter.convert(chunkPos));
-		}
-
-		return ForgeServerProxy.schedule(true, () ->
-		{
-			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
-
-			if (ForgeMain.isHodgePodgeInstalled)
-			{
-				HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x, chunkPos.z, true);
-			}
-			ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x, chunkPos.z));
-
-			for (int dx = -1; dx <= 1; dx++)
-			{
-				for (int dz = -1; dz <= 1; dz++)
-				{
-					if (dx == 0 && dz == 0) continue;
-
-					if (this.updateManager != null)
-					{
-						this.updateManager.addPosToIgnore(new DhChunkPos(chunkPos.x + dx, chunkPos.z + dz));
-					}
-					if (ForgeMain.isHodgePodgeInstalled)
-					{
-						HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x + dx, chunkPos.z + dz, true);
-					}
-
-					ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x + dx, chunkPos.z + dz));
-					loadChunkIfNotExists(provider, chunkPos.x + dx, chunkPos.z + dz);
-				}
-			}
-
-			return provider.loadChunk(chunkPos.x, chunkPos.z);
-		});
-		#elif MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_12_2
 		WorldServer level = this.params.mcServerLevel;
 		
 		// ignore chunk update events for this position
