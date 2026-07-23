@@ -1,3 +1,23 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = "GTNH Maven"
+            url = uri("https://nexus.gtnewhorizons.com/repository/public/")
+            mavenContent {
+                includeGroup("com.gtnewhorizons")
+                includeGroupByRegex("com\\.gtnewhorizons\\..+")
+            }
+        }
+        gradlePluginPortal()
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+plugins {
+    id 'com.gtnewhorizons.gtnhsettingsconvention' version '2.0.24' apply false
+}
+
 // Throw an error if the core sub-project wasn't cloned
 if (!file("./coreSubProjects/LICENSE.txt").exists()) {
     println('''
@@ -47,6 +67,22 @@ def loadVersionProperties() {
     gradle.ext.mcIndex = mcIndex
 }
 loadVersionProperties()
+
+if (gradle.ext.minecraft_version == "1.7.10") {
+    // gtnhsettingsconvention reads root gradle.properties + startParameter.projectProperties,
+    // so push our versionProperties (loaded into gradle.ext) into the latter.
+    def merged = new LinkedHashMap(gradle.startParameter.projectProperties)
+    gradle.ext.properties.findAll { it.value instanceof String }.each { merged[it.key] = it.value }
+    gradle.startParameter.setProjectProperties(merged)
+    apply plugin: 'com.gtnewhorizons.gtnhsettingsconvention'
+
+    // Mirror the same properties onto :forge17 so its build.gradle can read them via project.ext.
+    gradle.beforeProject { p ->
+        if (p.path == ':forge17') {
+            gradle.ext.properties.each { name, value -> p.ext.set(name, value) }
+        }
+    }
+}
 
 
 // Minecraft-independent sub-projects

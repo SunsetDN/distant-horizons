@@ -13,8 +13,10 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiListExtended;
 import net.minecraft.client.gui.GuiScreen;
+#if MC_VER > MC_1_7_10
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.text.ITextComponent;
+#endif
 #else
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -30,7 +32,9 @@ import com.seibel.distanthorizons.core.logging.DhLogger;
 import net.minecraft.client.gui.narration.NarratableEntry;
 #endif
 
-#if MC_VER <= MC_1_12_2
+#if MC_VER <= MC_1_7_10
+import net.minecraft.client.renderer.Tessellator;
+#elif MC_VER <= MC_1_12_2
 #elif MC_VER < MC_1_20_1
 import net.minecraft.client.gui.GuiComponent;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -233,7 +237,9 @@ public class ChangelogScreen extends DhScreen
 		}
 		
 		int maxScroll;
-		#if MC_VER <= MC_1_21_3
+		#if MC_VER <= MC_1_7_10
+		maxScroll = this.changelogArea.func_148135_f();
+		#elif MC_VER <= MC_1_21_3
 		maxScroll = this.changelogArea.getMaxScroll();
 		#else
 		maxScroll = this.changelogArea.maxScrollAmount();
@@ -315,7 +321,9 @@ public class ChangelogScreen extends DhScreen
 			super(minecraftClient, canvasWidth, canvasHeight - (topMargin + botMargin), topMargin, itemSpacing);
 			#endif
 			
+			#if MC_VER > MC_1_7_10
 			this.centerListVertically = false;
+			#endif
 			#if MC_VER <= MC_1_12_2
 			this.textRenderer = minecraftClient.fontRenderer;
 			#else
@@ -324,7 +332,7 @@ public class ChangelogScreen extends DhScreen
 		}
 		
 		#if MC_VER <= MC_1_12_2
-		public void addButton(ITextComponent text)
+		public void addButton(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text)
 		#else
 		public void addButton(Component text)
 		#endif
@@ -375,7 +383,7 @@ public class ChangelogScreen extends DhScreen
 		#endif
 		
 		#if MC_VER <= MC_1_12_2
-		private final ITextComponent text;
+		private final #if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text;
 		#else
 		private final Component text;
 		#endif
@@ -387,20 +395,23 @@ public class ChangelogScreen extends DhScreen
 		#endif
 		
 		#if MC_VER <= MC_1_12_2
-		private ButtonEntry(ITextComponent text) { this.text = text; }
+		private ButtonEntry(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text) { this.text = text; }
 		#else
 		private ButtonEntry(Component text) { this.text = text; }
 		#endif
 		
 		#if MC_VER <= MC_1_12_2
-		public static ButtonEntry create(ITextComponent text)
+		public static ButtonEntry create(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text)
 		#else
 		public static ButtonEntry create(Component text)
 		#endif
 		{ return new ButtonEntry(text); }
 		
 		@Override
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, Tessellator tessellator, int mouseX, int mouseY, boolean isSelected)
+		{ textRenderer.drawString(text, 12, y + 5, 0xFFFFFF); }
+		#elif MC_VER <= MC_1_12_2
 		public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float tickDelta)
 		{ textRenderer.drawString(text.getFormattedText(), 12, y + 5, 0xFFFFFF); }
         #elif MC_VER < MC_1_20_1
@@ -428,8 +439,10 @@ public class ChangelogScreen extends DhScreen
 		#endif
 		
 		#if MC_VER <= MC_1_12_2
+		#if MC_VER > MC_1_7_10
 		@Override
 		public void updatePosition(int slotIndex, int x, int y, float partialTicks) { }
+		#endif
 
 		@Override
 		public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY) { return false; }

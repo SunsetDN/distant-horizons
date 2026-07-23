@@ -49,6 +49,8 @@ import java.util.function.Supplier;
 #if MC_VER > MC_1_12_2
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
+#else
+import net.minecraft.command.ServerCommandManager;
 #endif
 
 /**
@@ -161,12 +163,16 @@ public abstract class AbstractModInitializer
 			this.postServerInit();
 			#if MC_VER > MC_1_12_2
 			this.commandInitializer.onServerReady();
+			#else
+			((ServerCommandManager) server.getCommandManager()).registerCommand(CommandInitializer.initCommands());
 			#endif
 			
 			this.checkForUpdates();
 			
 			String serverFolderPath;
-			#if MC_VER <= MC_1_12_2
+			#if MC_VER <= MC_1_7_10
+			serverFolderPath = ".";
+			#elif MC_VER <= MC_1_12_2
 			serverFolderPath = server.getDataDirectory() + "";
 			#else
 			serverFolderPath = server.getServerDirectory() + "";
@@ -517,7 +523,9 @@ public abstract class AbstractModInitializer
 		
 		#if MC_VER <= MC_1_12_2
 		Config.Client.Advanced.Graphics.Experimental.renderingEngine.setMcVersionOverrideValue(EDhApiRenderingEngine.OPEN_GL);
+		#if MC_VER != MC_1_7_10
 		Config.Client.Advanced.Graphics.Quality.vanillaFadeMode.setMcVersionOverrideValue(EDhApiMcRenderingFadeMode.NONE);
+		#endif
 		Config.Common.WorldGenerator.distantGeneratorMode.setMcVersionOverrideValue(EDhApiDistantGeneratorMode.INTERNAL_SERVER);
 		#elif MC_VER <= MC_1_21_10
 		Config.Client.Advanced.Graphics.Experimental.renderingEngine.setMcVersionOverrideValue(EDhApiRenderingEngine.OPEN_GL);

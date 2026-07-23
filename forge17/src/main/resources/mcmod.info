@@ -1,0 +1,21 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "distanthorizons",
+		"name": "Distant Horizons",
+		"description": "This mod generates and renders simplified terrain beyond the normal view distance at a low performance cost. Allowing you to see much farther without turning your game into a slideshow.",
+		"version": "3.0.4-b-dev",
+		"mcversion": "1.7.10",
+		"url": "https://modrinth.com/mod/distanthorizons",
+		"updateUrl": "",
+		"authorList": ["James Seibel", "Leonardo Amato", "Cola", "coolGi", "Ran", "Leetom", "pshsh"],
+		"credits": "",
+		"logoFile": "",
+		"screenshots": [],
+		"parent": "",
+		"requiredMods": [],
+		"dependencies": [],
+		"dependants": [],
+		"useDependencyInformation": false
+	}]
+}

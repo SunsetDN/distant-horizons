@@ -19,7 +19,8 @@
 
 package com.seibel.distanthorizons.common.wrappers.minecraft;
 
-#if MC_VER <= MC_1_12_2
+#if MC_VER <= MC_1_7_10
+#elif MC_VER <= MC_1_12_2
 import net.minecraft.client.renderer.GlStateManager;
 #elif MC_VER < MC_1_21_5
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -71,7 +72,9 @@ public class MinecraftGLWrapper
 	public void enableScissorTest()
 	{
 		GL33.glEnable(GL33.GL_SCISSOR_TEST);
-		#if MC_VER > MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
+		#else
 		GlStateManager._enableScissorTest(); 
 		#endif
 	}
@@ -79,7 +82,9 @@ public class MinecraftGLWrapper
 	public void disableScissorTest()
 	{
 		GL33.glDisable(GL33.GL_SCISSOR_TEST);
-		#if MC_VER > MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
+		#else
 		GlStateManager._disableScissorTest();
 		#endif
 	}
@@ -107,7 +112,8 @@ public class MinecraftGLWrapper
 	public void enableDepthTest()
 	{
 		GL33.glEnable(GL33.GL_DEPTH_TEST);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.enableDepth();
 		#else
 		GlStateManager._enableDepthTest(); 
@@ -117,18 +123,20 @@ public class MinecraftGLWrapper
 	public void disableDepthTest()
 	{
 		GL33.glDisable(GL33.GL_DEPTH_TEST);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.disableDepth();
 		#else
 		GlStateManager._disableDepthTest(); 
 		#endif
 	}
-	
+
 	/** @see GL33#glDepthFunc(int)  */
 	public void glDepthFunc(int func)
 	{
 		GL33.glDepthFunc(func);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.depthFunc(func);
 		#else
 		GlStateManager._depthFunc(func); 
@@ -140,7 +148,8 @@ public class MinecraftGLWrapper
 	public void enableDepthMask()
 	{
 		GL33.glDepthMask(true);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.depthMask(true);
 		#else
 		GlStateManager._depthMask(true);
@@ -150,7 +159,8 @@ public class MinecraftGLWrapper
 	public void disableDepthMask()
 	{
 		GL33.glDepthMask(false);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.depthMask(false);
 		#else
 		GlStateManager._depthMask(false); 
@@ -168,7 +178,8 @@ public class MinecraftGLWrapper
 	public void enableBlend()
 	{
 		GL33.glEnable(GL33.GL_BLEND);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.enableBlend();
 		#elif MC_VER <= MC_26_1_2
 		GlStateManager._enableBlend();
@@ -180,7 +191,8 @@ public class MinecraftGLWrapper
 	public void disableBlend()
 	{
 		GL33.glDisable(GL33.GL_BLEND);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.disableBlend();
 		#elif MC_VER <= MC_26_1_2
 		GlStateManager._disableBlend();
@@ -193,7 +205,8 @@ public class MinecraftGLWrapper
 	public void glBlendFunc(int sfactor, int dfactor)
 	{
 		GL33.glBlendFunc(sfactor, dfactor);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.blendFunc(sfactor, dfactor);
 		#elif MC_VER < MC_1_21_5
 		GlStateManager._blendFunc(sfactor, dfactor);
@@ -203,7 +216,8 @@ public class MinecraftGLWrapper
 	public void glBlendFuncSeparate(int sfactorRGB, int dfactorRGB, int sfactorAlpha, int dfactorAlpha)
 	{
 		GL33.glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.tryBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
 		#else
 		GlStateManager._blendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
@@ -260,7 +274,8 @@ public class MinecraftGLWrapper
 	public void enableFaceCulling()
 	{
 		GL33.glEnable(GL33.GL_CULL_FACE);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.enableCull();
 		#else
 		GlStateManager._enableCull();
@@ -270,7 +285,8 @@ public class MinecraftGLWrapper
 	public void disableFaceCulling()
 	{
 		GL33.glDisable(GL33.GL_CULL_FACE);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.disableCull();
 		#else
 		GlStateManager._disableCull();
@@ -287,7 +303,9 @@ public class MinecraftGLWrapper
 	/** @see GL33#glGenTextures() */
 	public int glGenTextures()
 	{
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		return GL33.glGenTextures();
+		#elif MC_VER <= MC_1_12_2
 		return GlStateManager.generateTexture();
 		#else
 		return GlStateManager._genTexture();
@@ -296,7 +314,9 @@ public class MinecraftGLWrapper
 	/** @see GL33#glDeleteTextures(int) */
 	public void glDeleteTextures(int texture)
 	{
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		GL33.glDeleteTextures(texture);
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.deleteTexture(texture);
 		#else
 		GlStateManager._deleteTexture(texture);
@@ -307,7 +327,8 @@ public class MinecraftGLWrapper
 	public void glActiveTexture(int textureId)
 	{
 		GL33.glActiveTexture(textureId);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.setActiveTexture(textureId);
 		#else
 		GlStateManager._activeTexture(textureId);
@@ -322,7 +343,8 @@ public class MinecraftGLWrapper
 	public void glBindTexture(int texture)
 	{
 		GL33.glBindTexture(GL33.GL_TEXTURE_2D, texture);
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.bindTexture(texture);
 		#else
 		GlStateManager._bindTexture(texture);
@@ -339,7 +361,9 @@ public class MinecraftGLWrapper
 	/** @see GL33#glViewport(int, int, int, int) */
 	public void glViewport(int x, int y, int viewportWidth, int viewportHeight)
 	{
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		GL33.glViewport(x, y, viewportWidth, viewportHeight);
+		#elif MC_VER <= MC_1_12_2
 		GlStateManager.viewport(x, y, viewportWidth, viewportHeight);
 		#else
 		GlStateManager._viewport(x,y, viewportWidth, viewportHeight);

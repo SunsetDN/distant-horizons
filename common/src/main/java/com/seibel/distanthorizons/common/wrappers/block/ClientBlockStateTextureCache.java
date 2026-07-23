@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.common.wrappers.block;
 
+import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.core.dataObjects.render.textures.BlockFaceTexture;
 import com.seibel.distanthorizons.core.enums.EDhDirection;
 import com.seibel.distanthorizons.core.logging.DhLogger;
@@ -38,7 +39,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.imageio.ImageIO;
 
-#if MC_VER < MC_1_21_5
+#if MC_VER <= MC_1_7_10
+#elif MC_VER < MC_1_21_5
 import net.minecraft.client.renderer.block.model.BakedQuad;
 #elif MC_VER <= MC_1_21_11
 import net.minecraft.client.renderer.block.model.BlockModelPart;
@@ -215,6 +217,10 @@ public class ClientBlockStateTextureCache
 	}
 	private static BlockFaceTexture bakeFaceTexture(BlockStateWrapper blockStateWrapper, EDhDirection dhDirection)
 	{
+		#if MC_VER <= MC_1_7_10
+		TextureAtlasSprite sprite = getFaceSprite(blockStateWrapper, dhDirection);
+		return bakeSpriteTexture(sprite, true);
+		#else
 		//=============//
 		// quad lookup //
 		//=============//
@@ -294,8 +300,10 @@ public class ClientBlockStateTextureCache
 		}
 		
 		return createTextureByRasterizingQuads(blockStateWrapper, dhDirection, rasterQuadList);
+		#endif
 	}
 	
+	#if MC_VER > MC_1_7_10
 	/** renders the given quads to a {@link BlockFaceTexture} to simulate the camera looking directly at the block */
 	private static BlockFaceTexture createTextureByRasterizingQuads(BlockStateWrapper blockStateWrapper, EDhDirection dhDirection, ArrayList<BakedQuad> quadList)
 	{
@@ -361,6 +369,7 @@ public class ClientBlockStateTextureCache
 		
 		return BlockFaceTexture.createTexture(TEXTURE_WIDTH_AND_HEIGHT, TEXTURE_WIDTH_AND_HEIGHT, pixels, textureTinted);
 	}
+	#endif
 	
 	/** Copies the given sprite directly, used for blocks where rasterizing model quads isn't possible. */
 	private static BlockFaceTexture bakeSpriteTexture(@Nullable TextureAtlasSprite sprite, boolean tinted)
@@ -400,6 +409,7 @@ public class ClientBlockStateTextureCache
 	//===============//
 	//region
 	
+	#if MC_VER > MC_1_7_10
 	/**
 	 * Draws the given quad into the pixel array
 	 * by splitting it into two triangles and sampling
@@ -515,6 +525,7 @@ public class ClientBlockStateTextureCache
 		int outBlue = ((ColorUtil.getBlue(sourceArgb) * sourceAlpha) + ((ColorUtil.getBlue(destArgb) * destAlpha * inverseSourceAlpha) / 255)) / outAlpha;
 		return ColorUtil.argbToInt(outAlpha, outRed, outGreen, outBlue);
 	}
+	#endif
 	
 	//endregion
 	
@@ -525,6 +536,7 @@ public class ClientBlockStateTextureCache
 	//===============//
 	//region
 	
+	#if MC_VER > MC_1_7_10
 	private static QuadGeometry decodeQuad(BakedQuad quad, EDhDirection dhDirection)
 	{
 		QuadGeometry geometry = new QuadGeometry();
@@ -694,6 +706,7 @@ public class ClientBlockStateTextureCache
 	
 	//endregion
 	//endregion
+	#endif
 	
 	
 	
@@ -701,6 +714,22 @@ public class ClientBlockStateTextureCache
 	// helper methods //
 	//================//
 	//region
+	
+	#if MC_VER <= MC_1_7_10
+	@Nullable
+	private static TextureAtlasSprite getFaceSprite(BlockStateWrapper blockStateWrapper, EDhDirection direction)
+	{
+		if (blockStateWrapper.blockState == null)
+		{
+			return null;
+		}
+		
+		return TextureAtlasSpriteWrapper.resolveFaceSprite(
+			blockStateWrapper.blockState.block,
+			blockStateWrapper.blockState.meta,
+			McObjectConverter.convert(direction).ordinal());
+	}
+	#endif
 	
 	@Nullable
 	private static TextureAtlasSprite getParticleSprite(BlockStateWrapper blockStateWrapper)
@@ -713,7 +742,11 @@ public class ClientBlockStateTextureCache
 		try
 		{
 			#if MC_VER <= MC_1_12_2
+			#if MC_VER <= MC_1_7_10
+			return getFaceSprite(blockStateWrapper, EDhDirection.UP);
+			#else
 			return MC.getBlockRendererDispatcher().getBlockModelShapes().getTexture(blockStateWrapper.blockState);
+			#endif
 			#elif MC_VER <= MC_1_21_11
 			return MC.getModelManager().getBlockModelShaper().getParticleIcon(blockStateWrapper.blockState);
 			#else
@@ -727,6 +760,7 @@ public class ClientBlockStateTextureCache
 		}
 	}
 	
+	#if MC_VER > MC_1_7_10
 	/** Picks which quad represents the face when several overlap. */
 	private static BakedQuad pickFaceQuad(List<BakedQuad> quadList)
 	{
@@ -771,6 +805,7 @@ public class ClientBlockStateTextureCache
 		return quad.materialInfo().isTinted();
 		#endif
 	}
+	#endif
 	
 	//endregion
 	

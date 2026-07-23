@@ -21,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
 import net.minecraft.client.gui.GuiListExtended;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiSlot;
+#if MC_VER <= MC_1_7_10
+import net.minecraft.util.StatCollector;
+#endif
 #elif MC_VER < MC_1_20_1
 import com.mojang.blaze3d.vertex.PoseStack;
 #elif MC_VER <= MC_1_21_11
@@ -61,8 +64,13 @@ public class MinecraftScreen
 		private AbstractScreen screen;
 		
 		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		public static String translate(String str, Object... args)
+		{ return StatCollector.translateToLocalFormatted(str, args); }
+		#else
 		public static net.minecraft.util.text.TextComponentTranslation translate(String str, Object... args)
 		{ return new net.minecraft.util.text.TextComponentTranslation(str, args); }
+		#endif
 		#elif MC_VER < MC_1_19_2
 		public static net.minecraft.network.chat.TranslatableComponent translate(String str, Object... args)
 		{ return new net.minecraft.network.chat.TranslatableComponent(str, args); }
@@ -200,7 +208,7 @@ public class MinecraftScreen
 			Window mcWindow = this.minecraft.getWindow();
 			this.screen.width = mcWindow.getWidth();
 			this.screen.height = mcWindow.getHeight();
-			#endif;
+			#endif
 			this.screen.scaledWidth = this.width;
 			this.screen.scaledHeight = this.height;
 			this.screen.onResize(); // Resize our screen
@@ -266,7 +274,9 @@ public class MinecraftScreen
 			#else
 			super(minecraftClient, canvasWidth, canvasHeight - (topMargin + botMargin), topMargin, itemSpacing);
 			#endif
+			#if MC_VER > MC_1_7_10
 			this.centerListVertically = false;
+			#endif
 		}
 		
 		#if MC_VER <= MC_1_12_2

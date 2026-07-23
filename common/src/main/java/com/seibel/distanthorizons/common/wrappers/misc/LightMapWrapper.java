@@ -23,6 +23,12 @@ package com.seibel.distanthorizons.common.wrappers.misc;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
 #endif
+#if MC_VER <= MC_1_7_10
+import com.seibel.distanthorizons.forge.ForgeMain;
+import com.seibel.distanthorizons.interfaces.IMixinEntityRenderer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+#endif
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
@@ -142,8 +148,24 @@ public class LightMapWrapper implements ILightMapWrapper
 	//region
 	
 	public BlazeTextureViewWrapper getTextureViewWrapper() { return this.lightmapTextureWrapper; }
-	
+
+	#if MC_VER <= MC_1_7_10
+	public int getOpenGlId()
+	{
+		// On 1.7.10 nothing wires up setLightmapId(), so query MC directly each time.
+		// RPLE (the coloured-lighting mod) replaces the vanilla lightmap, so check that first.
+		if (ForgeMain.rpleCompat != null)
+		{
+			return ForgeMain.rpleCompat.getTextureId();
+		}
+
+		IMixinEntityRenderer entityRenderer = (IMixinEntityRenderer) Minecraft.getMinecraft().entityRenderer;
+		DynamicTexture lightmapTexture = entityRenderer.getLightmapTexture();
+		return lightmapTexture.getGlTextureId();
+	}
+	#else
 	public int getOpenGlId() { return this.textureId; }
+	#endif
 	
 	//endregion
 	

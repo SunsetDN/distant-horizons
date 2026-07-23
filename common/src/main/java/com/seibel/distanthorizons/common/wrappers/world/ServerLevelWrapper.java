@@ -178,7 +178,11 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 		{
 			// We use the overworld since it's the only dimension that is stored in the server root folder
 			
-			#if MC_VER <= MC_1_12_2
+			#if MC_VER <= MC_1_7_10
+			// 1.7.10: WorldServer has no getMinecraftServer(), reach the overworld through the static server handle
+			return net.minecraft.server.MinecraftServer.getServer().worldServers[0]
+				.getSaveHandler().getWorldDirectory().getParentFile().getName();
+			#elif MC_VER <= MC_1_12_2
 			return this.level.getMinecraftServer().getWorld(0).getSaveHandler().getWorldDirectory().getParentFile().getName();
 			#elif MC_VER >= MC_1_21_3
 			return this.level.getServer().getLevel(Level.OVERWORLD).getChunkSource().getDataStorage().dataFolder.getParent().getFileName().toString();
@@ -195,9 +199,11 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	
 	
 	@Override
-	public DimensionTypeWrapper getDimensionType() 
+	public DimensionTypeWrapper getDimensionType()
 	{
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		return DimensionTypeWrapper.getDimensionTypeWrapper(this.level.provider.dimensionId);
+		#elif MC_VER <= MC_1_12_2
 		return DimensionTypeWrapper.getDimensionTypeWrapper(this.level.provider.getDimensionType());
 		#elif MC_VER <= MC_1_21_10
 		return DimensionTypeWrapper.getDimensionTypeWrapper(this.level.dimensionType());
@@ -205,11 +211,13 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 		return DimensionTypeWrapper.getDimensionTypeWrapper(this.level.dimensionType(), this.getDimensionName());
 		#endif
 	}
-	
+
 	@Override
 	public String getDimensionName()
 	{
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		return LegacyDimensionInfo.fullName(this.level.provider.dimensionId);
+		#elif MC_VER <= MC_1_12_2
 		return this.level.provider.getDimensionType().getName() + ":" + this.level.provider.getDimension();
 		#elif MC_VER <= MC_1_21_10
 		return this.level.dimension().location().toString();
@@ -239,18 +247,24 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	@Override
 	public boolean hasCeiling()
 	{
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		// 1.7.10's WorldProvider has no isNether(); the boolean field isHellWorld is its equivalent
+		return this.level.provider.isHellWorld;
+		#elif MC_VER <= MC_1_12_2
 		// 1.12.2 has no hasCeiling() - only the nether has a ceiling in vanilla
 		return this.level.provider.isNether();
 		#else
 		return this.level.dimensionType().hasCeiling();
 		#endif
 	}
-	
+
 	@Override
 	public boolean hasSkyLight()
 	{
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		// 1.7.10 stores the inverse: hasNoSky is true when the dimension lacks skylight
+		return !this.level.provider.hasNoSky;
+		#elif MC_VER <= MC_1_12_2
 		return this.level.provider.hasSkyLight();
 		#else
 		return this.level.dimensionType().hasSkyLight();

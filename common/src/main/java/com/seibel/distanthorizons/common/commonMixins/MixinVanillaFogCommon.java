@@ -19,7 +19,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 #endif
 
-#if MC_VER <= MC_1_12_2
+#if MC_VER <= MC_1_7_10
+
+#elif MC_VER <= MC_1_12_2
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.MobEffects;
@@ -66,7 +68,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 
 public class MixinVanillaFogCommon
 {
-	
+	#if MC_VER > MC_1_7_10
 	#if MC_VER <= MC_1_12_2
 	public static boolean cancelFog(int startCoords, Minecraft mc)
 	#elif MC_VER < MC_1_21_6
@@ -148,6 +150,6 @@ public class MixinVanillaFogCommon
 		
 		return cameraNotInFluid;
 	}
-	
+	#endif
 	
 }

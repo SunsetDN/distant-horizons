@@ -14,8 +14,10 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.config.IConfigGui;
 import net.minecraft.client.Minecraft;
 #if MC_VER <= MC_1_12_2
 import net.minecraft.client.gui.*;
+#if MC_VER > MC_1_7_10
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.text.ITextComponent;
+#endif
 #else
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -28,7 +30,9 @@ import com.seibel.distanthorizons.core.logging.DhLogger;
 
 import org.jetbrains.annotations.NotNull;
 
-#if MC_VER <= MC_1_12_2
+#if MC_VER <= MC_1_7_10
+import net.minecraft.client.renderer.Tessellator;
+#elif MC_VER <= MC_1_12_2
 #elif MC_VER < MC_1_20_1
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiComponent;
@@ -92,7 +96,35 @@ public class ClassicConfigGUI
 		public static final int OPTION_FIELD_HEIGHT = 20;
 		public static final int CATEGORY_BUTTON_WIDTH = 200;
 		public static final int CATEGORY_BUTTON_HEIGHT = 20;
+		public static final int OPTION_ROW_CONTROL_WIDTH = OPTION_FIELD_WIDTH + BUTTON_WIDTH_SPACING + RESET_BUTTON_WIDTH;
+		public static final boolean CENTER_OPTIONS =
+			#if MC_VER == MC_1_7_10
+			true;
+			#else
+			false;
+			#endif
 		
+		public static int getOptionsRightEdge(int screenWidth)
+		{
+			if (CENTER_OPTIONS)
+			{
+				return Math.min(
+					screenWidth - SPACE_FROM_RIGHT_SCREEN,
+					(screenWidth / 2) + (OPTION_ROW_CONTROL_WIDTH / 2));
+			}
+			return screenWidth - SPACE_FROM_RIGHT_SCREEN;
+		}
+		
+		public static int getCategoryButtonX(int screenWidth)
+		{
+			if (CENTER_OPTIONS)
+			{
+				return Math.max(
+					SPACE_FROM_RIGHT_SCREEN,
+					(screenWidth / 2) - (CATEGORY_BUTTON_WIDTH / 2));
+			}
+			return getOptionsRightEdge(screenWidth) - CATEGORY_BUTTON_WIDTH;
+		}
 	}
 	
 	//endregion
@@ -144,7 +176,9 @@ public class ClassicConfigGUI
 			super(minecraftClient, canvasWidth, canvasHeight - (topMargin + botMargin), topMargin, itemSpacing);
 			#endif
 			
+			#if MC_VER > MC_1_7_10
 			this.centerListVertically = false;
+			#endif
 			#if MC_VER <= MC_1_12_2
 			this.textRenderer = minecraftClient.fontRenderer;
 			#else
@@ -165,6 +199,7 @@ public class ClassicConfigGUI
 			return this.children.get(index);
 		}
 		
+		#if MC_VER > MC_1_7_10
 		@Override
 		protected void drawContainerBackground(Tessellator tessellator)
 		{
@@ -175,9 +210,10 @@ public class ClassicConfigGUI
 			super.drawContainerBackground(tessellator);
 		}
 		#endif
+		#endif
 		
 		#if MC_VER <= MC_1_12_2
-		public void addButton(DhConfigScreen gui, AbstractConfigBase dhConfigType, Gui button, GuiButton resetButton, GuiButton indexButton, ITextComponent text)
+		public void addButton(DhConfigScreen gui, AbstractConfigBase dhConfigType, Gui button, GuiButton resetButton, GuiButton indexButton, #if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text)
 		#else
 		public void addButton(DhConfigScreen gui, AbstractConfigBase dhConfigType, AbstractWidget button, AbstractWidget resetButton, AbstractWidget indexButton, Component text)
 		#endif
@@ -218,16 +254,22 @@ public class ClassicConfigGUI
 				if (gui instanceof GuiButton button)
 				{
 					if (!button.visible) continue;
-					minX = button.x;
-					minY = button.y;
+					minX = #if MC_VER <= MC_1_7_10 button.xPosition #else button.x #endif;
+					minY = #if MC_VER <= MC_1_7_10 button.yPosition #else button.y #endif;
 					maxX = minX + button.width;
 					maxY = minY + button.height;
 				}
 				else if (gui instanceof GuiTextField field)
 				{
+					#if MC_VER <= MC_1_7_10
+					if (!field.getVisible()) continue;
+					minX = field.xPosition;
+					minY = field.yPosition;
+					#else
 					if (!field.getVisible()) continue;
 					minX = field.x;
 					minY = field.y;
+					#endif
 					maxX = minX + field.width;
 					maxY = minY + field.height;
 				}
@@ -274,7 +316,7 @@ public class ClassicConfigGUI
 	#endif
 	{
 		#if MC_VER <= MC_1_12_2
-		private static final FontRenderer textRenderer = Minecraft.getMinecraft().fontRenderer;		
+		private static final FontRenderer textRenderer = Minecraft.getMinecraft().fontRenderer;
 		#else
 		private static final Font textRenderer = Minecraft.getInstance().font;
 		#endif
@@ -291,7 +333,7 @@ public class ClassicConfigGUI
 		#endif
 		
 		#if MC_VER <= MC_1_12_2
-		private final ITextComponent text;
+		private final #if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text;
 		#else
 		private final Component text;
 		#endif
@@ -307,7 +349,7 @@ public class ClassicConfigGUI
 		public final AbstractConfigBase dhConfigType;
 		
 		#if MC_VER <= MC_1_12_2
-		public static final Map<Gui, ITextComponent> TEXT_BY_WIDGET = new HashMap<>();
+		public static final Map<Gui, #if MC_VER <= MC_1_7_10 String #else ITextComponent #endif> TEXT_BY_WIDGET = new HashMap<>();
 		public static final Map<Gui, DhButtonEntry> BUTTON_BY_WIDGET = new HashMap<>();
 		#else
 		public static final Map<AbstractWidget, Component> TEXT_BY_WIDGET = new HashMap<>();
@@ -317,7 +359,7 @@ public class ClassicConfigGUI
 		
 		
 		#if MC_VER <= MC_1_12_2
-		public DhButtonEntry(DhConfigScreen gui, AbstractConfigBase dhConfigType, Gui button, ITextComponent text, GuiButton resetButton, GuiButton indexButton)
+		public DhButtonEntry(DhConfigScreen gui, AbstractConfigBase dhConfigType, Gui button, #if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text, GuiButton resetButton, GuiButton indexButton)
 		#else
 		public DhButtonEntry(DhConfigScreen gui, AbstractConfigBase dhConfigType, AbstractWidget button, Component text, AbstractWidget resetButton, AbstractWidget indexButton)
 		#endif
@@ -363,7 +405,9 @@ public class ClassicConfigGUI
 		
 		
 		@Override
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, Tessellator tessellator, int mouseX, int mouseY, boolean isSelected)
+		#elif MC_VER <= MC_1_12_2
 		public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float tickDelta)
         #elif MC_VER < MC_1_20_1
 		public void render(PoseStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta)
@@ -394,7 +438,11 @@ public class ClassicConfigGUI
 					if (this.button instanceof GuiButton guiButton)
 					{
 						SetY(guiButton, y);
+						#if MC_VER <= MC_1_7_10
+						guiButton.drawButton(Minecraft.getMinecraft(), mouseX, mouseY);
+						#else
 						guiButton.drawButton(Minecraft.getMinecraft(), mouseX, mouseY, tickDelta);
+						#endif
 					}
 					if (this.button instanceof GuiTextField guiTextField)
 					{
@@ -422,7 +470,11 @@ public class ClassicConfigGUI
 					#endif
 					
 					#if MC_VER <= MC_1_12_2
+					#if MC_VER <= MC_1_7_10
+					((GuiButton) this.resetButton).drawButton(Minecraft.getMinecraft(), mouseX, mouseY);
+					#else
 					((GuiButton) this.resetButton).drawButton(Minecraft.getMinecraft(), mouseX, mouseY, tickDelta);
+					#endif
 					#elif MC_VER <= MC_1_21_11
 					this.resetButton.render(matrices, mouseX, mouseY, tickDelta);
 					#else
@@ -439,7 +491,11 @@ public class ClassicConfigGUI
 					#endif
 					
 					#if MC_VER <= MC_1_12_2
+					#if MC_VER <= MC_1_7_10
+					((GuiButton) this.indexButton).drawButton(Minecraft.getMinecraft(), mouseX, mouseY);
+					#else
 					((GuiButton) this.indexButton).drawButton(Minecraft.getMinecraft(), mouseX, mouseY, tickDelta);
+					#endif
 					#elif MC_VER <= MC_1_21_11
 					this.indexButton.render(matrices, mouseX, mouseY, tickDelta);
 					#else
@@ -450,7 +506,7 @@ public class ClassicConfigGUI
 				if (this.text != null)
 				{
 					#if MC_VER <= MC_1_12_2
-					int translatedLength = textRenderer.getStringWidth(this.text.getFormattedText());
+					int translatedLength = textRenderer.getStringWidth(#if MC_VER <= MC_1_7_10 this.text #else this.text.getFormattedText() #endif);
 					#else
 					int translatedLength = textRenderer.width(this.text);
 					#endif
@@ -459,10 +515,9 @@ public class ClassicConfigGUI
 					if (this.textPosition == EConfigCommentTextPosition.RIGHT_JUSTIFIED)
 					{
 						// text right justified aligned against the buttons
-						textXPos = this.gui.width
+						textXPos = ConfigScreenConfigs.getOptionsRightEdge(this.gui.width)
 								- translatedLength
 								- ConfigScreenConfigs.SPACE_BETWEEN_TEXT_AND_OPTION_FIELD
-								- ConfigScreenConfigs.SPACE_FROM_RIGHT_SCREEN
 								- ConfigScreenConfigs.OPTION_FIELD_WIDTH
 								- ConfigScreenConfigs.BUTTON_WIDTH_SPACING
 								- ConfigScreenConfigs.RESET_BUTTON_WIDTH;
@@ -470,10 +525,9 @@ public class ClassicConfigGUI
 					else if (this.textPosition == EConfigCommentTextPosition.CENTERED_OVER_BUTTONS)
 					{
 						// have button centered relative to a category button
-						textXPos = this.gui.width
-								- (translatedLength / 2)
-								- (ConfigScreenConfigs.CATEGORY_BUTTON_WIDTH / 2)
-								- ConfigScreenConfigs.SPACE_FROM_RIGHT_SCREEN;
+						textXPos = ConfigScreenConfigs.getCategoryButtonX(this.gui.width)
+								+ (ConfigScreenConfigs.CATEGORY_BUTTON_WIDTH / 2)
+								- (translatedLength / 2);
 					}
 					else if (this.textPosition == EConfigCommentTextPosition.CENTER_OF_SCREEN)
 					{
@@ -488,7 +542,7 @@ public class ClassicConfigGUI
 				
 				#if MC_VER <= MC_1_12_2
 				textRenderer.drawString(
-						this.text.getFormattedText(),
+						#if MC_VER <= MC_1_7_10 this.text #else this.text.getFormattedText() #endif,
 						textXPos, y + 5, 
 						0xFFFFFF);
                 #elif MC_VER < MC_1_20_1
@@ -522,8 +576,10 @@ public class ClassicConfigGUI
 		}
 		
 		#if MC_VER <= MC_1_12_2
+		#if MC_VER > MC_1_7_10
 		@Override
 		public void updatePosition(int slotIndex, int x, int y, float partialTicks) { }
+		#endif
 		
 		@Override
 		public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY)

@@ -4,7 +4,6 @@ import com.seibel.distanthorizons.core.logging.f3.F3Screen;
 
 #if MC_VER <= MC_1_12_2
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.text.TextComponentString;
 #else
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
@@ -37,7 +36,7 @@ public class DebugCommand extends AbstractCommand
 	#else
 	public void execute(ICommandSender sender)
 	{
-		sender.sendMessage(new TextComponentString(getDebugString()));
+		sendMessage(sender, getDebugString());
 	}
 	#endif
 	
