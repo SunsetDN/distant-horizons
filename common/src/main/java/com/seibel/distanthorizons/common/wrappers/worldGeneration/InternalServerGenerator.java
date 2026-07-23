@@ -32,7 +32,6 @@ import com.seibel.distanthorizons.common.util.ChunkPos;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.ChunkProviderServer;
 import net.minecraftforge.common.ForgeChunkManager;
 #elif MC_VER <= MC_1_12_2
@@ -400,23 +399,6 @@ public class InternalServerGenerator
 		}
 		#endif
 	}
-	#if MC_VER <= MC_1_7_10
-	private static void loadChunkIfNotExists(IChunkProvider provider, int x, int z)
-	{
-		if (!provider.chunkExists(x, z))
-		{
-			provider.loadChunk(x, z);
-		}
-	}
-
-	private static void queueUnloadIfNotWatched(WorldServer level, ChunkProviderServer provider, int x, int z)
-	{
-		if (!level.getPlayerManager().func_152621_a(x, z))
-		{
-			provider.unloadChunksIfNotNearSpawn(x, z);
-		}
-	}
-	#endif
 
 	private void scheduleRemovePosToIgnore(DhChunkPos chunkPos)
 	{
@@ -447,11 +429,24 @@ public class InternalServerGenerator
 		{
 			this.updateManager.addPosToIgnore(McObjectConverter.convert(chunkPos));
 		}
-		
+
+		#if MC_VER <= MC_1_7_10
+		return ForgeServerProxy.schedule(true, () ->
+		#else
 		CompletableFuture<Chunk> future = new CompletableFuture<>();
 		level.getMinecraftServer().addScheduledTask(() ->
+		#endif
 		{
+			#if MC_VER <= MC_1_7_10
+			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
+			if (ForgeMain.isHodgePodgeInstalled)
+			{
+				HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x, chunkPos.z, true);
+			}
+			ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x, chunkPos.z));
+			#else
 			ChunkProviderServer provider = level.getChunkProvider();
+			#endif
 			
 			// load neighbors first so the target chunk can fully populate
 			for (int dx = -1; dx <= 1; dx++)
@@ -463,17 +458,37 @@ public class InternalServerGenerator
 					{
 						this.updateManager.addPosToIgnore(new DhChunkPos(chunkPos.x + dx, chunkPos.z + dz));
 					}
+
+					#if MC_VER <= MC_1_7_10
+					if (ForgeMain.isHodgePodgeInstalled)
+					{
+						HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x + dx, chunkPos.z + dz, true);
+					}
+					ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x + dx, chunkPos.z + dz));
+					if (!provider.chunkExists(chunkPos.x + dx, chunkPos.z + dz))
+					{
+						// We must use loadChunk over provideChunk on 1.7.10
+						provider.loadChunk(chunkPos.x + dx, chunkPos.z + dz);
+					}
+					#else
 					if (provider.getLoadedChunk(chunkPos.x + dx, chunkPos.z + dz) == null)
 					{
 						provider.provideChunk(chunkPos.x + dx, chunkPos.z + dz);
 					}
+					#endif
 				}
 			}
 			
+			#if MC_VER <= MC_1_7_10
+				return provider.loadChunk(chunkPos.x, chunkPos.z);
+			#else
 			Chunk chunk = provider.provideChunk(chunkPos.x, chunkPos.z);
 			future.complete(chunk);
+			#endif
 		});
+		#if MC_VER > MC_1_7_10
 		return future;
+		#endif
 		#else
 		return CompletableFuture.supplyAsync(() ->
 		{
@@ -546,7 +561,10 @@ public class InternalServerGenerator
 					{
 						HodgePodgeCompat.preventChunkSimulation(level, x, z, false);
 					}
-					queueUnloadIfNotWatched(level, provider, x, z);
+					if (!level.getPlayerManager().func_152621_a(x, z))
+					{
+						provider.unloadChunksIfNotNearSpawn(x, z);
+					}
 					this.scheduleRemovePosToIgnore(new DhChunkPos(x, z));
 				}
 			}
