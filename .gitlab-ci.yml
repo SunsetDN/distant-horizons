@@ -12,6 +12,12 @@ stages:
 variables:
   # Pull core when building
   GIT_SUBMODULE_STRATEGY: recursive
+  # retry downloading sources,
+  # this is necessary if Gitlab fails to download the repo/sources
+  # on the first try
+  GET_SOURCES_ATTEMPTS: 5
+  ARTIFACT_DOWNLOAD_ATTEMPTS: 5
+  RESTORE_CACHE_ATTEMPTS: 5
 
 
 # These can be extended so code is a bit less duplicated
