@@ -24,7 +24,7 @@ dependencies {
     }
 
     // Mod Menu
-    addMod("com.terraformersmc:modmenu:${rootProject.modmenu_version}", rootProject.enable_mod_menu)
+    addMod("maven.modrinth:modmenu:${rootProject.modmenu_version}", rootProject.enable_mod_menu)
 
     // Starlight
     addMod("curse.maven:starlight-521783:${rootProject.starlight_version_fabric}", rootProject.enable_starlight)
