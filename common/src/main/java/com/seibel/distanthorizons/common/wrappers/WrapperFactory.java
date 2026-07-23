@@ -52,7 +52,7 @@ import net.minecraft.core.Holder;
 #endif
 
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.common.wrappers.block.FakeBlockState;
+import com.seibel.distanthorizons.common.wrappers.block.legacy.IBlockState;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -426,9 +426,7 @@ public class WrapperFactory implements IWrapperFactory
 		}
 		
 		boolean blockClassCorrect;
-		#if MC_VER <= MC_1_7_10
-		blockClassCorrect = (objectArray[0] instanceof FakeBlockState);
-		#elif MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_12_2
 		blockClassCorrect = (objectArray[0] instanceof IBlockState);
 		#else
 		blockClassCorrect = (objectArray[0] instanceof BlockState);
@@ -438,10 +436,7 @@ public class WrapperFactory implements IWrapperFactory
 			throw new ClassCastException(createBlockStateWrapperErrorMessage(objectArray));
 		}
 		
-		#if MC_VER <= MC_1_7_10
-		FakeBlockState blockState = (FakeBlockState) objectArray[0];
-		return BlockStateWrapper.fromBlockAndMeta(blockState.block, blockState.meta, coreLevelWrapper);
-		#elif MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_12_2
 		IBlockState blockState = (IBlockState) objectArray[0];
 		return BlockStateWrapper.fromBlockState(blockState, coreLevelWrapper);
 		#else
@@ -457,9 +452,7 @@ public class WrapperFactory implements IWrapperFactory
 	{
 		String[] expectedClassNames;
 		
-		#if MC_VER <= MC_1_7_10
-		expectedClassNames = new String[] { FakeBlockState.class.getName() };
-		#elif MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_12_2
 		expectedClassNames = new String[] { IBlockState.class.getName() };
 		#elif MC_VER <= MC_1_17_1
 		expectedClassNames = new String[] { Biome.class.getName() };

@@ -38,6 +38,8 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemDye;
 import com.seibel.distanthorizons.forge.ForgeMain;
 import cpw.mods.fml.common.registry.GameData;
+import com.seibel.distanthorizons.common.wrappers.block.legacy.IBlockState;
+import net.minecraftforge.fluids.IFluidBlock;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.block.*;
 import net.minecraft.init.Blocks;
@@ -140,9 +142,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	// properties //
 	
 	@Nullable
-	#if MC_VER <= MC_1_7_10
-	public final FakeBlockState blockState;
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	public final IBlockState blockState;
 	#else
 	public final BlockState blockState;
@@ -212,6 +212,11 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		}
 		
 		return fromBlockAndMeta(block, meta, levelWrapper);
+	}
+	
+	public static BlockStateWrapper fromBlockState(IBlockState blockState, ILevelWrapper levelWrapper)
+	{
+		return fromBlockAndMeta(blockState.getBlock(), blockState.getMeta(), levelWrapper);
 	}
 	#else
 	#if MC_VER <= MC_1_12_2
@@ -327,9 +332,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	}
 	#endif
 
-	#if MC_VER <= MC_1_7_10
-	private BlockStateWrapper(@Nullable FakeBlockState blockState, ILevelWrapper levelWrapper, @Nullable DhApiBlockStateWrapperCreatedEvent.EventParam overrideEventParam)
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	private BlockStateWrapper(@Nullable IBlockState blockState, ILevelWrapper levelWrapper, @Nullable DhApiBlockStateWrapperCreatedEvent.EventParam overrideEventParam)
 	#else
 	private BlockStateWrapper(@Nullable BlockState blockState, ILevelWrapper levelWrapper, @Nullable DhApiBlockStateWrapperCreatedEvent.EventParam overrideEventParam)
@@ -352,9 +355,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			}
 			else
 			{
-				#if MC_VER <= MC_1_7_10
-				this.isLiquid = blockState.block.blockMaterial.isLiquid();
-				#elif MC_VER <= MC_1_12_2
+				#if MC_VER <= MC_1_12_2
 				this.isLiquid = this.blockState.getMaterial().isLiquid() || this.blockState.getBlock() instanceof IFluidBlock;
 				#elif MC_VER < MC_1_20_1
 				this.isLiquid = this.blockState.getMaterial().isLiquid() || !this.blockState.getFluidState().isEmpty();
@@ -452,10 +453,10 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			{
 				int colorInt;
 				#if MC_VER <= MC_1_7_10
-				Block block = this.blockState.block;
+				Block block = this.blockState.getBlock();
 				if (block instanceof BlockStainedGlass || block instanceof BlockStainedGlassPane)
 				{
-					colorInt = ItemDye.field_150922_c[BlockColored.func_150032_b(this.blockState.meta)];
+					colorInt = ItemDye.field_150922_c[BlockColored.func_150032_b(this.blockState.getMeta())];
 					beaconTintColor = ColorUtil.toColorObjRGB(colorInt);
 				}
 				#elif MC_VER <= MC_1_12_2
@@ -562,9 +563,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			{
 				int mcColor = 0;
 				
-				#if MC_VER <= MC_1_7_10
-				mcColor = this.blockState.block.blockMaterial.getMaterialMapColor().colorValue;
-				#elif MC_VER <= MC_1_12_2
+				#if MC_VER <= MC_1_12_2
 				mcColor = this.blockState.getMaterial().getMaterialMapColor().colorValue;
 				#elif MC_VER < MC_1_20_1
 				mcColor = this.blockState.getMaterial().getColor().col;
@@ -591,11 +590,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			else
 			{
 	        #if MC_VER < MC_1_20_1
-			#if MC_VER <= MC_1_7_10
-			this.isSolid = this.blockState.block.blockMaterial.isSolid();
-			#else
 			this.isSolid = this.blockState.getMaterial().isSolid();
-			#endif
 	        #else
 			this.isSolid = !this.blockState.getCollisionShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO).isEmpty();
             #endif
@@ -606,9 +601,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	// static constructor helpers //
 	//region
 	
-	#if MC_VER <= MC_1_7_10
-	private static EDhApiBlockMaterial calculateEDhApiBlockMaterialId(@Nullable FakeBlockState blockState, String lowercaseSerialString, boolean isLiquid)
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	private static EDhApiBlockMaterial calculateEDhApiBlockMaterialId(@Nullable IBlockState blockState, String lowercaseSerialString, boolean isLiquid)
 	#else
 	private static EDhApiBlockMaterial calculateEDhApiBlockMaterialId(@Nullable BlockState blockState, String lowercaseSerialString, boolean isLiquid)
@@ -628,7 +621,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		boolean isLeafBlock;
 		#if MC_VER <= MC_1_7_10
-		isLeafBlock = blockState.block instanceof BlockLeavesBase;
+		isLeafBlock = blockState.getBlock() instanceof BlockLeavesBase;
 		#elif MC_VER <= MC_1_12_2
 		isLeafBlock = blockState.getBlock() instanceof BlockLeaves;
 		#else 
@@ -655,7 +648,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		boolean isLavaBlock;
 		#if MC_VER <= MC_1_7_10
-		isLavaBlock = blockState.block == Blocks.lava || blockState.block == Blocks.flowing_lava;
+		isLavaBlock = blockState.getBlock() == Blocks.lava || blockState.getBlock() == Blocks.flowing_lava;
 		#elif MC_VER <= MC_1_12_2
 		isLavaBlock = blockState.getBlock() == Blocks.LAVA || blockState.getBlock() == Blocks.FLOWING_LAVA;
 		#else
@@ -677,7 +670,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		boolean isWaterBlock;
 	    #if MC_VER <= MC_1_7_10
-		isWaterBlock = blockState.block == Blocks.water || blockState.block == Blocks.flowing_water;
+		isWaterBlock = blockState.getBlock() == Blocks.water || blockState.getBlock() == Blocks.flowing_water;
 	    #elif MC_VER <= MC_1_12_2
 		isWaterBlock = blockState.getBlock() == Blocks.WATER || blockState.getBlock() == Blocks.FLOWING_WATER;
 		#else
@@ -700,7 +693,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		boolean isWoodSoundingBlock;
 		#if MC_VER <= MC_1_7_10
-		isWoodSoundingBlock = blockState.block.stepSound == Block.soundTypeWood;
+		isWoodSoundingBlock = blockState.getBlock().stepSound == Block.soundTypeWood;
 		#elif MC_VER <= MC_1_12_2
 		isWoodSoundingBlock = blockState.getBlock().getSoundType() == SoundType.WOOD;
 		#else 
@@ -733,7 +726,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		boolean isMetalSoundingBlock;
 		#if MC_VER <= MC_1_7_10
-		isMetalSoundingBlock = blockState.block.stepSound == Block.soundTypeMetal;
+		isMetalSoundingBlock = blockState.getBlock().stepSound == Block.soundTypeMetal;
 		#elif MC_VER <= MC_1_12_2
 		isMetalSoundingBlock = blockState.getBlock().getSoundType() == SoundType.METAL;
 		#else
@@ -769,7 +762,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		boolean isGrassBlock;
 		#if MC_VER <= MC_1_7_10
-		isGrassBlock = blockState.block instanceof BlockGrass;
+		isGrassBlock = blockState.getBlock() instanceof BlockGrass;
 		#else
 		isGrassBlock = lowercaseSerialString.contains("grass_block");
 		#endif
@@ -832,7 +825,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		boolean isNetherRack;
 		#if MC_VER <= MC_1_7_10
-		isNetherRack = blockState.block == Blocks.netherrack || blockState.block == Blocks.nether_brick;
+		isNetherRack = blockState.getBlock() == Blocks.netherrack || blockState.getBlock() == Blocks.nether_brick;
 		#elif MC_VER <= MC_1_12_2
 		isNetherRack = blockState.getBlock() == Blocks.NETHERRACK;
 		#else
@@ -874,11 +867,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			return EDhApiBlockMaterial.STONE;
 		}
 		
-		#if MC_VER <= MC_1_7_10
-		if (getLightEmission(blockState.block, blockState.meta) > 0)
-		#else
 		if (getLightEmission(blockState) > 0)
-		#endif
 		{
 			return EDhApiBlockMaterial.ILLUMINATED;
 		}
@@ -890,9 +879,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		return EDhApiBlockMaterial.UNKNOWN;
 	}
 	
-	#if MC_VER <= MC_1_7_10
-	private static int calculateOpacity(@Nullable FakeBlockState blockState, boolean isAir, boolean isLiquid)
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	private static int calculateOpacity(@Nullable IBlockState blockState, boolean isAir, boolean isLiquid)
 	#else
 	private static int calculateOpacity(@Nullable BlockState blockState, boolean isAir, boolean isLiquid)
@@ -936,9 +923,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		return opacity;
 	}
 	
-	#if MC_VER <= MC_1_7_10
-	private static boolean getCanOcclude(@Nullable FakeBlockState blockState)
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	private static boolean getCanOcclude(@Nullable IBlockState blockState)
 	#else
 	private static boolean getCanOcclude(@Nullable BlockState blockState)
@@ -948,9 +933,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		boolean canOcclude = false;
 		if (blockState != null)
 		{
-			#if MC_VER <= MC_1_7_10
-			canOcclude = blockState.block.blockMaterial.isSolid();
-			#elif MC_VER <= MC_1_12_2
+			#if MC_VER <= MC_1_12_2
 			canOcclude = blockState.getMaterial().isSolid();
 			#else
 			canOcclude = blockState.canOcclude();
@@ -960,9 +943,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		return canOcclude;
 	}
 	
-	#if MC_VER <= MC_1_7_10
-	private static boolean getPropagatesSkyLightDown(@Nullable FakeBlockState blockState)
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	private static boolean getPropagatesSkyLightDown(@Nullable IBlockState blockState)
 	#else
 	private static boolean getPropagatesSkyLightDown(@Nullable BlockState blockState)
@@ -973,7 +954,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		if (blockState != null)
 		{
 			#if MC_VER <= MC_1_7_10
-			propagatesSkyLightDown = blockState.block.getLightOpacity() == 0;
+			propagatesSkyLightDown = blockState.getBlock().getLightOpacity() == 0;
 			#elif MC_VER <= MC_1_12_2
 			propagatesSkyLightDown = blockState.getBlock().getLightOpacity(blockState) == 0;
 			#elif MC_VER < MC_1_21_3
@@ -986,9 +967,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		return propagatesSkyLightDown;
 	}
 	
-	#if MC_VER <= MC_1_7_10
-	private static boolean blockTagInCsv(@Nullable FakeBlockState blockState, String blockTagsCsv)
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	private static boolean blockTagInCsv(@Nullable IBlockState blockState, String blockTagsCsv)
 	#else
 	private static boolean blockTagInCsv(@Nullable BlockState blockState, String blockTagsCsv)
@@ -1198,9 +1177,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 				if (defaultBlockStateToIgnore != AIR)
 				{
 					#if MC_VER <= MC_1_7_10
-					final Block block = defaultBlockStateToIgnore.blockState.block;
-					final int meta = defaultBlockStateToIgnore.blockState.meta;
-					BlockStateWrapper newBlockToIgnore = BlockStateWrapper.fromBlockAndMeta(block, meta, levelWrapper);
+					BlockStateWrapper newBlockToIgnore = BlockStateWrapper.fromBlockState(defaultBlockStateToIgnore.blockState, levelWrapper);
 					blockStateWrappers.add(newBlockToIgnore);
 					#else
 					// add all possible blockstates (to account for light blocks with different light values and such)
@@ -1264,33 +1241,14 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	@Override
 	public int getLightEmission()
 	{
-		#if MC_VER <= MC_1_7_10
-		if (this.blockState == null)
-		{
-			return 0;
-		}
-		
-		return getLightEmission(this.blockState.block, this.blockState.meta);
-		#else
 		return getLightEmission(this.blockState);
-		#endif
 	}
-	#if MC_VER <= MC_1_7_10
-	public static int getLightEmission(Block block, int meta)
-	{
-		if (ForgeMain.rpleCompat != null)
-		{
-			return ForgeMain.rpleCompat.getColor(block, meta);
-		}
-		
-		return Math.min(15, block.getLightValue());
-	}
-	#elif MC_VER <= MC_1_12_2
+	
+	#if MC_VER <= MC_1_12_2
 	public static int getLightEmission(IBlockState blockState)
 	#else
 	public static int getLightEmission(BlockState blockState)
 	#endif
-	#if MC_VER > MC_1_7_10
 	{
 		if (blockState == null)
 		{
@@ -1303,7 +1261,6 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		return blockState.getLightEmission();
 		#endif
 	}
-	#endif
 	
 	
 	@Override
@@ -1314,9 +1271,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	
 	@Override
 	public boolean isAir() { return isAir(this.blockState); }
-	#if MC_VER <= MC_1_7_10
-	public static boolean isAir(FakeBlockState blockState) 
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	public static boolean isAir(IBlockState blockState) 
 	#else
 	public static boolean isAir(BlockState blockState) 
@@ -1328,7 +1283,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		}
 		
 		#if MC_VER <= MC_1_7_10
-		return blockState.block == Blocks.air;
+		return blockState.getBlock() == Blocks.air;
 		#elif MC_VER <= MC_1_12_2
 		return blockState.getBlock() == Blocks.AIR;
 		#else
@@ -1361,9 +1316,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	//=======================//
 	//region
 	
-	#if MC_VER <= MC_1_7_10
-	private static String serialize(FakeBlockState blockState, ILevelWrapper levelWrapper)
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	private static String serialize(IBlockState blockState, ILevelWrapper levelWrapper)
 	#else
 	private static String serialize(BlockState blockState, ILevelWrapper levelWrapper)
@@ -1375,10 +1328,10 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		}
 		
 		#if MC_VER <= MC_1_7_10
-		String serialString = GameData.getBlockRegistry().getNameForObject(blockState.block);
-		if (blockState.meta != 0)
+		String serialString = GameData.getBlockRegistry().getNameForObject(blockState.getBlock());
+		if (blockState.getMeta() != 0)
 		{
-			serialString += RESOURCE_LOCATION_SEPARATOR + blockState.meta;
+			serialString += RESOURCE_LOCATION_SEPARATOR + blockState.getMeta();
 		}
 		return serialString;
 		#else
