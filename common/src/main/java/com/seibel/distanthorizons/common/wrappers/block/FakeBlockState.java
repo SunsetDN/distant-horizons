@@ -4,9 +4,12 @@ package com.seibel.distanthorizons.common.wrappers.block;
 
 import java.util.Objects;
 
+import com.seibel.distanthorizons.common.wrappers.block.legacy.IBlockState;
+import com.seibel.distanthorizons.forge.ForgeMain;
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 
-public class FakeBlockState
+public class FakeBlockState implements IBlockState
 {
 	public final Block block;
 	public final int meta;
@@ -37,6 +40,41 @@ public class FakeBlockState
 	
 	@Override
 	public int hashCode() { return this.hashCode; }
+	
+	@Override
+	public Material getMaterial()
+	{
+		return block.getMaterial();
+	}
+	
+	@Override
+	public Block getBlock()
+	{
+		return block;
+	}
+	
+	@Override
+	public int getMeta()
+	{
+		return meta;
+	}
+	
+	@Override
+	public int getLightValue()
+	{
+		return getLightEmission(block, meta);
+	}
+	
+	public static int getLightEmission(Block block, int meta)
+	{
+		if (ForgeMain.rpleCompat != null)
+		{
+			return ForgeMain.rpleCompat.getColor(block, meta);
+		}
+		
+		return Math.min(15, block.getLightValue());
+	}
+	
 }
 
 #endif

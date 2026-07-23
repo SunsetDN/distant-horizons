@@ -41,6 +41,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.util.ForgeDirection;
+import com.seibel.distanthorizons.common.wrappers.block.legacy.IBlockState;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -99,9 +100,7 @@ public class ClientBlockStateColorCache
 	private static final HashSet<BlockState> BLOCK_STATES_THAT_NEED_LEVEL = new HashSet<>();
 	#endif
 
-	#if MC_VER <= MC_1_7_10
-	private static final HashSet<FakeBlockState> BROKEN_BLOCK_STATES = new HashSet<>();
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	private static final HashSet<IBlockState> BROKEN_BLOCK_STATES = new HashSet<>();
 	#else
 	private static final HashSet<BlockState> BROKEN_BLOCK_STATES = new HashSet<>();
@@ -145,9 +144,7 @@ public class ClientBlockStateColorCache
 	#endif
 
 	private final IClientLevelWrapper clientLevelWrapper;
-	#if MC_VER <= MC_1_7_10
-	private final FakeBlockState blockState;
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	private final IBlockState blockState;
 	#else
 	private final BlockState blockState;
@@ -244,20 +241,14 @@ public class ClientBlockStateColorCache
 	//=============//
 	//region
 	
-	#if MC_VER <= MC_1_7_10
-	public ClientBlockStateColorCache(FakeBlockState blockState, IClientLevelWrapper clientLevelWrapper)
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	public ClientBlockStateColorCache(IBlockState blockState, IClientLevelWrapper clientLevelWrapper)
 	#else
 	public ClientBlockStateColorCache(BlockState blockState, IClientLevelWrapper clientLevelWrapper)
 	#endif
 	{
 		this.blockState = blockState;
-		#if MC_VER <= MC_1_7_10
-		this.blockStateWrapper = BlockStateWrapper.fromBlockAndMeta(blockState.block, blockState.meta, clientLevelWrapper);
-		#else
 		this.blockStateWrapper = BlockStateWrapper.fromBlockState(blockState, clientLevelWrapper);
-		#endif
 		this.clientLevelWrapper = clientLevelWrapper;
 
 		this.resolveColors();
@@ -283,35 +274,36 @@ public class ClientBlockStateColorCache
 		try
 		{
 			RESOLVE_LOCK.lock();
+			FakeBlockState blockState = (FakeBlockState)this.blockState; 
 
 			TextureAtlasSprite sprite = TextureAtlasSpriteWrapper.resolveFaceSprite(
-				this.blockState.block, this.blockState.meta, ForgeDirection.UP.ordinal());
+				blockState.block, blockState.meta, ForgeDirection.UP.ordinal());
 			if (sprite != null)
 			{
 				this.baseColor = calculateColorFromTexture(
 					sprite,
-					EColorMode.getColorMode(this.blockState.block));
+					EColorMode.getColorMode(blockState.block));
 			}
 			else
 			{
-				LOGGER.warn("Can't get a usable icon for block type " + this.blockState.block.getClass());
-				this.baseColor = this.blockState.block.getBlockColor();
+				LOGGER.warn("Can't get a usable icon for block type " + blockState.block.getClass());
+				this.baseColor = blockState.block.getBlockColor();
 			}
 
 			// Backup tinting heuristics
-			this.needPostTinting = this.blockState.block.getBlockColor() != 0xFFFFFF;
-			if (this.blockState.block instanceof BlockGrass
-				|| this.blockState.block instanceof BlockLeavesBase
-				|| this.blockState.block instanceof BlockBush)
+			this.needPostTinting = blockState.block.getBlockColor() != 0xFFFFFF;
+			if (blockState.block instanceof BlockGrass
+				|| blockState.block instanceof BlockLeavesBase
+				|| blockState.block instanceof BlockBush)
 			{
 				this.needPostTinting = true;
 			}
-			if (this.blockState.block == Blocks.water || this.blockState.block == Blocks.flowing_water)
+			if (blockState.block == Blocks.water || blockState.block == Blocks.flowing_water)
 			{
 				this.needPostTinting = true;
 			}
 			// For LOTR
-			if (this.blockState.block instanceof IShearable)
+			if (blockState.block instanceof IShearable)
 			{
 				this.needPostTinting = true;
 			}
@@ -720,8 +712,9 @@ public class ClientBlockStateColorCache
 				// (grass/foliage/water/etc.) gets a usable IBlockAccess + biome lookup
 				IBlockAccess realLevel = (IBlockAccess) this.clientLevelWrapper.getWrappedMcObject();
 				FakeWorld world = FAKE_WORLD.get();
-				world.update(realLevel, biomeWrapper.biome, blockPos.getX(), blockPos.getY(), blockPos.getZ(), this.blockState);
-				tintColor = this.blockState.block.colorMultiplier(world, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+				FakeBlockState fakeState = (FakeBlockState)this.blockState; 
+				world.update(realLevel, biomeWrapper.biome, blockPos.getX(), blockPos.getY(), blockPos.getZ(), fakeState);
+				tintColor = fakeState.block.colorMultiplier(world, blockPos.getX(), blockPos.getY(), blockPos.getZ());
 				// 1.7.10 returns 0xFFFFFF for "no tint" rather than -1; treat the latter as a real value too
 				#elif MC_VER <= MC_1_12_2
 				// 1.12.2 doesn't have BlockAndTintGetter -> get tintColor from biome

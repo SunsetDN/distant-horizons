@@ -725,8 +725,8 @@ public class ClientBlockStateTextureCache
 		}
 		
 		return TextureAtlasSpriteWrapper.resolveFaceSprite(
-			blockStateWrapper.blockState.block,
-			blockStateWrapper.blockState.meta,
+			blockStateWrapper.blockState.getBlock(),
+			blockStateWrapper.blockState.getMeta(),
 			McObjectConverter.convert(direction).ordinal());
 	}
 	#endif

@@ -36,6 +36,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
 import net.minecraft.block.Block;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
+import com.seibel.distanthorizons.common.wrappers.block.FakeBlockState;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
@@ -853,7 +854,7 @@ public class ChunkWrapper implements IChunkWrapper
 					{
 						Block block = this.chunk.getBlock(x, y, z);
 						int meta = this.chunk.getBlockMetadata(x, y, z);
-						if (BlockStateWrapper.getLightEmission(block, meta) > 0)
+						if (FakeBlockState.getLightEmission(block, meta) > 0)
 						{
 							this.blockLightPosList.add(new DhBlockPos(x + this.chunkPos.getMinBlockX(), y, z + this.chunkPos.getMinBlockZ()));
 						}
