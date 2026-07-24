@@ -184,13 +184,11 @@ public class GLProxy
 		}
 	 	LOGGER.info("minecraftGlCapabilities:\n" + this.versionInfoToString(this.glCapabilities));
 		
-		#if MC_VER > MC_1_7_10
-		// Disabled since it causes JVM to never exit in 1.7.10
 		if (Config.Client.Advanced.Debugging.OpenGl.overrideVanillaGLLogger.get())
 		{
 			GLUtil.setupDebugMessageCallback(new PrintStream(new GLMessageOutputStream(GLProxy::logMessage, this.vanillaDebugMessageBuilder), true));
 		}
-		#endif
+		
 		
 		
 		//======================//
@@ -276,20 +274,20 @@ public class GLProxy
 	public static boolean runningOnRenderThread()
 	{
 		#if MC_VER <= MC_1_7_10
-			// lwjgl3ify on 1.7.10 provides LWJGL 3 but strips out GLFW (windowing still goes through Display).
-			// GL.getCapabilities() reads the per-thread GLCapabilities slot LWJGL 3 sets when a context is
-			// made current, and throws IllegalStateException if none is set — same semantic as the GLFW check.
-			try
-			{
-				return GL.getCapabilities() != null;
-			}
-			catch (IllegalStateException e)
-			{
-				return false;
-			}
+		// lwjgl3ify on 1.7.10 provides LWJGL 3 but strips out GLFW (windowing still goes through Display).
+		// GL.getCapabilities() reads the per-thread GLCapabilities slot LWJGL 3 sets when a context is
+		// made current, and throws IllegalStateException if none is set — same semantic as the GLFW check.
+		try
+		{
+			return GL.getCapabilities() != null;
+		}
+		catch (IllegalStateException e)
+		{
+			return false;
+		}
 		#else
-			long currentContext = GLFW.glfwGetCurrentContext();
-			return currentContext != 0L; // if the context isn't null, it's the MC context
+		long currentContext = GLFW.glfwGetCurrentContext();
+		return currentContext != 0L; // if the context isn't null, it's the MC context
 		#endif
 	}
 	

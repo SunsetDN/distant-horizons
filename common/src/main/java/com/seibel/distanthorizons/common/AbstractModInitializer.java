@@ -520,12 +520,15 @@ public abstract class AbstractModInitializer
 	 */
 	private static void setUnsupportedConfigsBasedOnMcVersion()
 	{
-		
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
 		Config.Client.Advanced.Graphics.Experimental.renderingEngine.setMcVersionOverrideValue(EDhApiRenderingEngine.OPEN_GL);
-		#if MC_VER != MC_1_7_10
+		Config.Common.WorldGenerator.distantGeneratorMode.setMcVersionOverrideValue(EDhApiDistantGeneratorMode.INTERNAL_SERVER);
+		
+		// Disabled since it prevents the JVM from exiting in 1.7.10
+		Config.Client.Advanced.Debugging.OpenGl.overrideVanillaGLLogger.setMcVersionOverrideValue(false);
+		#elif MC_VER <= MC_1_12_2
+		Config.Client.Advanced.Graphics.Experimental.renderingEngine.setMcVersionOverrideValue(EDhApiRenderingEngine.OPEN_GL);
 		Config.Client.Advanced.Graphics.Quality.vanillaFadeMode.setMcVersionOverrideValue(EDhApiMcRenderingFadeMode.NONE);
-		#endif
 		Config.Common.WorldGenerator.distantGeneratorMode.setMcVersionOverrideValue(EDhApiDistantGeneratorMode.INTERNAL_SERVER);
 		#elif MC_VER <= MC_1_21_10
 		Config.Client.Advanced.Graphics.Experimental.renderingEngine.setMcVersionOverrideValue(EDhApiRenderingEngine.OPEN_GL);
