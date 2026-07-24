@@ -14,6 +14,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.config.IConfigGui;
 import net.minecraft.client.Minecraft;
 #if MC_VER <= MC_1_12_2
 import net.minecraft.client.gui.*;
+import net.minecraft.world.World;
 #if MC_VER > MC_1_7_10
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.text.ITextComponent;
@@ -199,17 +200,20 @@ public class ClassicConfigGUI
 			return this.children.get(index);
 		}
 		
-		#if MC_VER > MC_1_7_10
 		@Override
 		protected void drawContainerBackground(Tessellator tessellator)
 		{
-			if (this.mc.world != null)
+			#if MC_VER <= MC_1_7_10
+			World world = Minecraft.getMinecraft().theWorld;
+			#else
+			World world = this.mc.world;
+			#endif
+			if (world != null)
 			{
 				return; // in-game don't draw dirt background
 			}
 			super.drawContainerBackground(tessellator);
 		}
-		#endif
 		#endif
 		
 		#if MC_VER <= MC_1_12_2
