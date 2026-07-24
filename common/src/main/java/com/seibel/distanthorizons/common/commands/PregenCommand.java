@@ -74,18 +74,19 @@ public class PregenCommand extends AbstractDhCommand
 					// find the world by dimension name
 					WorldServer world = null;
 					#if MC_VER <= MC_1_7_10
-					for (WorldServer w : server.worldServers)
+					for (WorldServer possibleWorld : server.worldServers)
 					#else
-					for (WorldServer w : server.worlds)
+					for (WorldServer possibleWorld : server.worlds)
 					#endif
 					{
 						#if MC_VER <= MC_1_7_10
-						if (w.provider.getDimensionName().equals(dimensionName) || String.valueOf(w.provider.dimensionId).equals(dimensionName))
+						if (possibleWorld.provider.getDimensionName().equals(dimensionName) 
+							|| String.valueOf(possibleWorld.provider.dimensionId).equals(dimensionName))
 						#else
-						if (w.provider.getDimensionType().getName().equals(dimensionName))
+						if (possibleWorld.provider.getDimensionType().getName().equals(dimensionName))
 						#endif
 						{
-							world = w;
+							world = possibleWorld;
 							break;
 						}
 					}
