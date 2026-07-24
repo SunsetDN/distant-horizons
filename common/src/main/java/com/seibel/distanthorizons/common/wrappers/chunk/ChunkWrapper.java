@@ -37,6 +37,7 @@ import net.minecraft.block.Block;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 import com.seibel.distanthorizons.common.wrappers.block.FakeBlockState;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
@@ -772,24 +773,8 @@ public class ChunkWrapper implements IChunkWrapper
 		{
 			this.blockLightPosList = new ArrayList<>();
 			
-			#if MC_VER <= MC_1_7_10
-			for (int x = 0; x < 16; x++)
-			{
-				for (int z = 0; z < 16; z++)
-				{
-					for (int y = 0; y < 256; y++)
-					{
-						Block block = this.chunk.getBlock(x, y, z);
-						int meta = this.chunk.getBlockMetadata(x, y, z);
-						if (FakeBlockState.getLightEmission(block, meta) > 0)
-						{
-							this.blockLightPosList.add(new DhBlockPos(x + this.chunkPos.getMinBlockX(), y, z + this.chunkPos.getMinBlockZ()));
-						}
-					}
-				}
-			}
-			//1.12.2 doesn't store lights we must bruteforce it
-			#elif MC_VER <= MC_1_12_2
+			//1.12.2 and older doesn't store lights we must bruteforce it
+			#if MC_VER <= MC_1_12_2
 			for (ExtendedBlockStorage section : this.chunk.getBlockStorageArray()) {
 				if (section == null || section.isEmpty())
 				{
@@ -804,10 +789,14 @@ public class ChunkWrapper implements IChunkWrapper
 					{
 						for (int y = 0; y < 16; y++)
 						{
-							IBlockState blockState = section.get(x, y, z);
-							if (blockState.getLightValue() > 0)
+							#if MC_VER <= MC_1_7_10
+							int lightValue = FakeBlockState.getLightEmission(section.getBlockByExtId(x, y, z), section.getExtBlockMetadata(x, y, z));
+							#else
+							int lightValue = section.get(x, y, z).getLightValue();
+							#endif
+							if (lightValue > 0)
 							{
-								this.blockLightPosList.add(new DhBlockPos(this.chunk.getPos().getXStart() + x, baseY + y, this.chunk.getPos().getZStart() + z));
+								this.blockLightPosList.add(new DhBlockPos(this.chunkPos.getMinBlockX() + x, baseY + y, this.chunkPos.getMinBlockZ() + z));
 							}
 						}
 					}
