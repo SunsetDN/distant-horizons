@@ -18,7 +18,6 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 #endif
 
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -32,23 +31,10 @@ import java.util.function.ToIntBiFunction;
 /**
  * Command for managing config.
  */
-public class ConfigCommand extends AbstractCommand
+public class ConfigCommand extends AbstractDhCommand
 {
 	#if MC_VER <= MC_1_12_2
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	private static void setConfigValue(ConfigEntry<?> configEntry, String value)
-	{
-		Class<?> type = configEntry.getType();
-		
-		if (type == Boolean.class)       ((ConfigEntry) configEntry).set(Boolean.parseBoolean(value));
-		else if (type == Integer.class)  ((ConfigEntry) configEntry).set(Integer.parseInt(value));
-		else if (type == Double.class)   ((ConfigEntry) configEntry).set(Double.parseDouble(value));
-		else if (type == Float.class)    ((ConfigEntry) configEntry).set(Float.parseFloat(value));
-		else if (type == Long.class)     ((ConfigEntry) configEntry).set(Long.parseLong(value));
-		else if (type == String.class)   ((ConfigEntry) configEntry).set(value);
-		else if (type.isEnum())          ((ConfigEntry) configEntry).set(Enum.valueOf((Class<Enum>) type, value));
-		else throw new RuntimeException("Unsupported config type: " + type.getSimpleName());
-	}
+	
 	public void execute(ICommandSender sender, String[] args)
 	{
 		if (args.length < 2)
@@ -92,6 +78,20 @@ public class ConfigCommand extends AbstractCommand
 				sendMessage(sender, "Invalid value: " + value);
 			}
 		}
+	}
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private static void setConfigValue(ConfigEntry<?> configEntry, String value)
+	{
+		Class<?> type = configEntry.getType();
+		
+		if (type == Boolean.class)       ((ConfigEntry) configEntry).set(Boolean.parseBoolean(value));
+		else if (type == Integer.class)  ((ConfigEntry) configEntry).set(Integer.parseInt(value));
+		else if (type == Double.class)   ((ConfigEntry) configEntry).set(Double.parseDouble(value));
+		else if (type == Float.class)    ((ConfigEntry) configEntry).set(Float.parseFloat(value));
+		else if (type == Long.class)     ((ConfigEntry) configEntry).set(Long.parseLong(value));
+		else if (type == String.class)   ((ConfigEntry) configEntry).set(value);
+		else if (type.isEnum())          ((ConfigEntry) configEntry).set(Enum.valueOf((Class<Enum>) type, value));
+		else throw new RuntimeException("Unsupported config type: " + type.getSimpleName());
 	}
 	
 	#else

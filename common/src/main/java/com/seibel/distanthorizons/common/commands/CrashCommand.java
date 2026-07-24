@@ -6,6 +6,7 @@ import com.seibel.distanthorizons.core.network.messages.base.CodecCrashMessage;
 
 #if MC_VER <= MC_1_12_2
 import com.seibel.distanthorizons.common.wrappers.misc.ServerPlayerWrapper;
+import com.seibel.distanthorizons.core.world.IDhServerWorld;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 #else
@@ -16,7 +17,7 @@ import static net.minecraft.commands.Commands.literal;
 #endif
 
 
-public class CrashCommand extends AbstractCommand
+public class CrashCommand extends AbstractDhCommand
 {
 	#if MC_VER <= MC_1_12_2
 	public void execute(ICommandSender sender, String[] args)
@@ -33,13 +34,21 @@ public class CrashCommand extends AbstractCommand
 			return;
 		}
 		
-		if (SharedApi.tryGetDhServerWorld() == null) return;
+		IDhServerWorld world = SharedApi.tryGetDhServerWorld();
+		if (world == null)
+		{
+			return;
+		}
 		
-		ServerPlayerState serverPlayerState = SharedApi.tryGetDhServerWorld()
+		ServerPlayerState serverPlayerState = 
+			world
 			.getServerPlayerStateManager()
 			.getConnectedPlayer(ServerPlayerWrapper.getWrapper((EntityPlayerMP) sender));
 		
-		if (serverPlayerState == null) return;
+		if (serverPlayerState == null)
+		{
+			return;
+		}
 		
 		switch (args[1])
 		{

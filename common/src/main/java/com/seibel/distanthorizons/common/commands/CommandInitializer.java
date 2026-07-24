@@ -1,9 +1,5 @@
 package com.seibel.distanthorizons.common.commands;
 #if MC_VER <= MC_1_12_2
-import com.seibel.distanthorizons.core.config.ConfigHandler;
-import com.seibel.distanthorizons.core.config.types.AbstractConfigBase;
-import com.seibel.distanthorizons.core.config.types.ConfigEntry;
-import com.seibel.distanthorizons.core.logging.f3.F3Screen;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
@@ -14,10 +10,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import static net.minecraft.commands.Commands.literal;
 #endif
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.seibel.distanthorizons.core.network.messages.MessageRegistry.DEBUG_CODEC_CRASH_MESSAGE;
 
@@ -46,29 +38,33 @@ public class CommandInitializer
 		{
 			#if MC_VER <= MC_1_7_10
 			@Override
-			public String getCommandName() { return "dh"; }
-			
-			@Override
-			public String getCommandUsage(ICommandSender sender) { return "/dh <debug|config|pregen>"; }
-			
-			@Override
-			public void processCommand(ICommandSender sender, String[] args)
-			{
-				this.executeCommand(MinecraftServer.getServer(), sender, args);
-			}
+			public String getCommandName()
 			#else
 			@Override
-			public String getName() { return "dh"; }
-			
-			@Override
-			public String getUsage(ICommandSender sender) { return "/dh <debug|config|pregen>"; }
-			
-			@Override
-			public void execute(MinecraftServer server, ICommandSender sender, String[] args)
-			{
-				this.executeCommand(server, sender, args);
-			}
+			public String getName()
 			#endif
+			{ return "dh"; }
+			
+			
+			#if MC_VER <= MC_1_7_10
+			@Override
+			public String getCommandUsage(ICommandSender sender)
+			#else
+			@Override
+			public String getUsage(ICommandSender sender)
+			#endif
+			{ return "/dh <debug|config|pregen>"; }
+			
+			
+			#if MC_VER <= MC_1_7_10
+			@Override
+			public void processCommand(ICommandSender sender, String[] args) { this.executeCommand(MinecraftServer.getServer(), sender, args); }
+			#else
+			@Override
+			public void execute(MinecraftServer server, ICommandSender sender, String[] args) { this.executeCommand(server, sender, args); }
+			#endif
+			
+			
 			
 			private void executeCommand(MinecraftServer server, ICommandSender sender, String[] args)
 			{
@@ -76,11 +72,11 @@ public class CommandInitializer
 				{
 					if (DEBUG_CODEC_CRASH_MESSAGE)
 					{
-						AbstractCommand.sendMessage(sender, "Usage: /dh <debug|config|crash|pregen>");
+						AbstractDhCommand.sendMessage(sender, "Usage: /dh <debug|config|crash|pregen>");
 					}
 					else
 					{
-						AbstractCommand.sendMessage(sender, "Usage: /dh <debug|config|pregen>");
+						AbstractDhCommand.sendMessage(sender, "Usage: /dh <debug|config|pregen>");
 					}
 					return;
 				}
@@ -105,14 +101,14 @@ public class CommandInitializer
 					case "pregen":
 						if (!server.isDedicatedServer())
 						{
-							AbstractCommand.sendMessage(sender, "Pregen command is only available on dedicated servers");
+							AbstractDhCommand.sendMessage(sender, "Pregen command is only available on dedicated servers");
 							break;
 						}
 						PregenCommand pregenCommand = new PregenCommand();
 						pregenCommand.execute(server, sender, args);
 						break;
 					default:
-						AbstractCommand.sendMessage(sender, "Unknown subcommand: " + args[0]);
+						AbstractDhCommand.sendMessage(sender, "Unknown subcommand: " + args[0]);
 				}
 			}
 		};

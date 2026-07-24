@@ -31,7 +31,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 
 
-public class PregenCommand extends AbstractCommand
+public class PregenCommand extends AbstractDhCommand
 {
 	private PregenManager getPregenManager()
 	{

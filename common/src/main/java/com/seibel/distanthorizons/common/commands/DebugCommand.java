@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class DebugCommand extends AbstractCommand
+public class DebugCommand extends AbstractDhCommand
 {
 	private static String getDebugString()
 	{
@@ -24,7 +24,10 @@ public class DebugCommand extends AbstractCommand
 		return String.join("\n", lines);
 	}
 	
-	#if MC_VER > MC_1_12_2
+	#if MC_VER <= MC_1_12_2
+	public void execute(ICommandSender sender)
+	{ sendMessage(sender, getDebugString()); }
+	#else
 	@Override
 	public LiteralArgumentBuilder<CommandSourceStack> buildCommand()
 	{
@@ -32,11 +35,6 @@ public class DebugCommand extends AbstractCommand
             .executes(c -> {
                 return this.sendSuccessResponse(c, getDebugString(), false);
             });
-	}
-	#else
-	public void execute(ICommandSender sender)
-	{
-		sendMessage(sender, getDebugString());
 	}
 	#endif
 	

@@ -8,7 +8,10 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.text.TextComponentString;
 #endif
 
-public abstract class AbstractCommand
+/**
+ * Abstract class providing common functionality for DH's commands.
+ */
+public abstract class AbstractDhCommand
 {
 	protected static void sendMessage(ICommandSender sender, String message)
 	{
@@ -39,7 +42,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 /**
  * Abstract class providing common functionality for DH's commands.
  */
-public abstract class AbstractCommand
+public abstract class AbstractDhCommand
 {
 	public abstract LiteralArgumentBuilder<CommandSourceStack> buildCommand();
 	
