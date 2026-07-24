@@ -64,12 +64,10 @@ public class MinecraftServerWrapper extends AbstractMinecraftSharedWrapper
 			throw new IllegalStateException("Trying to get Installation Direction before dedicated server completed initialization!");
 		}
 		
-		#if MC_VER <= MC_1_12_2
 		#if MC_VER <= MC_1_7_10
 		return new File(".");
-		#else
+		#elif MC_VER <= MC_1_12_2
 		return this.dedicatedServer.getDataDirectory();
-		#endif
 		#elif MC_VER < MC_1_21_1
 		return this.dedicatedServer.getServerDirectory();
 		#else

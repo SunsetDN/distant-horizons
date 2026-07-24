@@ -674,6 +674,20 @@ public class ChunkWrapper implements IChunkWrapper
 		#endif
 	}
 	
+	
+	#if MC_VER <= MC_1_7_10
+	/** 
+	 * Returns true if the chunk has
+	 * been populated far enough for us to
+	 * convert it to an LOD.
+	 */
+	public boolean canSaveChunk()
+	{
+		return this.chunk.isTerrainPopulated
+			&& this.chunk.isLightPopulated;
+	}
+	#endif
+	
 	//endregion
 	
 	
@@ -840,10 +854,8 @@ public class ChunkWrapper implements IChunkWrapper
 		#endif
 	}
 	
-	#if MC_VER <= MC_1_7_10
-	public boolean isChunkReady() { return this.chunk.isTerrainPopulated && this.chunk.isLightPopulated; }
-	#endif
-	
+	// commented out since we don't currently need
+	// any special hashing logic
 	//@Override 
 	//public int hashCode()
 	//{

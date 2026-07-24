@@ -1,7 +1,6 @@
 package com.seibel.distanthorizons.forge;
 
 import java.util.Iterator;
-import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -35,136 +34,183 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 
 public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
 
-    private static World GetEventLevel(WorldEvent e) {
-        return e.world;
-    }
-
-    private final ServerApi serverApi = ServerApi.INSTANCE;
+	
+	private static final ConcurrentLinkedQueue<ScheduledTask<?>> TASK_QUEUE = new ConcurrentLinkedQueue<>();
+	private static final ConcurrentLinkedQueue<ChunkLoadEvent> CHUNK_LOAD_EVENTS = new ConcurrentLinkedQueue<>();
+	
+	
     private final boolean isDedicated;
-
-    @Override
-    public void registerEvents() {
-        MinecraftForge.EVENT_BUS.register(this);
-        FMLCommonHandler.instance()
-            .bus()
-            .register(this);
-        if (this.isDedicated) {
-            ForgePluginPacketSender.setPacketHandler(ServerApi.INSTANCE::pluginMessageReceived);
-        }
-    }
-
-    // =============//
+	public static boolean connected = false;
+	
+	
+	
+	//=============//
     // constructor //
-    // =============//
+    //=============//
+	//region
 
-    public ForgeServerProxy(boolean isDedicated) {
-        this.isDedicated = isDedicated;
-    }
-
-    // ========//
+    public ForgeServerProxy(boolean isDedicated) { this.isDedicated = isDedicated; }
+	
+	@Override
+	public void registerEvents()
+	{
+		MinecraftForge.EVENT_BUS.register(this);
+		FMLCommonHandler.instance()
+			.bus()
+			.register(this);
+		
+		if (this.isDedicated)
+		{
+			ForgePluginPacketSender.setPacketHandler(ServerApi.INSTANCE::pluginMessageReceived);
+		}
+	}
+	
+	//endregion
+	
+	
+	
+    //========//
     // events //
-    // ========//
-
-    public static boolean connected = false;
-
-    public static void serverStopping() {
-        while (!taskQueue.isEmpty()) {
-            ScheduledTask<?> scheduledTask = taskQueue.poll();
-            if (scheduledTask == null) {
-                continue;
-            }
-            scheduledTask.future.complete(null);
-        }
-    }
-
-    private class ChunkLoadEvent {
-
-        public final ChunkWrapper chunk;
-        public final ILevelWrapper level;
-        public int age;
-
-        private ChunkLoadEvent(ChunkWrapper chunk, ILevelWrapper level) {
-            this.chunk = chunk;
-            this.level = level;
-        }
-    }
-
-    private static final Queue<ChunkLoadEvent> chunkLoadEvents = new ConcurrentLinkedQueue<>();
+    //========//
+	//region
+	
+	public static void serverStopping()
+	{
+		// clear the task queue
+		while (!TASK_QUEUE.isEmpty())
+		{
+			ScheduledTask<?> scheduledTask = TASK_QUEUE.poll();
+			if (scheduledTask == null)
+			{
+				continue;
+			}
+			
+			scheduledTask.future.complete(null);
+		}
+	}
 
     // ServerTickEvent (at end)
     @SubscribeEvent
-    public void serverTickEvent(TickEvent.ServerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            Iterator<ChunkLoadEvent> iterator = chunkLoadEvents.iterator();
-            while (iterator.hasNext()) {
-                ChunkLoadEvent chunkLoadEvent = iterator.next();
-                if (chunkLoadEvent.chunk.isChunkReady()) {
-                    this.serverApi.serverChunkLoadEvent(chunkLoadEvent.chunk, chunkLoadEvent.level);
-                    iterator.remove();
-                } else {
-                    // Cleanup old events if they never got ready
-                    chunkLoadEvent.age++;
-                    if (chunkLoadEvent.age > 200) {
-                        iterator.remove();
-                    }
-                }
-            }
-
-            // Time budget instead of count
-            long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(15);
-            boolean processedAtLeastOne = false;
-            while (!taskQueue.isEmpty()) {
-                ScheduledTask<?> scheduledTask = taskQueue.poll();
-                if (scheduledTask == null) {
-                    continue;
-                }
-                scheduledTask.run();
-                if (scheduledTask.isLimited()) {
-                    if (!processedAtLeastOne) {
-                        processedAtLeastOne = true;
-                    } else if (System.nanoTime() >= deadline) {
-                        break;
-                    }
-                }
-            }
-        }
-    }
+	public void serverTickEvent(TickEvent.ServerTickEvent event)
+    {
+		if (event.phase == TickEvent.Phase.END)
+	    {
+			//==========================//
+			// handle chunk load events //
+		    //==========================//
+		    //region
+		    {
+			    Iterator<ChunkLoadEvent> chunkEventIterator = CHUNK_LOAD_EVENTS.iterator();
+			    while (chunkEventIterator.hasNext())
+			    {
+				    ChunkLoadEvent chunkLoadEvent = chunkEventIterator.next();
+				    if (chunkLoadEvent.chunkWrapper.canSaveChunk())
+				    {
+					    ServerApi.INSTANCE.serverChunkLoadEvent(chunkLoadEvent.chunkWrapper, chunkLoadEvent.level);
+					    chunkEventIterator.remove();
+				    }
+				    else
+				    {
+					    // Cleanup old events if they never got ready
+					    
+					    chunkLoadEvent.numberOfTicksSinceQueue++;
+					    // 20 ticks per second = ~10 seconds before removal
+					    if (chunkLoadEvent.numberOfTicksSinceQueue > 200)
+					    {
+						    chunkEventIterator.remove();
+					    }
+				    }
+			    }
+		    }
+		    //endregion
+			
+			
+			
+		    //===================//
+		    // handle task queue //
+		    //===================//
+		    //region
+		    {
+			    // limit how many tasks we can run at a time
+			    // to prevent lagging the server thread
+			    long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(15);
+			    boolean processedAtLeastOne = false;
+			    while (!TASK_QUEUE.isEmpty())
+			    {
+				    ScheduledTask<?> scheduledTask = TASK_QUEUE.poll();
+				    if (scheduledTask == null)
+				    {
+					    continue;
+				    }
+				    
+				    scheduledTask.run();
+				    
+					// TODO why do we ignore the timeout if the current task is "limited"?
+				    if (scheduledTask.limited)
+				    {
+					    if (!processedAtLeastOne)
+					    {
+						    processedAtLeastOne = true;
+					    }
+					    else if (System.nanoTime() >= deadline)
+					    {
+						    break;
+					    }
+				    }
+			    }
+		    }
+			//endregion
+		}
+	}
 
     // ServerLevelLoadEvent
-    @SubscribeEvent
-    public void serverLevelLoadEvent(WorldEvent.Load event) {
-        if (GetEventLevel(event) instanceof WorldServer) {
-            this.serverApi.serverLevelLoadEvent(getServerLevelWrapper((WorldServer) GetEventLevel(event)));
-        }
-    }
+    @SubscribeEvent 
+    public void serverLevelLoadEvent(WorldEvent.Load event)
+    {
+		if (GetEventLevel(event) instanceof WorldServer)
+	    {
+			ServerApi.INSTANCE.serverLevelLoadEvent(getServerLevelWrapper((WorldServer) GetEventLevel(event)));
+		}
+	}
 
     // ServerLevelUnloadEvent
     @SubscribeEvent
-    public void serverLevelUnloadEvent(WorldEvent.Unload event) {
-        if (GetEventLevel(event) instanceof WorldServer) {
-            // Make new server level wrapper so it's not cached...
-            this.serverApi.serverLevelUnloadEvent(new ServerLevelWrapper((WorldServer) GetEventLevel(event)));
-        }
-        chunkLoadEvents.removeIf(x -> x.level.getWrappedMcObject() == event.world);
-    }
+	public void serverLevelUnloadEvent(WorldEvent.Unload event)
+    {
+		if (GetEventLevel(event) instanceof WorldServer)
+	    {
+			// Make new server level wrapper so it's not cached...
+			ServerApi.INSTANCE.serverLevelUnloadEvent(new ServerLevelWrapper((WorldServer) GetEventLevel(event)));
+		}
+		
+		// remove any unprocessed chunks that belong to this level
+		CHUNK_LOAD_EVENTS.removeIf(existingEvent -> existingEvent.level.getWrappedMcObject() == event.world);
+	}
 
     @SubscribeEvent
-    public void serverChunkLoadEvent(ChunkEvent.Load event) {
-        if (!(event.world instanceof WorldServer)) {
-            return;
-        }
-        ILevelWrapper levelWrapper = ProxyUtil.getLevelWrapper(GetEventLevel(event));
-        ChunkWrapper chunk = new ChunkWrapper(event.getChunk(), levelWrapper);
-        if (chunk.isChunkReady()) {
-            this.serverApi.serverChunkLoadEvent(chunk, levelWrapper);
-            return;
-        }
-        chunkLoadEvents.add(new ChunkLoadEvent(chunk, levelWrapper));
-    }
+	public void serverChunkLoadEvent(ChunkEvent.Load event)
+    {
+		if (!(event.world instanceof WorldServer))
+	    {
+			return;
+		}
+		
+		ILevelWrapper levelWrapper = ProxyUtil.getLevelWrapper(GetEventLevel(event));
+		ChunkWrapper chunk = new ChunkWrapper(event.getChunk(), levelWrapper);
+		if (chunk.canSaveChunk())
+	    {
+			ServerApi.INSTANCE.serverChunkLoadEvent(chunk, levelWrapper);
+			return;
+		}
+		
+		CHUNK_LOAD_EVENTS.add(new ChunkLoadEvent(chunk, levelWrapper));
+	}
 
     @SubscribeEvent
-    public void serverChunkSaveEvent(ChunkDataEvent.Save event) {
-        if (!(event.world instanceof WorldServer)) {
+    public void serverChunkSaveEvent(ChunkDataEvent.Save event) 
+    {
+        if (!(event.world instanceof WorldServer)) 
+		{
             return;
         }
         ILevelWrapper levelWrapper = ProxyUtil.getLevelWrapper(GetEventLevel(event));
@@ -174,89 +220,134 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
     }
 
     @SubscribeEvent
-    public void playerLoggedInEvent(PlayerEvent.PlayerLoggedInEvent event) {
-        this.serverApi.serverPlayerJoinEvent(getServerPlayerWrapper(event));
-    }
+    public void playerLoggedInEvent(PlayerEvent.PlayerLoggedInEvent event) 
+    { ServerApi.INSTANCE.serverPlayerJoinEvent(getServerPlayerWrapper(event)); }
 
     @SubscribeEvent
-    public void playerLoggedOutEvent(PlayerEvent.PlayerLoggedOutEvent event) {
-        this.serverApi.serverPlayerDisconnectEvent(getServerPlayerWrapper(event));
-    }
+    public void playerLoggedOutEvent(PlayerEvent.PlayerLoggedOutEvent event) 
+    { ServerApi.INSTANCE.serverPlayerDisconnectEvent(getServerPlayerWrapper(event)); }
 
     @SubscribeEvent
-    public void playerChangedDimensionEvent(PlayerEvent.PlayerChangedDimensionEvent event) {
-        this.serverApi.serverPlayerLevelChangeEvent(
+    public void playerChangedDimensionEvent(PlayerEvent.PlayerChangedDimensionEvent event) 
+    {
+        ServerApi.INSTANCE.serverPlayerLevelChangeEvent(
             getServerPlayerWrapper(event),
             getServerLevelWrapper(event.fromDim, event),
             getServerLevelWrapper(event.toDim, event));
     }
 
     @SubscribeEvent
-    public void clickBlockEvent(PlayerInteractEvent event) {
-        ILevelWrapper wrappedLevel = ProxyUtil.getLevelWrapper(event.world);
-        if (SharedApi.isChunkAtBlockPosAlreadyUpdating(wrappedLevel, event.x, event.z)) {
-            return;
-        }
-
-        schedule(false, () -> {
-            Chunk chunk = event.world.getChunkFromBlockCoords(event.x, event.z);
-            ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, wrappedLevel);
-            SharedApi.INSTANCE.applyChunkUpdate(chunkWrapper, wrappedLevel, true);
-            return null;
-        });
-    }
-
-    private static final Queue<ScheduledTask<?>> taskQueue = new ConcurrentLinkedQueue<>();
-
-    // Schedule a task that runs on the main thread and returns a CompletableFuture result
-    public static <T> CompletableFuture<T> schedule(boolean limited, Supplier<T> task) {
-        CompletableFuture<T> future = new CompletableFuture<>();
-        taskQueue.add(new ScheduledTask<>(task, future, limited));
-        return future;
-    }
-
-    private static class ScheduledTask<T> {
-
-        private final Supplier<T> task;
-        private final CompletableFuture<T> future;
-        private final boolean limited;
-
-        public ScheduledTask(Supplier<T> task, CompletableFuture<T> future, boolean limited) {
-            this.task = task;
-            this.future = future;
-            this.limited = limited;
-        }
-
-        public void run() {
-            try {
-                future.complete(task.get());
-            } catch (Exception e) {
-                future.completeExceptionally(e);
-            }
-        }
-
-        public boolean isLimited() {
-            return limited;
-        }
-    }
-
-    // ================//
+	public void clickBlockEvent(PlayerInteractEvent event)
+    {
+		ILevelWrapper wrappedLevel = ProxyUtil.getLevelWrapper(event.world);
+		if (SharedApi.isChunkAtBlockPosAlreadyUpdating(wrappedLevel, event.x, event.z))
+	    {
+			return;
+		}
+		
+		scheduleTickTask(false, () ->
+		{
+			Chunk chunk = event.world.getChunkFromBlockCoords(event.x, event.z);
+			ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, wrappedLevel);
+			SharedApi.INSTANCE.applyChunkUpdate(chunkWrapper, wrappedLevel, true);
+			return null;
+		});
+	}
+	
+	//endregion
+	
+	
+	
+    //================//
     // helper methods //
-    // ================//
-
-    private static IServerLevelWrapper getServerLevelWrapper(WorldServer level) {
-        return ServerLevelWrapper.getWrapper(level);
-    }
-
-    private static IServerLevelWrapper getServerLevelWrapper(int dim, PlayerEvent event) {
+    //================//
+	//region
+	
+	// Schedule a task that runs on the main thread and returns a CompletableFuture result
+	public static <T> CompletableFuture<T> scheduleTickTask(boolean limited, Supplier<T> task)
+	{
+		CompletableFuture<T> future = new CompletableFuture<>();
+		TASK_QUEUE.add(new ScheduledTask<>(task, future, limited));
+		return future;
+	}
+	
+	private static World GetEventLevel(WorldEvent e) { return e.world; }
+	
+	private static IServerLevelWrapper getServerLevelWrapper(WorldServer level) 
+    { return ServerLevelWrapper.getWrapper(level); }
+	
+    private static IServerLevelWrapper getServerLevelWrapper(int dim, PlayerEvent event) 
+    {
         WorldServer world = (WorldServer) event.player.worldObj;
         WorldServer worldDim = world.func_73046_m()
             .worldServerForDimension(dim);
         return getServerLevelWrapper(worldDim);
     }
-
-    private static IServerPlayerWrapper getServerPlayerWrapper(PlayerEvent event) {
-        return ServerPlayerWrapper.getWrapper((EntityPlayerMP) event.player);
-    }
-
+	
+    private static IServerPlayerWrapper getServerPlayerWrapper(PlayerEvent event) 
+    { return ServerPlayerWrapper.getWrapper((EntityPlayerMP) event.player); }
+	
+	//endregion
+	
+	
+	
+	//================//
+	// helper classes //
+	//================//
+	//region
+	
+	private static class ChunkLoadEvent
+	{
+		public final ChunkWrapper chunkWrapper;
+		public final ILevelWrapper level;
+		
+		/** 
+		 * used to track how long this event has
+		 * been queued so we can clean up old tasks.
+		 */
+		public int numberOfTicksSinceQueue = 0;
+		
+		
+		
+		private ChunkLoadEvent(ChunkWrapper chunkWrapper, ILevelWrapper level)
+		{
+			this.chunkWrapper = chunkWrapper;
+			this.level = level;
+		}
+	}
+	
+	private static class ScheduledTask<T>
+	{
+		private final Supplier<T> task;
+		private final CompletableFuture<T> future;
+		
+		// TODO what does this mean?
+		public final boolean limited;
+		
+		
+		public ScheduledTask(Supplier<T> task, CompletableFuture<T> future, boolean limited)
+		{
+			this.task = task;
+			this.future = future;
+			this.limited = limited;
+		}
+		
+		
+		public void run()
+		{
+			try
+			{
+				this.future.complete(this.task.get());
+			}
+			catch (Exception e)
+			{
+				this.future.completeExceptionally(e);
+			}
+		}
+	}
+	
+	//endregion
+	
+	
+	
 }

@@ -161,10 +161,11 @@ public abstract class AbstractModInitializer
 			Initializer.postConfigInit();
 			this.postInit();
 			this.postServerInit();
-			#if MC_VER > MC_1_12_2
-			this.commandInitializer.onServerReady();
-			#else
+			
+			#if MC_VER <= MC_1_7_10
 			((ServerCommandManager) server.getCommandManager()).registerCommand(CommandInitializer.initCommands());
+			#else
+			this.commandInitializer.onServerReady();
 			#endif
 			
 			this.checkForUpdates();

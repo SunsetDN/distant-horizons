@@ -431,7 +431,7 @@ public class InternalServerGenerator
 		}
 
 		#if MC_VER <= MC_1_7_10
-		return ForgeServerProxy.schedule(true, () ->
+		return ForgeServerProxy.scheduleTickTask(true, () ->
 		#else
 		CompletableFuture<Chunk> future = new CompletableFuture<>();
 		level.getMinecraftServer().addScheduledTask(() ->
@@ -547,7 +547,7 @@ public class InternalServerGenerator
 	#endif
 	{
 		#if MC_VER <= MC_1_7_10
-		return ForgeServerProxy.schedule(false, () ->
+		return ForgeServerProxy.scheduleTickTask(false, () ->
 		{
 			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
 			for (int dx = -1; dx <= 1; dx++)

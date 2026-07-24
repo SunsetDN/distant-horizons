@@ -101,7 +101,7 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy {
 
         ILevelWrapper wrappedLevel = ProxyUtil.getLevelWrapper(level);
         ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, wrappedLevel);
-        if (!chunkWrapper.isChunkReady()) {
+        if (!chunkWrapper.canSaveChunk()) {
             LOGGER.info(
                 "Skipping client chunk update for not-ready chunk [" + chunk.xPosition + "," + chunk.zPosition + "].");
             return;
