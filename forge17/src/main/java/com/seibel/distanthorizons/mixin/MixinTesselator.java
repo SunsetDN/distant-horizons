@@ -10,10 +10,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.seibel.distanthorizons.RenderHelper;
 
 @Mixin(Tessellator.class)
-public class MixinTesselator {
-
+public class MixinTesselator 
+{
     @Inject(method = "draw", at = @At(value = "HEAD"))
-    void drawMixin(CallbackInfoReturnable<Integer> cir) {
-        RenderHelper.HelpTess();
-    }
+    void drawMixin(CallbackInfoReturnable<Integer> cir) 
+    { RenderHelper.HelpTesselator(); }
+	
+	
+	
 }

@@ -13,8 +13,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.seibel.distanthorizons.interfaces.IMixinTextureAtlasSprite;
 
 @Mixin(TextureMap.class)
-public class MixinTextureMap {
-
+public class MixinTextureMap 
+{
     @WrapOperation(
         method = "loadTextureAtlas",
         at = @At(
@@ -22,10 +22,13 @@ public class MixinTextureMap {
             target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;load(Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/util/ResourceLocation;)Z",
             remap = false))
     private boolean load(TextureAtlasSprite instance, IResourceManager manager, ResourceLocation location,
-        Operation<Boolean> original) {
-        boolean ret = original.call(instance, manager, location);
+        Operation<Boolean> original) 
+    {
+        boolean returnValue = original.call(instance, manager, location);
+		
         IMixinTextureAtlasSprite mixinSprite = (IMixinTextureAtlasSprite) instance;
         mixinSprite.distanthorizons$loadData();
-        return ret;
+		
+        return returnValue;
     }
 }

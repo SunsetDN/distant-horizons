@@ -1,4 +1,5 @@
 package com.seibel.distanthorizons.common.util;
+
 #if MC_VER <= MC_1_7_10
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
@@ -12,8 +13,10 @@ import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
 import com.seibel.distanthorizons.RenderHelper;
 #endif
 
-public class Camera {
+public class Camera 
+{
 	#if MC_VER <= MC_1_7_10
+	
     final Vector3d pos = new Vector3d();
     final BlockPos blockPos = new BlockPos();
     float pitch;
@@ -21,12 +24,13 @@ public class Camera {
     EntityLivingBase entity;
     boolean thirdPerson;
     final float partialTicks;
+	
+	
+	
+    public Vector3d getPos() { return pos; }
 
-    public Vector3d getPos() {
-        return pos;
-    }
-
-    public Camera(EntityLivingBase entity, float partialTicks) {
+    public Camera(EntityLivingBase entity, float partialTicks) 
+    {
         this.partialTicks = partialTicks;
         final Vector4f offset = new Vector4f(); // third person offset
         final Matrix4f inverseModelView = RenderHelper.getModelViewMatrixMC()

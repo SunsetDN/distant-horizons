@@ -17,19 +17,22 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import com.seibel.distanthorizons.MixinFlags;
 
 @Mixin(Framebuffer.class)
-public class MixinFramebuffer {
-
+public class MixinFramebuffer 
+{
     @Shadow
     public int framebufferTextureWidth;
-
     @Shadow
     public int framebufferTextureHeight;
 
+	
+	
     @Redirect(
         method = "createFramebuffer",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OpenGlHelper;func_153185_f()I"))
-    private int createDepthTexture() {
-        if (!MixinFlags.framebufferMixinEnabled) {
+    private int createDepthTexture() 
+    {
+        if (!MixinFlags.framebufferMixinEnabled) 
+		{
             return OpenGlHelper.func_153185_f();
         }
 
@@ -58,30 +61,38 @@ public class MixinFramebuffer {
     @Redirect(
         method = "createFramebuffer",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OpenGlHelper;func_153176_h(II)V"))
-    private void bindDepthTexture(int frameBufferId, int depthTexture) {
-        if (!MixinFlags.framebufferMixinEnabled) {
+    private void bindDepthTexture(int frameBufferId, int depthTexture) 
+    {
+        if (!MixinFlags.framebufferMixinEnabled) 
+		{
             OpenGlHelper.func_153176_h(frameBufferId, depthTexture);
             return;
         }
         GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL11.GL_TEXTURE_2D, depthTexture, 0);
     }
 
-    @Redirect(
-        method = "createFramebuffer",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OpenGlHelper;func_153190_b(IIII)V"))
-    private void oldBindStuff(int p_153190_0_, int p_153190_1_, int p_153190_2_, int p_153190_3_) {
-
-    }
+	// TODO doesn't appear to be used
+    //@Redirect(
+    //    method = "createFramebuffer",
+    //    at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OpenGlHelper;func_153190_b(IIII)V"))
+    //private void oldBindStuff(int p_153190_0_, int p_153190_1_, int p_153190_2_, int p_153190_3_) 
+    //{
+	//
+    //}
 
     @Redirect(
         method = "deleteFramebuffer",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OpenGlHelper;func_153184_g(I)V"))
-    private void deleteDepthTexture(int depthTexture) {
-        if (!MixinFlags.framebufferMixinEnabled) {
+    private void deleteDepthTexture(int depthTexture) 
+    {
+        if (!MixinFlags.framebufferMixinEnabled) 
+		{
             OpenGlHelper.func_153184_g(depthTexture);
             return;
         }
         GL11.glDeleteTextures(depthTexture);
-
     }
+	
+	
+	
 }
