@@ -634,7 +634,7 @@ public class ChunkWrapper implements IChunkWrapper
 	public int getMaxBlockX() 
 	{ 
 		#if MC_VER <= MC_1_7_10
-		return (this.chunk.xPosition * 16) + 16;
+		return (this.chunk.xPosition * 16) + 15;
 		#elif MC_VER <= MC_1_12_2
 		return this.chunk.getPos().getXEnd();
 		#else
@@ -645,7 +645,7 @@ public class ChunkWrapper implements IChunkWrapper
 	public int getMaxBlockZ() 
 	{ 
 		#if MC_VER <= MC_1_7_10
-		return (this.chunk.zPosition * 16) + 16;
+		return (this.chunk.zPosition * 16) + 15;
 		#elif MC_VER <= MC_1_12_2
 		return this.chunk.getPos().getZEnd();
 		#else
