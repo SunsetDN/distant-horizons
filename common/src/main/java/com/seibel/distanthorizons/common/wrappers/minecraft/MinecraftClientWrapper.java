@@ -51,6 +51,7 @@ import net.minecraft.crash.CrashReport;
 import net.minecraft.profiler.Profiler;
 #if MC_VER <= MC_1_7_10
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.MathHelper;
 #else
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -295,7 +296,7 @@ public class MinecraftClientWrapper extends AbstractMinecraftSharedWrapper imple
 		}
 		
 		#if MC_VER <= MC_1_7_10
-		return new DhBlockPos((int) player.posX, (int) player.posY, (int) player.posZ);
+		return new DhBlockPos(MathHelper.floor_double(player.posX), MathHelper.floor_double(player.posY), MathHelper.floor_double(player.posZ));
 		#elif MC_VER <= MC_1_12_2
 		BlockPos playerPos = player.getPosition();
 		return new DhBlockPos(playerPos.getX(), playerPos.getY(), playerPos.getZ());
