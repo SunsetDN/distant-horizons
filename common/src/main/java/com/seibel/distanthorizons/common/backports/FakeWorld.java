@@ -2,6 +2,7 @@ package com.seibel.distanthorizons.common.backports;
 
 #if MC_VER <= MC_1_7_10
 
+import com.seibel.distanthorizons.common.wrappers.block.ClientBlockStateColorCache;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDoublePlant;
 import net.minecraft.init.Blocks;
@@ -10,36 +11,66 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.util.ForgeDirection;
 
+/**
+ * Used by {@link ClientBlockStateColorCache}
+ * in order to handle some world related operations.
+ */
 public class FakeWorld implements IBlockAccess
 {
-	private IBlockAccess real;
+	private IBlockAccess realWorld;
+	private BiomeGenBase biome;
+	
 	private int blockX;
 	private int blockY;
 	private int blockZ;
+	
 	private FakeBlockState blockState;
-	private BiomeGenBase biome;
-
-	public void update(IBlockAccess real, BiomeGenBase biome, int blockX, int blockY, int blockZ, FakeBlockState blockState)
+	
+	
+	
+	//========//
+	// update //
+	//========//
+	//region
+	
+	public void update(
+		IBlockAccess realWorld, BiomeGenBase biome, 
+		int blockX, int blockY, int blockZ, 
+		FakeBlockState blockState)
 	{
-		this.real = real;
+		this.realWorld = realWorld;
+		this.biome = biome;
+		
 		this.blockX = blockX;
 		this.blockY = blockY;
 		this.blockZ = blockZ;
+		
 		this.blockState = blockState;
-		this.biome = biome;
 		if (this.biome == null)
 		{
-			this.biome = BiomeGenBase.plains; // Fallback so we don't crash
+			this.biome = BiomeGenBase.plains; // Fallback to prevent null pointers
 		}
 	}
-
+	
+	//endregion
+	
+	
+	
+	//===========//
+	// overrides //
+	//===========//
+	//region
+	
 	@Override
 	public Block getBlock(int x, int y, int z)
 	{
-		if (x == blockX && y == blockY && z == blockZ)
+		if (x == this.blockX 
+			&& y == this.blockY 
+			&& z == this.blockZ)
 		{
-			return blockState.block;
+			return this.blockState.block;
 		}
+		
 		return Blocks.air;
 	}
 
@@ -52,14 +83,17 @@ public class FakeWorld implements IBlockAccess
 	@Override
 	public int getBlockMetadata(int x, int y, int z)
 	{
-		if (x == blockX && y == blockY && z == blockZ)
+		if (x == this.blockX 
+			&& y == this.blockY 
+			&& z == this.blockZ)
 		{
-			return blockState.meta;
+			return this.blockState.meta;
 		}
-		if (blockState.block instanceof BlockDoublePlant)
+		else if (this.blockState.block instanceof BlockDoublePlant)
 		{
 			return 2; // TODO
 		}
+		
 		return 0;
 	}
 
@@ -73,17 +107,22 @@ public class FakeWorld implements IBlockAccess
 	public BiomeGenBase getBiomeGenForCoords(int x, int z)
 	{
 		// Not 100% accurate since grass samples the surrounding blocks, but good enough for now
-		return biome;
+		return this.biome;
 	}
 
 	@Override
-	public int getHeight() { return real.getHeight(); }
+	public int getHeight() { return this.realWorld.getHeight(); }
 
 	@Override
-	public boolean extendedLevelsInChunkCache() { return real.extendedLevelsInChunkCache(); }
+	public boolean extendedLevelsInChunkCache() { return this.realWorld.extendedLevelsInChunkCache(); }
 
 	@Override
-	public boolean isSideSolid(int x, int y, int z, ForgeDirection side, boolean _default) { throw new RuntimeException(); }
+	public boolean isSideSolid(int x, int y, int z, ForgeDirection side, boolean _default) { throw new UnsupportedOperationException("isSideSolid() isn't implemented"); }
+	
+	//endregion
+	
+	
+	
 }
 
 #endif

@@ -139,7 +139,7 @@ public class ClientBlockStateColorCache
 	
 	
 	#if MC_VER <= MC_1_7_10
-	private static final ThreadLocal<FakeWorld> FAKE_WORLD = ThreadLocal.withInitial(FakeWorld::new);
+	private static final ThreadLocal<FakeWorld> FAKE_WORLD_REF = ThreadLocal.withInitial(FakeWorld::new);
 	#endif
 
 	private final IClientLevelWrapper clientLevelWrapper;
@@ -286,26 +286,33 @@ public class ClientBlockStateColorCache
 			else
 			{
 				LOGGER.warn("Can't get a usable icon for block type " + blockState.block.getClass());
+				// bit-wise to set max alpha 255
 				this.baseColor = 0xFF000000 | blockState.block.getBlockColor();
 			}
 
 			// Backup tinting heuristics
-			this.needPostTinting = blockState.block.getBlockColor() != 0xFFFFFF;
+			// (aka guess that the block should be tinted if it's entirely white)
+			this.needPostTinting = blockState.block.getBlockColor() != 0xFFFFFF; // white
+			
 			if (blockState.block instanceof BlockGrass
 				|| blockState.block instanceof BlockLeavesBase
 				|| blockState.block instanceof BlockBush)
 			{
 				this.needPostTinting = true;
 			}
-			if (blockState.block == Blocks.water || blockState.block == Blocks.flowing_water)
+			
+			if (blockState.block == Blocks.water 
+				|| blockState.block == Blocks.flowing_water)
 			{
 				this.needPostTinting = true;
 			}
-			// For LOTR
+			
+			// Necessary for the Lord of the Rings (LOTR) mod
 			if (blockState.block instanceof IShearable)
 			{
 				this.needPostTinting = true;
 			}
+			
 			this.tintIndex = 0;
 
 			this.isColorResolved = true;
@@ -314,7 +321,9 @@ public class ClientBlockStateColorCache
 		{
 			RESOLVE_LOCK.unlock();
 		}
+		
 		#else
+		
 		try
 		{
 			// getQuads() isn't thread safe so we need to put this logic in a lock
@@ -703,10 +712,12 @@ public class ClientBlockStateColorCache
 				// 1.7.10: route through FakeWorld + Block.colorMultiplier so block-tint logic
 				// (grass/foliage/water/etc.) gets a usable IBlockAccess + biome lookup
 				IBlockAccess realLevel = (IBlockAccess) this.clientLevelWrapper.getWrappedMcObject();
-				FakeWorld world = FAKE_WORLD.get();
-				FakeBlockState fakeState = (FakeBlockState)this.blockState; 
-				world.update(realLevel, biomeWrapper.biome, blockPos.getX(), blockPos.getY(), blockPos.getZ(), fakeState);
-				tintColor = fakeState.block.colorMultiplier(world, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+				FakeBlockState fakeBlockState = (FakeBlockState)this.blockState;
+				
+				FakeWorld fakeWorld = FAKE_WORLD_REF.get();
+				fakeWorld.update(realLevel, biomeWrapper.biome, blockPos.getX(), blockPos.getY(), blockPos.getZ(), fakeBlockState);
+				
+				tintColor = fakeBlockState.block.colorMultiplier(fakeWorld, blockPos.getX(), blockPos.getY(), blockPos.getZ());
 				#elif MC_VER <= MC_1_12_2
 				// 1.12.2 doesn't have BlockAndTintGetter -> get tintColor from biome
 				WorldClient world = (WorldClient) this.clientLevelWrapper.getWrappedMcObject();
