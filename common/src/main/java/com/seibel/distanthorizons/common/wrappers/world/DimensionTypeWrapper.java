@@ -21,6 +21,7 @@ package com.seibel.distanthorizons.common.wrappers.world;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.Objects;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IDimensionTypeWrapper;
 
@@ -194,17 +195,23 @@ public class DimensionTypeWrapper implements IDimensionTypeWrapper
 	@Override
 	public boolean equals(Object obj)
 	{
-		if (obj.getClass() != DimensionTypeWrapper.class)
+		if (this == obj)
+		{
+			return true;
+		}
+		else if (obj == null || obj.getClass() != DimensionTypeWrapper.class)
 		{
 			return false;
 		}
 		else
 		{
 			DimensionTypeWrapper other = (DimensionTypeWrapper) obj;
-			return other.getName().equals(this.getName());
+			return Objects.equals(other.getName(), this.getName());
 		}
 	}
 	
+	@Override
+	public int hashCode() { return Objects.hash(this.getName()); }
 	
 	
 }
