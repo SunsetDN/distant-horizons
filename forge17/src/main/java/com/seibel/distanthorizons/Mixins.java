@@ -5,14 +5,24 @@ import org.jetbrains.annotations.NotNull;
 import com.gtnewhorizon.gtnhmixins.builders.IMixins;
 import com.gtnewhorizon.gtnhmixins.builders.MixinBuilder;
 
-public enum Mixins implements IMixins {
+/**
+ * Handles setting up mixins
+ * similar to `... mixins.json` in newer MC versions.
+ */
+public enum Mixins implements IMixins 
+{
 
-    CORE(new MixinBuilder().setPhase(Phase.EARLY)
+    CORE(
+		new MixinBuilder().setPhase(Phase.EARLY)
         .addCommonMixins("MixinBiomeGenBase")),
-    THREADED_FILE_IO_NO_SLEEP(new MixinBuilder().setPhase(Phase.EARLY)
+	
+    THREADED_FILE_IO_NO_SLEEP(
+		new MixinBuilder().setPhase(Phase.EARLY)
         .addExcludedMod(TargetedMod.HODGEPODGE)
         .addCommonMixins("MixinThreadedFileIOBase")),
-    CLIENT_CORE(new MixinBuilder().setPhase(Phase.EARLY)
+	
+    CLIENT_CORE(
+		new MixinBuilder().setPhase(Phase.EARLY)
         .addClientMixins(
             "MixinActiveRenderInfo",
             "MixinChunk",
@@ -24,22 +34,27 @@ public enum Mixins implements IMixins {
             "MixinTesselator",
             "MixinTextureAtlasSprite",
             "MixinTextureMap")),
-    FIX_SIDE_FACING_UNLOADED_CHUNKS_BEING_RENDERED(new MixinBuilder().addExcludedMod(TargetedMod.ANGELICA)
+	
+    FIX_SIDE_FACING_UNLOADED_CHUNKS_BEING_RENDERED(
+		new MixinBuilder().addExcludedMod(TargetedMod.ANGELICA)
         .addClientMixins("MixinBlock_SideFacingUnloadedChunk", "MixinChunkCache_SideFacingUnloaded")
         .setPhase(Phase.EARLY)),
-    CLIENT_FADE(new MixinBuilder().setPhase(Phase.EARLY)
+	
+    CLIENT_FADE(
+		new MixinBuilder().setPhase(Phase.EARLY)
         .addExcludedMod(TargetedMod.ANGELICA)
         .addClientMixins("MixinFramebuffer"));
-
+	
+	
+	
     private final MixinBuilder builder;
-
-    Mixins(MixinBuilder builder) {
-        this.builder = builder;
-    }
-
+	
+    Mixins(MixinBuilder builder) { this.builder = builder; }
+	
     @Override
     @NotNull
-    public MixinBuilder getBuilder() {
-        return builder;
-    }
+    public MixinBuilder getBuilder() { return this.builder; }
+	
+	
+	
 }
