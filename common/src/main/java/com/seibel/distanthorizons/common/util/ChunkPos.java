@@ -6,7 +6,7 @@ import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
 
 public class ChunkPos {
 	#if MC_VER <= MC_1_7_10
-    public static long INT_MASK = (1L << Integer.SIZE) - 1;
+    public static final long INT_MASK = (1L << Integer.SIZE) - 1;
 
     public final int x;
     public final int z;
@@ -27,11 +27,11 @@ public class ChunkPos {
     }
 
     public static int getPackedX(long pos) {
-        return (int) (pos & INT_MASK);
+        return (int) pos;
     }
 
     public static int getPackedZ(long pos) {
-        return (int) (pos >>> 32 & INT_MASK);
+        return (int) (pos >>> 32);
     }
 
     public long toLong() {
@@ -39,7 +39,7 @@ public class ChunkPos {
     }
 
     public static long toLong(int x, int z) {
-        return (long) x & 4294967295L | ((long) z & 4294967295L) << 32;
+        return (long) x & INT_MASK | ((long) z & INT_MASK) << 32;
     }
 
     @Override
