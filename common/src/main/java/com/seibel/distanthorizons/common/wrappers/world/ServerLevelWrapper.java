@@ -57,7 +57,9 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkSource;
 #endif
 
-#if MC_VER <= MC_1_12_2
+#if MC_VER <= MC_1_7_10
+import net.minecraft.world.World;
+#elif MC_VER <= MC_1_12_2
 #elif MC_VER <= MC_1_20_4
 import net.minecraft.world.level.chunk.ChunkStatus;
 #else
@@ -202,7 +204,8 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	public DimensionTypeWrapper getDimensionType()
 	{
 		#if MC_VER <= MC_1_7_10
-		return DimensionTypeWrapper.getDimensionTypeWrapper(this.level.provider.dimensionId);
+		// Work around reobf issue. Need to cast to World, otherwise it sometimes fails to obfuscate `provider` properly
+		return DimensionTypeWrapper.getDimensionTypeWrapper(((World) this.level).provider.dimensionId);
 		#elif MC_VER <= MC_1_12_2
 		return DimensionTypeWrapper.getDimensionTypeWrapper(this.level.provider.getDimensionType());
 		#elif MC_VER <= MC_1_21_10
@@ -216,7 +219,8 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	public String getDimensionName()
 	{
 		#if MC_VER <= MC_1_7_10
-		return LegacyDimensionInfo.fullName(this.level.provider.dimensionId);
+		// Work around reobf issue. Need to cast to World, otherwise it sometimes fails to obfuscate `provider` properly
+		return LegacyDimensionInfo.fullName(((World) this.level).provider.dimensionId);
 		#elif MC_VER <= MC_1_12_2
 		return this.level.provider.getDimensionType().getName() + ":" + this.level.provider.getDimension();
 		#elif MC_VER <= MC_1_21_10
@@ -249,7 +253,8 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	{
 		#if MC_VER <= MC_1_7_10
 		// 1.7.10's WorldProvider has no isNether(); the boolean field isHellWorld is its equivalent
-		return this.level.provider.isHellWorld;
+		// Work around reobf issue. Need to cast to World, otherwise it sometimes fails to obfuscate `provider` properly
+		return ((World) this.level).provider.isHellWorld;
 		#elif MC_VER <= MC_1_12_2
 		// 1.12.2 has no hasCeiling() - only the nether has a ceiling in vanilla
 		return this.level.provider.isNether();
@@ -263,7 +268,8 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	{
 		#if MC_VER <= MC_1_7_10
 		// 1.7.10 stores the inverse: hasNoSky is true when the dimension lacks skylight
-		return !this.level.provider.hasNoSky;
+		// Work around reobf issue. Need to cast to World, otherwise it sometimes fails to obfuscate `provider` properly
+		return !((World) this.level).provider.hasNoSky;
 		#elif MC_VER <= MC_1_12_2
 		return this.level.provider.hasSkyLight();
 		#else
