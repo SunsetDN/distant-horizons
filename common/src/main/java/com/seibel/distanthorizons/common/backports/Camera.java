@@ -21,24 +21,12 @@ public class Camera
 	public static final Camera INSTANCE = new Camera();
 	
     private final Vector3d pos = new Vector3d();
-    //final BlockPos blockPos = new BlockPos();
-    //float pitch;
-    //float yaw;
-    //EntityLivingBase entity;
-    //boolean thirdPerson;
-    //final float partialTicks;
-	
-	
-	
-	//========//
-	// update //
-	//========//
-	//region
-	
+
 	public void update(EntityLivingBase entity, float partialTicks)
 	{
 		final Vector4f offset = new Vector4f(); // third person offset
-		final Matrix4f inverseModelView = RenderHelper.getModelViewMatrixMC()
+		final Matrix4f inverseModelView = RenderHelper.getModelViewMatrix()
+			.createJomlMatrix()
 			.invert();
 		inverseModelView.transform(offset);
 		
@@ -46,32 +34,9 @@ public class Camera
 		final double camY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks + offset.y;
 		final double camZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks + offset.z;
 		this.pos.set(camX, camY, camZ);
-		
-		//this.partialTicks = partialTicks;
-		//this.entity = entity;
-		//this.blockPos.set(
-		//	MathHelper.floor_double(camX),
-		//	MathHelper.floor_double(camY),
-		//	MathHelper.floor_double(camZ));
-		//this.pitch = entity.cameraPitch;
-		//this.yaw = entity.rotationYaw;
-		//this.thirdPerson = (Minecraft.getMinecraft().gameSettings.thirdPersonView == 1);
 	}
 	
-	//endregion
-	
-	
-	
-	//=========//
-	// getters //
-	//=========//
-	//region
-	
 	public Vector3d getPos() { return this.pos; }
-	
-	//endregion
-	
-	
 	
 	#endif
 }
