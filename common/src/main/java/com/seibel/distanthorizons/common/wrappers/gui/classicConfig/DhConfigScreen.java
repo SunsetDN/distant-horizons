@@ -595,8 +595,9 @@ class DhConfigScreen extends DhScreen
 				DhScreenUtil.setScreen(this);
 			};
 			
-			int resetButtonPosX = ClassicConfigGUI.ConfigScreenConfigs.getOptionsRightEdge(this.width)
-				- ClassicConfigGUI.ConfigScreenConfigs.RESET_BUTTON_WIDTH;
+			int resetButtonPosX = this.width
+				- ClassicConfigGUI.ConfigScreenConfigs.RESET_BUTTON_WIDTH
+				- ClassicConfigGUI.ConfigScreenConfigs.SPACE_FROM_RIGHT_SCREEN;
 			int resetButtonPosZ = 0;
 			
 			#if MC_VER <= MC_1_12_2 GuiButton #else Button #endif resetButton = MakeBtn(
@@ -670,7 +671,8 @@ class DhConfigScreen extends DhScreen
 			Component textComponent = this.GetTranslatableTextComponentForConfig(configEntry);
 			#endif
 			
-			int optionFieldPosX = ClassicConfigGUI.ConfigScreenConfigs.getOptionsRightEdge(this.width)
+			int optionFieldPosX = this.width
+				- ClassicConfigGUI.ConfigScreenConfigs.SPACE_FROM_RIGHT_SCREEN
 				- ClassicConfigGUI.ConfigScreenConfigs.RESET_BUTTON_WIDTH
 				- ClassicConfigGUI.ConfigScreenConfigs.BUTTON_WIDTH_SPACING
 				- ClassicConfigGUI.ConfigScreenConfigs.OPTION_FIELD_WIDTH;
@@ -780,7 +782,7 @@ class DhConfigScreen extends DhScreen
 			Component textComponent = this.GetTranslatableTextComponentForConfig(configCategory);
 			#endif
 			
-			int categoryPosX = ClassicConfigGUI.ConfigScreenConfigs.getCategoryButtonX(this.width);
+			int categoryPosX = this.width - ClassicConfigGUI.ConfigScreenConfigs.CATEGORY_BUTTON_WIDTH - ClassicConfigGUI.ConfigScreenConfigs.SPACE_FROM_RIGHT_SCREEN;
 			int categoryPosZ = this.height - ClassicConfigGUI.ConfigScreenConfigs.CATEGORY_BUTTON_HEIGHT; // Note: the posZ value here seems to be ignored
 			
 			#if MC_VER <= MC_1_12_2
@@ -819,7 +821,7 @@ class DhConfigScreen extends DhScreen
 			Component textComponent = this.GetTranslatableTextComponentForConfig(configUiButton);
 			#endif
 			
-			int buttonPosX = ClassicConfigGUI.ConfigScreenConfigs.getCategoryButtonX(this.width);
+			int buttonPosX = this.width - ClassicConfigGUI.ConfigScreenConfigs.CATEGORY_BUTTON_WIDTH - ClassicConfigGUI.ConfigScreenConfigs.SPACE_FROM_RIGHT_SCREEN;
 			
 			#if MC_VER <= MC_1_12_2
 			GuiButton widget = MakeBtn(
