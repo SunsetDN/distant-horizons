@@ -264,14 +264,7 @@ public class MinecraftClientWrapper extends AbstractMinecraftSharedWrapper imple
 	#endif
 	
 	@Override
-	public boolean playerExists()
-	{
-		#if MC_VER <= MC_1_7_10
-		return MINECRAFT.thePlayer != null;
-		#else
-		return MINECRAFT.player != null;
-		#endif
-	}
+	public boolean playerExists() { return this.getPlayer() != null; }
 	
 	@Override
 	public DhBlockPos getPlayerBlockPos()
