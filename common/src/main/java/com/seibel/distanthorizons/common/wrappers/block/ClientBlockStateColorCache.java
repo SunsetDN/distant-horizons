@@ -287,7 +287,7 @@ public class ClientBlockStateColorCache
 			else
 			{
 				LOGGER.warn("Can't get a usable icon for block type " + blockState.block.getClass());
-				this.baseColor = blockState.block.getBlockColor();
+				this.baseColor = 0xFF000000 | blockState.block.getBlockColor();
 			}
 
 			// Backup tinting heuristics
