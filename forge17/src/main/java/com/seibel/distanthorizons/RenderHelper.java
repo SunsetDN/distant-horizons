@@ -16,6 +16,12 @@ import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
 import com.seibel.distanthorizons.forge.ForgeMain;
 
+/*
+Since 1.7.10 doesn't natively support modern OpenGL and lwjgl3, we use lwjgl3ify.
+lwjgl3ify uses class transformers to rewrite lwjgl2 calls to lwjgl3.
+Since we use lwjgl3 and modern OpenGL directly we set the "Lwjgl3ify-Aware" in out mod manifest.
+However, this means we can't use modern OpenGL calls in Mixins, that's why this helper exists.
+*/
 public class RenderHelper 
 {
 
