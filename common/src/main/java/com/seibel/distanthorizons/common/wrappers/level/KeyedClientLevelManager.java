@@ -1,6 +1,9 @@
 package com.seibel.distanthorizons.common.wrappers.level;
 
 import com.seibel.distanthorizons.common.wrappers.world.ClientLevelWrapper;
+#if MC_VER <= MC_1_7_10
+import com.seibel.distanthorizons.common.wrappers.world.LegacyDimensionInfo;
+#endif
 import com.seibel.distanthorizons.core.level.IServerKeyedClientLevel;
 import com.seibel.distanthorizons.core.level.IKeyedClientLevelManager;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
@@ -94,10 +97,7 @@ public class KeyedClientLevelManager implements IKeyedClientLevelManager
 		{
 			this.keyedLevelsCache.keySet().removeIf(level -> {
 	            #if MC_VER <= MC_1_7_10
-	            // 1.7.10's WorldProvider has no DimensionType, so route through the wrapper
-	            // (which already knows the right way to derive the name on this MC version).
-	            IClientLevelWrapper wrappedLevel = ClientLevelWrapper.getWrapper(level, true);
-	            String levelDim = (wrappedLevel != null) ? wrappedLevel.getDimensionName() : null;
+				String levelDim = LegacyDimensionInfo.fullName(level.provider.dimensionId);
 	            #elif MC_VER <= MC_1_12_2
 	            String levelDim = level.provider.getDimensionType().getName() + ":" + level.provider.getDimension();
 	            #elif MC_VER <= MC_1_21_10
