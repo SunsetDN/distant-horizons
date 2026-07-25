@@ -1,7 +1,5 @@
 package com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject;
 
-#if MC_VER > MC_1_12_2
-
 #if MC_VER >= MC_1_21_1
 
 import net.minecraft.server.level.GenerationChunkHolder;
@@ -27,5 +25,4 @@ public class DhGenerationChunkHolder extends GenerationChunkHolder
 	
 }
 
-#endif
 #endif

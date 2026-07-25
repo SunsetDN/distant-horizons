@@ -24,6 +24,7 @@ import com.seibel.distanthorizons.core.level.IDhServerLevel;
 
 
 #if MC_VER <= MC_1_12_2
+
 #if MC_VER <= MC_1_7_10
 import net.minecraft.world.WorldServer;
 #else
@@ -35,6 +36,7 @@ import net.minecraft.world.gen.IChunkGenerator;
 
 import java.util.concurrent.CompletableFuture;
 #endif
+
 #else
 import com.mojang.datafixers.DataFixer;
 import net.minecraft.core.Registry;
@@ -44,6 +46,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+
 #if MC_VER >= MC_1_18_2
 import net.minecraft.world.level.chunk.storage.ChunkScanAccess;
 #endif
@@ -100,7 +103,8 @@ public final class GlobalWorldGenParams
 	#endif
 	
 	public final long worldSeed;
-	#if MC_VER > MC_1_7_10
+	#if MC_VER <= MC_1_7_10
+	#else
 	public final DataFixer dataFixer;
 	#endif
 	

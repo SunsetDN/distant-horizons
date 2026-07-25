@@ -110,6 +110,7 @@ public class InternalServerGenerator
 	#endif
 	
 	
+	
 	//=============//
 	// constructor //
 	//=============//
@@ -423,77 +424,8 @@ public class InternalServerGenerator
 	#endif
 	{
 		#if MC_VER <= MC_1_12_2
-		WorldServer level = this.params.mcServerLevel;
-		
-		// ignore chunk update events for this position
-		if (this.updateManager != null)
 		{
-			this.updateManager.addPosToIgnore(McObjectConverter.convert(chunkPos));
-		}
-
-		#if MC_VER <= MC_1_7_10
-		return ForgeServerProxy.scheduleTickTask(true, () ->
-		#else
-		CompletableFuture<Chunk> future = new CompletableFuture<>();
-		level.getMinecraftServer().addScheduledTask(() ->
-		#endif
-		{
-			#if MC_VER <= MC_1_7_10
-			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
-			if (ForgeMain.isHodgePodgeInstalled)
-			{
-				HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x, chunkPos.z, true);
-			}
-			ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x, chunkPos.z));
-			#else
-			ChunkProviderServer provider = level.getChunkProvider();
-			#endif
-			
-			// load neighbors first so the target chunk can fully populate
-			for (int dx = -1; dx <= 1; dx++)
-			{
-				for (int dz = -1; dz <= 1; dz++)
-				{
-					if (dx == 0 && dz == 0) continue;
-					if (this.updateManager != null)
-					{
-						this.updateManager.addPosToIgnore(new DhChunkPos(chunkPos.x + dx, chunkPos.z + dz));
-					}
-
-					#if MC_VER <= MC_1_7_10
-					if (ForgeMain.isHodgePodgeInstalled)
-					{
-						HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x + dx, chunkPos.z + dz, true);
-					}
-					ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x + dx, chunkPos.z + dz));
-					if (!provider.chunkExists(chunkPos.x + dx, chunkPos.z + dz))
-					{
-						// We must use loadChunk over provideChunk on 1.7.10
-						provider.loadChunk(chunkPos.x + dx, chunkPos.z + dz);
-					}
-					#else
-					if (provider.getLoadedChunk(chunkPos.x + dx, chunkPos.z + dz) == null)
-					{
-						provider.provideChunk(chunkPos.x + dx, chunkPos.z + dz);
-					}
-					#endif
-				}
-			}
-			
-			#if MC_VER <= MC_1_7_10
-				return provider.loadChunk(chunkPos.x, chunkPos.z);
-			#else
-			Chunk chunk = provider.provideChunk(chunkPos.x, chunkPos.z);
-			future.complete(chunk);
-			#endif
-		});
-		#if MC_VER > MC_1_7_10
-		return future;
-		#endif
-		#else
-		return CompletableFuture.supplyAsync(() ->
-		{
-			ServerLevel level = this.params.mcServerLevel;
+			WorldServer level = this.params.mcServerLevel;
 			
 			// ignore chunk update events for this position
 			if (this.updateManager != null)
@@ -501,40 +433,111 @@ public class InternalServerGenerator
 				this.updateManager.addPosToIgnore(McObjectConverter.convert(chunkPos));
 			}
 			
-			#if MC_VER < MC_1_21_5
-			int chunkLevel = 33; // 33 is equivalent to FULL Chunk
-			level.getChunkSource().distanceManager.addTicket(DH_SERVER_GEN_TICKET, chunkPos, chunkLevel, chunkPos);
+			#if MC_VER <= MC_1_7_10
+			CompletableFuture<Chunk> future = ForgeServerProxy.scheduleTickTask(true, () ->
 			#else
-			level.getChunkSource().addTicketWithRadius(DH_SERVER_GEN_TICKET, chunkPos, 0);
+			CompletableFuture<Chunk> future = new CompletableFuture<>();
+			level.getMinecraftServer().addScheduledTask(() ->
 			#endif
-			
-			// probably not the most optimal to run updates here, but fast enough
-			level.getChunkSource().distanceManager.runAllUpdates(level.getChunkSource().chunkMap);
-			
-			ChunkHolder chunkHolder = level.getChunkSource().chunkMap
-				.getUpdatingChunkIfPresent(
-					#if MC_VER <= MC_1_21_11 chunkPos.toLong() #else chunkPos.pack() #endif
-				);
-			if (chunkHolder == null)
 			{
-				throw new IllegalStateException("No chunk chunkHolder for pos ["+chunkPos+"] after ticket has been added.");
-			}
+				#if MC_VER <= MC_1_7_10
+				ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
+				if (ForgeMain.isHodgePodgeInstalled)
+				{
+					HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x, chunkPos.z);
+				}
+				ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x, chunkPos.z));
+				#else
+				ChunkProviderServer provider = level.getChunkProvider();
+				#endif
+				
+				// load neighbors first so the target chunk can fully populate
+				for (int dx = -1; dx <= 1; dx++)
+				{
+					for (int dz = -1; dz <= 1; dz++)
+					{
+						if (dx == 0 && dz == 0) continue;
+						if (this.updateManager != null)
+						{
+							this.updateManager.addPosToIgnore(new DhChunkPos(chunkPos.x + dx, chunkPos.z + dz));
+						}
+
+						#if MC_VER <= MC_1_7_10
+						if (ForgeMain.isHodgePodgeInstalled)
+						{
+							HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x + dx, chunkPos.z + dz);
+						}
+						ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x + dx, chunkPos.z + dz));
+						if (!provider.chunkExists(chunkPos.x + dx, chunkPos.z + dz))
+						{
+							provider.loadChunk(chunkPos.x + dx, chunkPos.z + dz);
+						}
+						#else
+						if (provider.getLoadedChunk(chunkPos.x + dx, chunkPos.z + dz) == null)
+						{
+							provider.provideChunk(chunkPos.x + dx, chunkPos.z + dz);
+						}
+						#endif
+					}
+				}
+				
+				#if MC_VER <= MC_1_7_10
+				return provider.loadChunk(chunkPos.x, chunkPos.z);
+				#else
+				Chunk chunk = provider.provideChunk(chunkPos.x, chunkPos.z);
+				future.complete(chunk);
+				#endif
+			});
 			
-			// Note: ChunkStatus.FEATURES would be slightly faster than FULL, but can cause issues
-			// with other mods where they need lighting/full chunk data.
-			#if MC_VER <= MC_1_20_4
-			return chunkHolder.getOrScheduleFuture(ChunkStatus.FULL, level.getChunkSource().chunkMap)
-					.thenApply(result -> result.left().orElseThrow(() -> new RuntimeException(result.right().get().toString()))); // can throw if the server is shutting down
-			#elif MC_VER <= MC_1_20_6
-			return chunkHolder.getOrScheduleFuture(ChunkStatus.FULL, level.getChunkSource().chunkMap)
-					.thenApply(result -> result.orElseThrow(() -> new RuntimeException(result.toString()))); // can throw if the server is shutting down
-			#else
-			return chunkHolder.scheduleChunkGenerationTask(ChunkStatus.FULL, level.getChunkSource().chunkMap)
-					.thenApply(result -> result.orElseThrow(() -> new RuntimeException(result.getError()))); // can throw if the server is shutting down
-			#endif
-			
-		}, this.params.mcServerLevel.getChunkSource().chunkMap.mainThreadExecutor)
-		.thenCompose(Function.identity());
+			return future;
+		}
+		#else
+		{
+			return CompletableFuture.supplyAsync(() ->
+			{
+				ServerLevel level = this.params.mcServerLevel;
+				
+				// ignore chunk update events for this position
+				if (this.updateManager != null)
+				{
+					this.updateManager.addPosToIgnore(McObjectConverter.convert(chunkPos));
+				}
+				
+				#if MC_VER < MC_1_21_5
+				int chunkLevel = 33; // 33 is equivalent to FULL Chunk
+				level.getChunkSource().distanceManager.addTicket(DH_SERVER_GEN_TICKET, chunkPos, chunkLevel, chunkPos);
+				#else
+				level.getChunkSource().addTicketWithRadius(DH_SERVER_GEN_TICKET, chunkPos, 0);
+				#endif
+				
+				// probably not the most optimal to run updates here, but fast enough
+				level.getChunkSource().distanceManager.runAllUpdates(level.getChunkSource().chunkMap);
+				
+				ChunkHolder chunkHolder = level.getChunkSource().chunkMap
+					.getUpdatingChunkIfPresent(
+						#if MC_VER <= MC_1_21_11 chunkPos.toLong() #else chunkPos.pack() #endif
+					);
+				if (chunkHolder == null)
+				{
+					throw new IllegalStateException("No chunk chunkHolder for pos ["+chunkPos+"] after ticket has been added.");
+				}
+				
+				// Note: ChunkStatus.FEATURES would be slightly faster than FULL, but can cause issues
+				// with other mods where they need lighting/full chunk data.
+				#if MC_VER <= MC_1_20_4
+				return chunkHolder.getOrScheduleFuture(ChunkStatus.FULL, level.getChunkSource().chunkMap)
+						.thenApply(result -> result.left().orElseThrow(() -> new RuntimeException(result.right().get().toString()))); // can throw if the server is shutting down
+				#elif MC_VER <= MC_1_20_6
+				return chunkHolder.getOrScheduleFuture(ChunkStatus.FULL, level.getChunkSource().chunkMap)
+						.thenApply(result -> result.orElseThrow(() -> new RuntimeException(result.toString()))); // can throw if the server is shutting down
+				#else
+				return chunkHolder.scheduleChunkGenerationTask(ChunkStatus.FULL, level.getChunkSource().chunkMap)
+						.thenApply(result -> result.orElseThrow(() -> new RuntimeException(result.getError()))); // can throw if the server is shutting down
+				#endif
+				
+			}, this.params.mcServerLevel.getChunkSource().chunkMap.mainThreadExecutor)
+			.thenCompose(Function.identity());
+		}
 		#endif
 	}
 	/**
@@ -560,7 +563,7 @@ public class InternalServerGenerator
 					ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(x, z));
 					if (ForgeMain.isHodgePodgeInstalled)
 					{
-						HodgePodgeCompat.preventChunkSimulation(level, x, z, false);
+						HodgePodgeCompat.allowChunkSimulation(level, x, z);
 					}
 					if (!level.getPlayerManager().func_152621_a(x, z))
 					{
