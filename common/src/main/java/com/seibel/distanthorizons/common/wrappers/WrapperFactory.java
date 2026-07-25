@@ -454,21 +454,21 @@ public class WrapperFactory implements IWrapperFactory
 		}
 		
 		#if MC_VER <= MC_1_12_2
-		IBlockState fakeBLockState;
+		IBlockState fakeBlockState;
 		if (objectArray[0] instanceof IBlockState)
 		{
-			fakeBLockState = (IBlockState)objectArray[0];
+			fakeBlockState = (IBlockState)objectArray[0];
 		}
 		else
 		{
-			fakeBLockState = new FakeBlockState(
+			fakeBlockState = new FakeBlockState(
 				(Block) objectArray[0], // block 
 				(Integer) objectArray[1], // meta 
 				(Integer) objectArray[2] // blockId
 			);
 		}
 		
-		return BlockStateWrapper.fromBlockState(fakeBLockState, coreLevelWrapper);
+		return BlockStateWrapper.fromBlockState(fakeBlockState, coreLevelWrapper);
 		#else
 		BlockState blockState = (BlockState) objectArray[0];
 		return BlockStateWrapper.fromBlockState(blockState, coreLevelWrapper);
