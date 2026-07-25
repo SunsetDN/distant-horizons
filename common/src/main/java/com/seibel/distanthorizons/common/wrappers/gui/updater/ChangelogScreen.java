@@ -334,8 +334,10 @@ public class ChangelogScreen extends DhScreen
 			#endif
 		}
 		
-		#if MC_VER <= MC_1_12_2
-		public void addButton(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text)
+		#if MC_VER <= MC_1_7_10
+		public void addButtonString(String text)
+		#elif MC_VER <= MC_1_12_2
+		public void addButton(ITextComponent text)
 		#else
 		public void addButton(Component text)
 		#endif
@@ -385,8 +387,10 @@ public class ChangelogScreen extends DhScreen
 		private static final Font textRenderer = Minecraft.getInstance().font;
 		#endif
 		
-		#if MC_VER <= MC_1_12_2
-		private final #if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text;
+		#if MC_VER <= MC_1_7_10
+		private final String text;
+		#elif MC_VER <= MC_1_12_2
+		private final ITextComponent text;
 		#else
 		private final Component text;
 		#endif
@@ -397,14 +401,19 @@ public class ChangelogScreen extends DhScreen
 		private final List<AbstractWidget> children = new ArrayList<>();
 		#endif
 		
-		#if MC_VER <= MC_1_12_2
-		private ButtonEntry(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text) { this.text = text; }
+		#if MC_VER <= MC_1_7_10
+		private ButtonEntry(String text)
+		#elif MC_VER <= MC_1_12_2
+		private ButtonEntry(ITextComponent text)
 		#else
-		private ButtonEntry(Component text) { this.text = text; }
+		private ButtonEntry(Component text)
 		#endif
+		{ this.text = text; }
 		
-		#if MC_VER <= MC_1_12_2
-		public static ButtonEntry create(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text)
+		#if MC_VER <= MC_1_7_10
+		public static ButtonEntry create(String text)
+		#elif MC_VER <= MC_1_12_2
+		public static ButtonEntry create(ITextComponent text)
 		#else
 		public static ButtonEntry create(Component text)
 		#endif
@@ -413,7 +422,7 @@ public class ChangelogScreen extends DhScreen
 		@Override
 		#if MC_VER <= MC_1_7_10
 		public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, Tessellator tessellator, int mouseX, int mouseY, boolean isSelected)
-		{ textRenderer.drawString(text, 12, y + 5, 0xFFFFFF); }
+		{ textRenderer.drawString(this.text, 12, y + 5, 0xFFFFFF); }
 		#elif MC_VER <= MC_1_12_2
 		public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float tickDelta)
 		{ textRenderer.drawString(text.getFormattedText(), 12, y + 5, 0xFFFFFF); }
@@ -442,7 +451,9 @@ public class ChangelogScreen extends DhScreen
 		#endif
 		
 		#if MC_VER <= MC_1_12_2
-		#if MC_VER > MC_1_7_10
+		
+		#if MC_VER <= MC_1_7_10
+		#else
 		@Override
 		public void updatePosition(int slotIndex, int x, int y, float partialTicks) { }
 		#endif

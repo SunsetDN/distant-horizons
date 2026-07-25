@@ -34,12 +34,10 @@ public class ConfigGuiInfo implements IConfigGuiInfo
 	 */
 
 	@Nullable
-	#if MC_VER <= MC_1_12_2
 	#if MC_VER <= MC_1_7_10
 	public String errorMessage;
-	#else
+	#elif MC_VER <= MC_1_12_2
 	public ITextComponent errorMessage;
-	#endif
 	#else
 	public Component errorMessage;
 	#endif
@@ -51,12 +49,10 @@ public class ConfigGuiInfo implements IConfigGuiInfo
 	#endif
 	
 	/** determines which options the button will show */
-	#if MC_VER <= MC_1_12_2
 	#if MC_VER <= MC_1_7_10
 	public AbstractMap.SimpleEntry<OnPressed, Function<Object, String>> buttonOptionMap;
-	#else
+	#elif MC_VER <= MC_1_12_2
 	public AbstractMap.SimpleEntry<OnPressed, Function<Object, ITextComponent>> buttonOptionMap;
-	#endif
 	#else
 	public AbstractMap.SimpleEntry<Button.OnPress, Function<Object, Component>> buttonOptionMap;
 	#endif
