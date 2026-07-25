@@ -256,29 +256,31 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 			}
 		}
 		
-		#if MC_VER <= MC_1_12_2
-		#if MC_VER <= MC_1_7_10
-		float frameTime = ((IMixinMinecraft) Minecraft.getMinecraft()).getTimer().renderPartialTicks;
-		Camera camera = new Camera(MC.renderViewEntity, frameTime);
-		Vector3d projectedView = camera.getPos();
-		return new DhVec3d(projectedView.x, projectedView.y, projectedView.z);
-		#else
-		RenderManager rm = MC.getRenderManager();
-		return new DhVec3d(rm.viewerPosX, rm.viewerPosY, rm.viewerPosZ);
-		#endif
-		#else
-		#if MC_VER <= MC_26_1_2
-		Camera camera = MC.gameRenderer.getMainCamera();
-		#else
-		Camera camera = MC.gameRenderer.mainCamera();
-		#endif
 		
-		#if MC_VER <= MC_1_21_10
-		Vec3 projectedView = camera.getPosition();
+		
+		#if MC_VER <= MC_1_7_10
+		{
+			float frameTime = ((IMixinMinecraft) Minecraft.getMinecraft()).getTimer().renderPartialTicks;
+			Camera.INSTANCE.update(MC.renderViewEntity, frameTime);
+			Vector3d projectedView = Camera.INSTANCE.getPos();
+			return new DhVec3d(projectedView.x, projectedView.y, projectedView.z);
+		}
 		#else
-		Vec3 projectedView = camera.position();
-		#endif
-		return new DhVec3d(projectedView.x, projectedView.y, projectedView.z);
+		{
+			#if MC_VER <= MC_26_1_2
+			Camera camera = MC.gameRenderer.getMainCamera();
+			#else
+			Camera camera = MC.gameRenderer.mainCamera();
+			#endif
+		
+			#if MC_VER <= MC_1_21_10
+			Vec3 projectedView = camera.getPosition();
+			#else
+			Vec3 projectedView = camera.position();
+			#endif
+		
+			return new DhVec3d(projectedView.x, projectedView.y, projectedView.z);
+		}
 		#endif
 	}
 	
