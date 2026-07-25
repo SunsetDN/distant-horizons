@@ -149,7 +149,9 @@ public class ClassicConfigGUI
 			super(minecraftClient, canvasWidth, canvasHeight - (topMargin + botMargin), topMargin, itemSpacing);
 			#endif
 			
-			#if MC_VER > MC_1_7_10
+			#if MC_VER <= MC_1_7_10
+			this.field_148163_i = false;
+			#else
 			this.centerListVertically = false;
 			#endif
 			
