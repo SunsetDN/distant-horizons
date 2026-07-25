@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 #if MC_VER <= MC_1_7_10
 import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
-import com.seibel.distanthorizons.common.util.ChunkPos;
+import com.seibel.distanthorizons.common.backports.ChunkPos;
 import net.minecraftforge.common.util.ForgeDirection;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.util.EnumFacing;

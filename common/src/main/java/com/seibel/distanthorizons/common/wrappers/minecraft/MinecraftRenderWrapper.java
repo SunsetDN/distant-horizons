@@ -74,7 +74,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IOptifineAc
 #if MC_VER <= MC_1_7_10
 import com.seibel.distanthorizons.forge.ForgeMain;
 import com.seibel.distanthorizons.interfaces.IMixinMinecraft;
-import com.seibel.distanthorizons.common.util.Camera;
+import com.seibel.distanthorizons.common.backports.Camera;
 import net.minecraft.block.Block;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.potion.Potion;

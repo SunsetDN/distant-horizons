@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import com.seibel.distanthorizons.forge.HodgePodgeCompat;
 import com.seibel.distanthorizons.forge.ForgeMain;
 import com.seibel.distanthorizons.forge.ForgeServerProxy;
-import com.seibel.distanthorizons.common.util.ChunkPos;
+import com.seibel.distanthorizons.common.backports.ChunkPos;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;

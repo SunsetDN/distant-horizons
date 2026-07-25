@@ -1,21 +1,18 @@
-package com.seibel.distanthorizons.common.util;
+package com.seibel.distanthorizons.common.backports;
 
 #if MC_VER <= MC_1_7_10
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.MathHelper;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector4f;
 
-import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
 import com.seibel.distanthorizons.RenderHelper;
 #endif
 
 /**
- * Recreation of MC's camera object
- * for use with MC 1.7.10.
+ * Recreation of MC's 1.12+ camera object
+ * so 1.7.10 can use similar code to 1.12.
  */
 public class Camera
 {
