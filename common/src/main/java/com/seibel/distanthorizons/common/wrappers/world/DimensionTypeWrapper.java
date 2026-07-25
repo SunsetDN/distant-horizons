@@ -36,8 +36,12 @@ import net.minecraft.world.level.dimension.DimensionType;
 public class DimensionTypeWrapper implements IDimensionTypeWrapper
 {
 	private static final ConcurrentMap<String, DimensionTypeWrapper> DIMENSION_WRAPPER_BY_NAME = new ConcurrentHashMap<>();
+	
 	#if MC_VER <= MC_1_7_10
 	private final int dimensionType;
+	
+	// on 1.7 these variables aren't stored anywhere
+	// so we have to guess based on the dimension ID
 	private final boolean hasCeiling;
 	private final boolean hasSkyLight;
 	private final double coordinateScale;
@@ -65,9 +69,9 @@ public class DimensionTypeWrapper implements IDimensionTypeWrapper
 
 		#if MC_VER <= MC_1_7_10
 		this.name = determineName(dimensionType);
-		this.hasCeiling = dimensionType == LegacyDimensionInfo.NETHER;
-		this.hasSkyLight = dimensionType != LegacyDimensionInfo.NETHER;
-		this.coordinateScale = dimensionType == LegacyDimensionInfo.NETHER ? 8.0 : 1.0;
+		this.hasCeiling = (dimensionType == LegacyDimensionInfo.NETHER);
+		this.hasSkyLight = (dimensionType != LegacyDimensionInfo.NETHER);
+		this.coordinateScale = (dimensionType == LegacyDimensionInfo.NETHER) ? 8.0 : 1.0;
 		#elif MC_VER <= MC_1_21_10
 		this.name = determineName(dimensionType);
 		#else

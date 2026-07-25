@@ -23,8 +23,12 @@ public final class LegacyDimensionInfo
 	public static final int NETHER = -1;
 	public static final int THE_END = 1;
 
+	
+	
 	private LegacyDimensionInfo() {}
 
+	
+	
 	/** Maps a vanilla-style dimension id to the same canonical name modern MC uses. */
 	public static String nameOf(int dimensionId)
 	{
@@ -33,6 +37,7 @@ public final class LegacyDimensionInfo
 			case OVERWORLD: return "overworld";
 			case NETHER:    return "nether";
 			case THE_END:   return "the_end";
+			
 			default:        return "DIM" + dimensionId;
 		}
 	}
@@ -41,10 +46,10 @@ public final class LegacyDimensionInfo
 	 * Canonical {@code "{name}:{id}"} string DH uses as the dimension identifier on later MC.
 	 * Equivalent shape to the {@code MC_VER > MC_1_12_2} branches' {@code dimension().location().toString()}.
 	 */
-	public static String fullName(int dimensionId)
-	{
-		return nameOf(dimensionId) + ":" + dimensionId;
-	}
+	public static String fullName(int dimensionId) { return nameOf(dimensionId) + ":" + dimensionId; }
+	
+	
+	
 }
 
 #endif

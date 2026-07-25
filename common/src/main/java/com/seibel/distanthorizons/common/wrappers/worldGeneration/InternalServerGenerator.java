@@ -165,7 +165,7 @@ public class InternalServerGenerator
 			#endif
 			
 			{
-				#if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
+				#if MC_VER == MC_1_12_2
 				while (!isServerHealthy())
 				{
 					try
@@ -179,12 +179,13 @@ public class InternalServerGenerator
 					}
 				}
 				#endif
+				
 				Iterator<ChunkPos> chunkPosIterator = ChunkPosGenStream.getIterator(genEvent.minPos.getX(), genEvent.minPos.getZ(), genEvent.widthInChunks, 0);
 				while (chunkPosIterator.hasNext())
 				{
 					ChunkPos chunkPos = chunkPosIterator.next();
 					
-					#if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
+					#if MC_VER == MC_1_12_2
 					chunkRequestSemaphore.acquireUninterruptibly();
 					#endif
 					
@@ -200,7 +201,7 @@ public class InternalServerGenerator
 							.whenCompleteAsync(
 								(chunk, throwable) ->
 								{
-									#if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
+									#if MC_VER == MC_1_12_2
 									chunkRequestSemaphore.release();
 									#endif
 									// unwrap the CompletionException if necessary
@@ -282,7 +283,7 @@ public class InternalServerGenerator
 		finally
 		{
 			ArrayList<CompletableFuture<Void>> releaseFutures = new ArrayList<>();
-			#if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
+			#if MC_VER == MC_1_12_2
 			Set<ChunkPos> neighborIgnoreChunkPosSet = new HashSet<>();
 			#endif
 			
@@ -293,7 +294,7 @@ public class InternalServerGenerator
 				ChunkPos chunkPos = chunkPosIterator.next();
 				releaseFutures.add(this.releaseChunkFromServerAsync(this.params.mcServerLevel, chunkPos));
         
-                #if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
+                #if MC_VER == MC_1_12_2
 				// collect unique neighbor positions for release and ignore removal
 				for (int dx = -1; dx <= 1; dx++)
 				{
@@ -310,7 +311,7 @@ public class InternalServerGenerator
                 #endif
 			}
     
-            #if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
+            #if MC_VER == MC_1_12_2
 			// release neighbor chunks that were loaded in requestChunkFromServerAsync
 			for (ChunkPos neighborPos : neighborIgnoreChunkPosSet)
 			{
@@ -327,7 +328,7 @@ public class InternalServerGenerator
 			}
 			
 			// tick after all unloads are queued
-            #if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
+            #if MC_VER == MC_1_12_2
 			CompletableFuture<Void> tickFuture = new CompletableFuture<>();
 			this.params.mcServerLevel.getMinecraftServer().addScheduledTask(() ->
 			{
@@ -347,7 +348,7 @@ public class InternalServerGenerator
 			tickFuture.join();
             #endif
     
-            #if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
+            #if MC_VER == MC_1_12_2
 			for (ChunkPos neighborPos : neighborIgnoreChunkPosSet)
 			{
 				this.chunkSaveIgnoreTimer.schedule(new TimerTask()
@@ -639,10 +640,13 @@ public class InternalServerGenerator
 	// misc //
 	//======//
 	
-	#if MC_VER > MC_1_7_10 && MC_VER <= MC_1_12_2
+	#if MC_VER == MC_1_12_2
 	private boolean isServerHealthy()
 	{
-		if(this.params.mcServerLevel.getMinecraftServer() == null) { return false; }
+		if(this.params.mcServerLevel.getMinecraftServer() == null) 
+		{
+	        return false; 
+	    }
 		
 		long[] ticks = this.params.mcServerLevel.getMinecraftServer().tickTimeArray;
 		long[] sorted = ticks.clone();

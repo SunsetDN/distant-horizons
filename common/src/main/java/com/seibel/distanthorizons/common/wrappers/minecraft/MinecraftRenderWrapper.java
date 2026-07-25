@@ -178,14 +178,12 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	@Override
 	public DhVec3f getLookAtVector()
 	{
-		#if MC_VER <= MC_1_12_2
 		#if MC_VER <= MC_1_7_10
 		Vec3 lookVector = MC.renderViewEntity.getLookVec();
 		return new DhVec3f((float) lookVector.xCoord, (float) lookVector.yCoord, (float) lookVector.zCoord);
-		#else
+		#elif MC_VER <= MC_1_12_2
 		net.minecraft.util.math.Vec3d lookVector = (MC.getRenderViewEntity().getLook(MC.getRenderPartialTicks()));
 		return new DhVec3f((float) lookVector.x, (float) lookVector.y, (float) lookVector.z);
-		#endif
 		#elif MC_VER <= MC_1_21_10
 		Camera camera = MC.gameRenderer.getMainCamera();
 		return new DhVec3f(camera.getLookVector().x(), camera.getLookVector().y(), camera.getLookVector().z());
@@ -205,22 +203,26 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	@Override
 	public boolean playerHasBlindingEffect()
 	{
-		if (#if MC_VER <= MC_1_7_10 MC.thePlayer #else MC.player #endif == null)
+		#if MC_VER <= MC_1_7_10
+		if (MC.thePlayer == null)
+		#else
+		if (MC.player == null)
+		#endif
 		{
 			return false;
 		}
 		
-		#if MC_VER <= MC_1_12_2
+		
+		
 		#if MC_VER <= MC_1_7_10
 		return MC.thePlayer.getActivePotionEffect(Potion.blindness) != null;
-		#else
+		#elif MC_VER <= MC_1_12_2
 		if (MC.player.getActivePotionMap() == null)
 		{
 			return false;
 		}
 		
 		return MC.player.getActivePotionEffect(MobEffects.BLINDNESS) != null;
-		#endif
 		#else
 		if (MC.player.getActiveEffectsMap() == null)
 		{
@@ -284,12 +286,10 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	@Override
 	public float getPartialTickTime()
 	{
-		#if MC_VER <= MC_1_12_2
 		#if MC_VER <= MC_1_7_10
 		return ((IMixinMinecraft) Minecraft.getMinecraft()).getTimer().renderPartialTicks;
-		#else
+		#elif MC_VER <= MC_1_12_2
 		return MC.getRenderPartialTicks();
-		#endif
 		#elif MC_VER < MC_1_21_1
 		return MC.getFrameTime();
 		#elif MC_VER < MC_1_21_3
@@ -305,12 +305,14 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	public Color getFogColor(float partialTicks)
 	{
 		#if MC_VER < MC_1_17_1
+		
 		#if MC_VER <= MC_1_7_10
 		if (ForgeMain.angelicaCompat != null)
 		{
 			return ForgeMain.angelicaCompat.getFogColor();
 		}
 		#endif
+		
 		float[] colorValues = new float[4];
 		GL15.glGetFloatv(GL15.GL_FOG_COLOR, colorValues);
 		return new Color(
@@ -418,26 +420,22 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	@Override
 	public Color getSkyColor()
 	{
-		#if MC_VER <= MC_1_12_2
 		#if MC_VER <= MC_1_7_10
 		if (!MC.theWorld.provider.hasNoSky)
-		#else
+		#elif MC_VER <= MC_1_12_2
 		if (MC.world.provider.hasSkyLight())
-		#endif
-		#else	
+		#else
 		if (MC.level.dimensionType().hasSkyLight())
 		#endif
 		{
-			#if MC_VER <= MC_1_12_2
 			#if MC_VER <= MC_1_7_10
 			float frameTime = this.getPartialTickTime();
 			Vec3 colorValues = MC.theWorld.provider.getSkyColor(MC.renderViewEntity, frameTime);
 			return new Color((float) colorValues.xCoord, (float) colorValues.yCoord, (float) colorValues.zCoord);
-			#else
+			#elif MC_VER <= MC_1_12_2
 			float frameTime = this.getPartialTickTime();
 			net.minecraft.util.math.Vec3d colorValues = MC.world.getSkyColor(MC.getRenderViewEntity(), frameTime);
 			return new Color((float) colorValues.x, (float) colorValues.y, (float) colorValues.z);
-			#endif
 			#elif MC_VER < MC_1_17_1
 			float frameTime = this.getPartialTickTime();
 			Vec3 colorValues = MC.level.getSkyColor(MC.gameRenderer.getMainCamera().getBlockPosition(), frameTime);
@@ -469,12 +467,15 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	public int getRenderDistance()
 	{
 		#if MC_VER <= MC_1_12_2
+		
 		#if MC_VER <= MC_1_7_10
 		if (ForgeMain.angelicaCompat != null)
 		{
+			// TODO why is there a "-2" here?
 			return MC.gameSettings.renderDistanceChunks - 2;
 		}
 		#endif
+		
 		return MC.gameSettings.renderDistanceChunks;
 		#elif MC_VER <= MC_1_17_1
 		return MC.options.renderDistance;
@@ -589,7 +590,6 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	@Override
 	public int getGlDepthTextureId()
 	{
-		#if MC_VER <= MC_1_12_2
 		#if MC_VER <= MC_1_7_10
 		final Framebuffer framebuffer = Minecraft.getMinecraft().getFramebuffer();
 		if (ForgeMain.angelicaCompat != null)
@@ -597,10 +597,9 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 			return ForgeMain.angelicaCompat.getDepthTextureId(framebuffer);
 		}
 		return framebuffer.depthBuffer;
-		#else
+		#elif MC_VER <= MC_1_12_2
 		//1.12.2 is using renderbuffer instead of framebuffer for depth texture
 		return -1;
-		#endif
 		#elif MC_VER < MC_1_21_5
 		return this.getRenderTarget().getDepthTextureId();
 		#else
@@ -687,19 +686,25 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	@Override
 	public boolean isFogStateSpecial()
 	{
-		#if MC_VER <= MC_1_12_2
 		#if MC_VER <= MC_1_7_10
 		float partialTicks = this.getPartialTickTime();
+		
 		double x = MC.renderViewEntity.prevPosX + (MC.renderViewEntity.posX - MC.renderViewEntity.prevPosX) * partialTicks;
 		double y = MC.renderViewEntity.prevPosY + (MC.renderViewEntity.posY - MC.renderViewEntity.prevPosY) * partialTicks + MC.renderViewEntity.getEyeHeight();
 		double z = MC.renderViewEntity.prevPosZ + (MC.renderViewEntity.posZ - MC.renderViewEntity.prevPosZ) * partialTicks;
-		Block fluidBlock = MC.renderViewEntity.worldObj.getBlock(MathHelper.floor_double(x), MathHelper.floor_double(y), MathHelper.floor_double(z));
-		return this.playerHasBlindingEffect() || fluidBlock.getMaterial().isLiquid() || fluidBlock instanceof IFluidBlock;
-		#else
+		
+		Block fluidBlock = MC.renderViewEntity.worldObj.getBlock(
+			MathHelper.floor_double(x), 
+			MathHelper.floor_double(y), 
+			MathHelper.floor_double(z));
+		
+		return this.playerHasBlindingEffect() 
+			|| fluidBlock.getMaterial().isLiquid() 
+			|| fluidBlock instanceof IFluidBlock;
+		#elif MC_VER <= MC_1_12_2
 		BlockPos blockPos = new BlockPos(MC.getRenderViewEntity().getPositionEyes(MC.getRenderPartialTicks()));
 		IBlockState fluidState = MC.getRenderViewEntity().world.getBlockState(blockPos);
 		return this.playerHasBlindingEffect() || fluidState.getMaterial().isLiquid() || fluidState.getBlock() instanceof IFluidBlock;
-		#endif
 		#elif MC_VER < MC_1_17_1
 		Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
 		FluidState fluidState = camera.getFluidInCamera();
@@ -726,9 +731,10 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	
 	@Override
 	#if MC_VER <= MC_1_7_10
-	// No mixin populates the map on 1.7.10 (LightMapWrapper.getOpenGlId() queries MC
-	// directly there, so the wrapper instance is effectively stateless). Lazy-create
-	// one per dimension to keep the same map semantics as the other loaders.
+	// No mixin populates the map on 1.7.10 
+	// (LightMapWrapper.getOpenGlId() queries MC
+	// directly there, so the wrapper instance is effectively stateless). 
+	// Lazy-create one per dimension to keep the same map semantics as the other loaders.
 	public ILightMapWrapper getLightmapWrapper(@NotNull ILevelWrapper level) { return this.lightmapByDimensionType.computeIfAbsent(level.getDimensionType(), k -> new LightMapWrapper()); }
 	#else
 	public ILightMapWrapper getLightmapWrapper(@NotNull ILevelWrapper level) { return this.lightmapByDimensionType.get(level.getDimensionType()); }

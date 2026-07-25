@@ -76,7 +76,8 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	 * weak references are to prevent rare issues
 	 * where, upon world closure, some levels aren't shutdown/removed properly
 	 */
-	private static final Map<#if MC_VER <= MC_1_12_2 WorldServer #else ServerLevel #endif, WeakReference<ServerLevelWrapper>> LEVEL_WRAPPER_REF_BY_SERVER_LEVEL = Collections.synchronizedMap(new WeakHashMap<>());
+	private static final Map<#if MC_VER <= MC_1_12_2 WorldServer #else ServerLevel #endif, WeakReference<ServerLevelWrapper>> 
+		LEVEL_WRAPPER_REF_BY_SERVER_LEVEL = Collections.synchronizedMap(new WeakHashMap<>());
 	
 	private final #if MC_VER <= MC_1_12_2 WorldServer #else ServerLevel #endif level;
 	private IDhLevel dhLevel;
@@ -181,7 +182,6 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 			// We use the overworld since it's the only dimension that is stored in the server root folder
 			
 			#if MC_VER <= MC_1_7_10
-			// 1.7.10: WorldServer has no getMinecraftServer(), reach the overworld through the static server handle
 			return net.minecraft.server.MinecraftServer.getServer().worldServers[0]
 				.getSaveHandler().getWorldDirectory().getParentFile().getName();
 			#elif MC_VER <= MC_1_12_2
@@ -204,7 +204,8 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	public DimensionTypeWrapper getDimensionType()
 	{
 		#if MC_VER <= MC_1_7_10
-		// Work around reobf issue. Need to cast to World, otherwise it sometimes fails to obfuscate `provider` properly
+		// Casting to World is necessary to fix a reobfuscation issue.
+		// otherwise it sometimes fails to obfuscate `provider` properly.
 		return DimensionTypeWrapper.getDimensionTypeWrapper(((World) this.level).provider.dimensionId);
 		#elif MC_VER <= MC_1_12_2
 		return DimensionTypeWrapper.getDimensionTypeWrapper(this.level.provider.getDimensionType());
@@ -219,7 +220,8 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	public String getDimensionName()
 	{
 		#if MC_VER <= MC_1_7_10
-		// Work around reobf issue. Need to cast to World, otherwise it sometimes fails to obfuscate `provider` properly
+		// Casting to World is necessary to fix a reobfuscation issue.
+		// otherwise it sometimes fails to obfuscate `provider` properly.
 		return LegacyDimensionInfo.fullName(((World) this.level).provider.dimensionId);
 		#elif MC_VER <= MC_1_12_2
 		return this.level.provider.getDimensionType().getName() + ":" + this.level.provider.getDimension();
@@ -252,9 +254,11 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	public boolean hasCeiling()
 	{
 		#if MC_VER <= MC_1_7_10
-		// 1.7.10's WorldProvider has no isNether(); the boolean field isHellWorld is its equivalent
-		// Work around reobf issue. Need to cast to World, otherwise it sometimes fails to obfuscate `provider` properly
-		return ((World) this.level).provider.isHellWorld;
+		// Casting to World is necessary to fix a reobfuscation issue.
+		// otherwise it sometimes fails to obfuscate `provider` properly.
+		return ((World) this.level).provider
+			// 1.7.10's WorldProvider has no isNether(); the boolean field isHellWorld is its equivalent
+			.isHellWorld;
 		#elif MC_VER <= MC_1_12_2
 		// 1.12.2 has no hasCeiling() - only the nether has a ceiling in vanilla
 		return this.level.provider.isNether();
@@ -267,9 +271,11 @@ public class ServerLevelWrapper implements IServerLevelWrapper
 	public boolean hasSkyLight()
 	{
 		#if MC_VER <= MC_1_7_10
-		// 1.7.10 stores the inverse: hasNoSky is true when the dimension lacks skylight
-		// Work around reobf issue. Need to cast to World, otherwise it sometimes fails to obfuscate `provider` properly
-		return !((World) this.level).provider.hasNoSky;
+		// Casting to World is necessary to fix a reobfuscation issue.
+		// otherwise it sometimes fails to obfuscate `provider` properly.
+		return !((World) this.level).provider
+			// 1.7.10 stores the inverse: hasNoSky is true when the dimension lacks skylight
+			.hasNoSky;
 		#elif MC_VER <= MC_1_12_2
 		return this.level.provider.hasSkyLight();
 		#else

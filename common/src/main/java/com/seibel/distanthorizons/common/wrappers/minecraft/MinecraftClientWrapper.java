@@ -587,15 +587,14 @@ public class MinecraftClientWrapper extends AbstractMinecraftSharedWrapper imple
 		{
 			#if MC_VER <= MC_1_7_10
 			throw new RuntimeException(exception);
-			#else
+			#elif MC_VER <= MC_1_12_2
 			CrashReport report = new CrashReport(errorMessage, exception);
-			#if MC_VER <= MC_1_12_2
+			#elif MC_VER <= MC_1_12_2
 			MINECRAFT.crashed(report);
 			#elif MC_VER < MC_1_20_4
 			Minecraft.crash(report);
 			#else
 			MINECRAFT.delayCrash(report);
-			#endif
 			#endif
 		});
 	}
@@ -697,15 +696,16 @@ public class MinecraftClientWrapper extends AbstractMinecraftSharedWrapper imple
 		{
 			return null;
 		}
+		
 		#if MC_VER <= MC_1_7_10
 		WorldServer mcLevel = DimensionManager.getWorld(dimensionKey);
-		#else
+		#elif MC_VER <= MC_1_12_2
 		WorldServer mcLevel = MINECRAFT.getIntegratedServer().getWorld(dimensionKey);
-		#endif
 		#else
 		ResourceKey<Level> dimensionKey = this.deserializeDimensionResourceKey(dimensionResourceLocation);
 		ServerLevel mcLevel = MINECRAFT.getSingleplayerServer().getLevel(dimensionKey);
 		#endif
+		
 		return ServerLevelWrapper.getWrapper(mcLevel);
 	}
 	

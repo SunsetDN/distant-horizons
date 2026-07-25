@@ -153,12 +153,13 @@ public class LightMapWrapper implements ILightMapWrapper
 	public int getOpenGlId()
 	{
 		// On 1.7.10 nothing wires up setLightmapId(), so query MC directly each time.
-		// RPLE (the coloured-lighting mod) replaces the vanilla lightmap, so check that first.
+		
+		// RPLE (the colored-lighting mod) replaces the vanilla lightmap, so check that first.
 		if (ForgeMain.rpleCompat != null)
 		{
 			return ForgeMain.rpleCompat.getTextureId();
 		}
-
+		
 		IMixinEntityRenderer entityRenderer = (IMixinEntityRenderer) Minecraft.getMinecraft().entityRenderer;
 		DynamicTexture lightmapTexture = entityRenderer.getLightmapTexture();
 		return lightmapTexture.getGlTextureId();

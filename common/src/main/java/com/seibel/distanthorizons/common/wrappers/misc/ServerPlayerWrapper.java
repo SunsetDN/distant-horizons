@@ -96,7 +96,6 @@ public class ServerPlayerWrapper implements IServerPlayerWrapper
 	#endif
 	{
 		#if MC_VER <= MC_1_7_10
-		// 1.7.10 calls the field `playerEntity`, not `player`
 		return this.connection.playerEntity;
 		#else
 		return this.connection.player;
@@ -107,7 +106,6 @@ public class ServerPlayerWrapper implements IServerPlayerWrapper
 	public String getName()
 	{
 		#if MC_VER <= MC_1_7_10
-		// 1.7.10's EntityPlayer has no plain getName(); getDisplayName() returns the username
 		return this.getServerPlayer().getDisplayName();
 		#elif MC_VER <= MC_1_12_2
 		return this.getServerPlayer().getName();
@@ -132,7 +130,6 @@ public class ServerPlayerWrapper implements IServerPlayerWrapper
 		if (level == null)
 		{
 			#if MC_VER <= MC_1_7_10
-			// 1.7.10's EntityPlayerMP exposes the world directly through Entity.worldObj
 			level = (WorldServer) this.getServerPlayer().worldObj;
 			#elif MC_VER <= MC_1_12_2
 			MinecraftServer server = this.getServerPlayer().getServer();
@@ -153,7 +150,6 @@ public class ServerPlayerWrapper implements IServerPlayerWrapper
 	public DhVec3d getPosition()
 	{
 		#if MC_VER <= MC_1_7_10
-		// 1.7.10 EntityPlayerMP exposes its position through the Entity fields directly
 		EntityPlayerMP player = this.getServerPlayer();
 		return new DhVec3d(player.posX, player.posY, player.posZ);
 		#elif MC_VER <= MC_1_12_2

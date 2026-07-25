@@ -106,11 +106,16 @@ public class MinecraftServerWrapper extends AbstractMinecraftSharedWrapper
 		{
 			return null;
 		}
-		#if MC_VER <= MC_1_7_10
-		WorldServer mcLevel = DimensionManager.getWorld(dimensionKey);
-		#else
-		WorldServer mcLevel = dedicatedServer.getWorld(dimensionKey);
-		#endif
+		
+		WorldServer mcLevel;
+		{
+			#if MC_VER <= MC_1_7_10
+			mcLevel = DimensionManager.getWorld(dimensionKey);
+			#else
+			mcLevel = dedicatedServer.getWorld(dimensionKey);
+			#endif
+		}
+		
 		#else
 		ResourceKey<Level> dimensionKey = this.deserializeDimensionResourceKey(dimensionResourceLocation);
 		ServerLevel mcLevel = dedicatedServer.getLevel(dimensionKey);

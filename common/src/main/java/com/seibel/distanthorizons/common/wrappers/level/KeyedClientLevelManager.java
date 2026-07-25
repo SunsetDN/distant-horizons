@@ -95,7 +95,8 @@ public class KeyedClientLevelManager implements IKeyedClientLevelManager
 		
 		synchronized (this.keyedLevelsCache)
 		{
-			this.keyedLevelsCache.keySet().removeIf(level -> {
+			this.keyedLevelsCache.keySet().removeIf(level -> 
+			{
 	            #if MC_VER <= MC_1_7_10
 				String levelDim = LegacyDimensionInfo.fullName(level.provider.dimensionId);
 	            #elif MC_VER <= MC_1_12_2
