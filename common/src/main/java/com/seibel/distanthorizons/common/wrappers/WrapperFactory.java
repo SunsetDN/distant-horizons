@@ -24,6 +24,7 @@ import com.seibel.distanthorizons.api.interfaces.block.IDhApiBlockStateWrapper;
 import com.seibel.distanthorizons.api.interfaces.override.worldGenerator.IDhApiWorldGenerator;
 import com.seibel.distanthorizons.api.interfaces.world.IDhApiLevelWrapper;
 import com.seibel.distanthorizons.api.interfaces.factories.IDhApiWrapperFactory;
+import com.seibel.distanthorizons.common.backports.FakeBlockState;
 import com.seibel.distanthorizons.common.wrappers.block.BiomeWrapper;
 import com.seibel.distanthorizons.common.wrappers.block.BlockStateWrapper;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
@@ -52,7 +53,8 @@ import net.minecraft.core.Holder;
 #endif
 
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.common.backports.IDhBlockStateBackport;
+import com.seibel.distanthorizons.common.backports.IBlockState;
+import net.minecraft.block.Block;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -76,7 +78,6 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 #endif
 
 import java.io.IOException;
-import java.util.HashSet;
 
 /**
  * This handles creating abstract wrapper objects.
@@ -420,14 +421,30 @@ public class WrapperFactory implements IWrapperFactory
 		
 		
 		
+		#if MC_VER <= MC_1_12_2
+		if (objectArray.length != 3
+			&& objectArray.length != 1)
+		{
+			throw new ClassCastException(createBlockStateWrapperErrorMessage(objectArray));
+		}
+		#else
 		if (objectArray.length != 1)
 		{
 			throw new ClassCastException(createBlockStateWrapperErrorMessage(objectArray));
 		}
+		#endif
 		
 		boolean blockClassCorrect;
 		#if MC_VER <= MC_1_12_2
-		blockClassCorrect = (objectArray[0] instanceof IDhBlockStateBackport);
+		blockClassCorrect =
+			(
+				(objectArray[0] instanceof Block)
+				&& (objectArray[1] instanceof Integer)
+				&& (objectArray[2] instanceof Integer)
+			)
+			||
+			(objectArray[0] instanceof IBlockState)
+		;
 		#else
 		blockClassCorrect = (objectArray[0] instanceof BlockState);
 		#endif
@@ -437,8 +454,21 @@ public class WrapperFactory implements IWrapperFactory
 		}
 		
 		#if MC_VER <= MC_1_12_2
-		IDhBlockStateBackport blockState = (IDhBlockStateBackport) objectArray[0];
-		return BlockStateWrapper.fromBlockState(blockState, coreLevelWrapper);
+		IBlockState fakeBLockState;
+		if (objectArray[0] instanceof IBlockState)
+		{
+			fakeBLockState = (IBlockState)objectArray[0];
+		}
+		else
+		{
+			fakeBLockState = new FakeBlockState(
+				(Block) objectArray[0], // block 
+				(Integer) objectArray[1], // meta 
+				(Integer) objectArray[2] // blockId
+			);
+		}
+		
+		return BlockStateWrapper.fromBlockState(fakeBLockState, coreLevelWrapper);
 		#else
 		BlockState blockState = (BlockState) objectArray[0];
 		return BlockStateWrapper.fromBlockState(blockState, coreLevelWrapper);
@@ -453,7 +483,7 @@ public class WrapperFactory implements IWrapperFactory
 		String[] expectedClassNames;
 		
 		#if MC_VER <= MC_1_12_2
-		expectedClassNames = new String[] { IDhBlockStateBackport.class.getName() };
+		expectedClassNames = new String[] { IBlockState.class.getName() };
 		#elif MC_VER <= MC_1_17_1
 		expectedClassNames = new String[] { Biome.class.getName() };
 		#else
