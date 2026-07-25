@@ -26,9 +26,7 @@ import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
 
-#if MC_VER > MC_1_7_10
 import org.jetbrains.annotations.Nullable;
-#endif
 
 #if MC_VER <= MC_1_7_10
 import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
@@ -143,6 +141,7 @@ public class McObjectConverter
 	
 	#if MC_VER <= MC_1_7_10
 	/** Can be null since some MC methods need a null direction */
+	@Nullable
 	public static ForgeDirection convert(EDhDirection dhDirection)
 	#elif MC_VER <= MC_1_12_2
 	@Nullable
