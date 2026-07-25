@@ -1,7 +1,9 @@
 package com.seibel.distanthorizons.common.backports;
 
+#if MC_VER <= MC_1_7_10
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+#endif
 
 /**
  * Name must match the 1.12 object "IBlockState".
@@ -9,6 +11,7 @@ import net.minecraft.block.material.Material;
  */
 public interface IBlockState
 {
+	#if MC_VER <= MC_1_7_10
 	Material getMaterial();
 	
 	Block getBlock();
@@ -17,5 +20,5 @@ public interface IBlockState
 	int getMeta();
 	
 	int getLightValue();
-	
+	#endif
 }

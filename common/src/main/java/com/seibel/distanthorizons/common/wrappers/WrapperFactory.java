@@ -24,7 +24,6 @@ import com.seibel.distanthorizons.api.interfaces.block.IDhApiBlockStateWrapper;
 import com.seibel.distanthorizons.api.interfaces.override.worldGenerator.IDhApiWorldGenerator;
 import com.seibel.distanthorizons.api.interfaces.world.IDhApiLevelWrapper;
 import com.seibel.distanthorizons.api.interfaces.factories.IDhApiWrapperFactory;
-import com.seibel.distanthorizons.common.backports.FakeBlockState;
 import com.seibel.distanthorizons.common.wrappers.block.BiomeWrapper;
 import com.seibel.distanthorizons.common.wrappers.block.BlockStateWrapper;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
@@ -53,6 +52,7 @@ import net.minecraft.core.Holder;
 #endif
 
 #if MC_VER <= MC_1_7_10
+import com.seibel.distanthorizons.common.backports.FakeBlockState;
 import com.seibel.distanthorizons.common.backports.IBlockState;
 import net.minecraft.block.Block;
 import net.minecraft.client.multiplayer.WorldClient;

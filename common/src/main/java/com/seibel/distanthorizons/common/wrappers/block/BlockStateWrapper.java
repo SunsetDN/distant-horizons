@@ -21,11 +21,11 @@ package com.seibel.distanthorizons.common.wrappers.block;
 
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiBlockMaterial;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBlockStateWrapperCreatedEvent;
-import com.seibel.distanthorizons.common.backports.FakeBlockState;
 import com.seibel.distanthorizons.common.wrappers.WrapperFactory;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.config.types.ConfigEntry;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.block.IBlockStateWrapper;
@@ -39,6 +39,7 @@ import net.minecraft.item.ItemDye;
 import cpw.mods.fml.common.registry.GameData;
 import com.seibel.distanthorizons.common.backports.IBlockState;
 import net.minecraftforge.fluids.IFluidBlock;
+import com.seibel.distanthorizons.common.backports.FakeBlockState;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.block.*;
 import net.minecraft.init.Blocks;

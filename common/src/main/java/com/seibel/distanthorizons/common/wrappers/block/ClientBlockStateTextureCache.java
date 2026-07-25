@@ -28,7 +28,6 @@ import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import com.seibel.distanthorizons.coreapi.util.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraftforge.common.util.ForgeDirection;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
@@ -41,6 +40,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.imageio.ImageIO;
 
 #if MC_VER <= MC_1_7_10
+import net.minecraftforge.common.util.ForgeDirection;
 #elif MC_VER < MC_1_21_5
 import net.minecraft.client.renderer.block.model.BakedQuad;
 #elif MC_VER <= MC_1_21_11
