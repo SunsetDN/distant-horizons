@@ -65,7 +65,7 @@ public class MinecraftServerWrapper extends AbstractMinecraftSharedWrapper
 		}
 		
 		#if MC_VER <= MC_1_7_10
-		return new File(".");
+		return new File("."); // equivalent to new MC's "server.getDataDirectory()"
 		#elif MC_VER <= MC_1_12_2
 		return this.dedicatedServer.getDataDirectory();
 		#elif MC_VER < MC_1_21_1

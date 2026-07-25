@@ -172,7 +172,7 @@ public abstract class AbstractModInitializer
 			
 			String serverFolderPath;
 			#if MC_VER <= MC_1_7_10
-			serverFolderPath = ".";
+			serverFolderPath = "."; // equivalent to new MC's "server.getDataDirectory()"
 			#elif MC_VER <= MC_1_12_2
 			serverFolderPath = server.getDataDirectory() + "";
 			#else
