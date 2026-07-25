@@ -36,7 +36,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
 import net.minecraft.block.Block;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
-import com.seibel.distanthorizons.common.wrappers.block.FakeBlockState;
+import com.seibel.distanthorizons.common.backports.FakeBlockState;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.block.state.IBlockState;

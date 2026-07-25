@@ -20,12 +20,11 @@
 package com.seibel.distanthorizons.common.wrappers.block;
 
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBlockColorOverrideEvent;
-import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
+import com.seibel.distanthorizons.common.backports.FakeBlockState;
+import com.seibel.distanthorizons.common.backports.FakeWorld;
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
-import com.seibel.distanthorizons.core.enums.EDhDirection;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos;
-import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPosMutable;
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
@@ -41,7 +40,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.util.ForgeDirection;
-import com.seibel.distanthorizons.common.wrappers.block.legacy.IBlockState;
+import com.seibel.distanthorizons.common.backports.IDhBlockStateBackport;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -101,7 +100,7 @@ public class ClientBlockStateColorCache
 	#endif
 
 	#if MC_VER <= MC_1_12_2
-	private static final HashSet<IBlockState> BROKEN_BLOCK_STATES = new HashSet<>();
+	private static final HashSet<IDhBlockStateBackport> BROKEN_BLOCK_STATES = new HashSet<>();
 	#else
 	private static final HashSet<BlockState> BROKEN_BLOCK_STATES = new HashSet<>();
 	#endif
@@ -145,7 +144,7 @@ public class ClientBlockStateColorCache
 
 	private final IClientLevelWrapper clientLevelWrapper;
 	#if MC_VER <= MC_1_12_2
-	private final IBlockState blockState;
+	private final IDhBlockStateBackport blockState;
 	#else
 	private final BlockState blockState;
 	#endif
@@ -242,7 +241,7 @@ public class ClientBlockStateColorCache
 	//region
 	
 	#if MC_VER <= MC_1_12_2
-	public ClientBlockStateColorCache(IBlockState blockState, IClientLevelWrapper clientLevelWrapper)
+	public ClientBlockStateColorCache(IDhBlockStateBackport blockState, IClientLevelWrapper clientLevelWrapper)
 	#else
 	public ClientBlockStateColorCache(BlockState blockState, IClientLevelWrapper clientLevelWrapper)
 	#endif

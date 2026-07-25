@@ -1,4 +1,4 @@
-package com.seibel.distanthorizons.common.wrappers.block;
+package com.seibel.distanthorizons.common.backports;
 
 #if MC_VER <= MC_1_7_10
 

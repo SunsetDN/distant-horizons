@@ -10,8 +10,6 @@ import com.seibel.distanthorizons.api.objects.data.IDhApiFullDataSource;
 import com.seibel.distanthorizons.common.wrappers.block.BiomeWrapper;
 import com.seibel.distanthorizons.common.wrappers.block.BlockStateWrapper;
 import com.seibel.distanthorizons.common.wrappers.block.ClientBlockStateColorCache;
-import com.seibel.distanthorizons.core.dataObjects.render.textures.BlockTextureRegistry;
-import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.level.KeyedClientLevelManager;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
 import com.seibel.distanthorizons.core.config.Config;
@@ -34,7 +32,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapp
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import net.minecraft.client.Minecraft;
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.common.wrappers.block.legacy.IBlockState;
+import com.seibel.distanthorizons.common.backports.IDhBlockStateBackport;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.WorldServer;
@@ -113,7 +111,7 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 	
 	#if MC_VER <= MC_1_12_2
 	private final WorldClient level;
-	private final ConcurrentHashMap<IBlockState, ClientBlockStateColorCache> blockColorCacheByBlockState = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<IDhBlockStateBackport, ClientBlockStateColorCache> blockColorCacheByBlockState = new ConcurrentHashMap<>();
 	#else
 	private final ClientLevel level;
 	private final ConcurrentHashMap<BlockState, ClientBlockStateColorCache> blockColorCacheByBlockState = new ConcurrentHashMap<>();
@@ -122,7 +120,7 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 
 	/** cached method reference to reduce GC overhead */
 	private final Function<
-		#if MC_VER <= MC_1_12_2 IBlockState
+		#if MC_VER <= MC_1_12_2 IDhBlockStateBackport
 		#else BlockState
 		#endif,
 		ClientBlockStateColorCache> createCachedBlockColorCacheFunc

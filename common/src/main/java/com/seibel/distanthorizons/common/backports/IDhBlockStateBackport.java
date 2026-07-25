@@ -1,9 +1,9 @@
-package com.seibel.distanthorizons.common.wrappers.block.legacy;
+package com.seibel.distanthorizons.common.backports;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 
-public interface IBlockState
+public interface IDhBlockStateBackport
 {
 	Material getMaterial();
 	
