@@ -13,8 +13,6 @@ import com.seibel.distanthorizons.RenderHelper;
 @Mixin(RenderGlobal.class)
 public class MixinRenderGlobal 
 {
-	// TODO why are we calling the renderer multiple times?
-	
 	@Inject(method = "sortAndRender", at = @At("HEAD"))
 	void renderLods(
 		EntityLivingBase p_72719_1_, int renderPass, double p_72719_3_,
