@@ -10,10 +10,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.seibel.distanthorizons.forge.BiomeHandler;
 
 @Mixin(BiomeGenBase.class)
-public class MixinBiomeGenBase {
-
+public class MixinBiomeGenBase 
+{
     @Inject(method = "<init>(IZ)V", at = @At("TAIL"))
-    private void captureBiome(int p_i1971_1_, boolean register, CallbackInfo ci) {
+    private void captureBiome(int p_i1971_1_, boolean register, CallbackInfo ci) 
+    {
         BiomeHandler.addBiome((BiomeGenBase) (Object) this);
     }
 }

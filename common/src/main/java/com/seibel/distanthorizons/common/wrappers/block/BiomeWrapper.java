@@ -96,7 +96,9 @@ public class BiomeWrapper implements IBiomeWrapper
 	public static final String EMPTY_BIOME_STRING = "EMPTY";
 	public static final BiomeWrapper EMPTY_WRAPPER = new BiomeWrapper(null, null);
 	
-	public static final String PLAINS_RESOURCE_LOCATION_STRING = #if MC_VER <= MC_1_7_10 "biome:Plains" #else "minecraft:plains" #endif;
+	public static final String PLAINS_RESOURCE_LOCATION_STRING = 
+		#if MC_VER <= MC_1_7_10 "biome:Plains"
+		#else "minecraft:plains" #endif;
 	
 	/** keep track of broken biomes so we don't log every time */
 	private static final HashSet<String> brokenResourceLocationStrings = new HashSet<>();
@@ -191,9 +193,9 @@ public class BiomeWrapper implements IBiomeWrapper
 		}
 		
         #if MC_VER <= MC_1_7_10
-		return biome.biomeName;
+		return this.biome.biomeName;
         #elif MC_VER < MC_1_18_2
-		return biome.toString();
+		return this.biome.toString();
         #else
 		return this.biome.unwrapKey().orElse(Biomes.THE_VOID).registry().toString();
         #endif
