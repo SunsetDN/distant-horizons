@@ -155,11 +155,6 @@ public class ForgeMain extends AbstractModInitializer {
     @Override
     protected void initializeModCompat() {
         this.tryCreateModCompatAccessor("angelica", IIrisAccessor.class, IrisAccessor::new);
-        /*
-         * TODO
-         * ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
-         * () -> (client, parent) -> GetConfigScreen.getScreen(parent));
-         */
     }
 
     @Override
