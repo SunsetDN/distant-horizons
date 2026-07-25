@@ -806,14 +806,7 @@ public class ChunkWrapper implements IChunkWrapper
 	//region
 	
 	@Override
-	public String toString()
-	{
-		#if MC_VER <= MC_1_7_10
-		return this.chunk.getClass().getSimpleName() + this.chunk.xPosition + "," + this.chunk.zPosition;
-		#else
-		return this.chunk.getClass().getSimpleName() + this.chunk.getPos();
-		#endif
-	}
+	public String toString() { return this.chunk.getClass().getSimpleName() + this.chunkPos; }
 	
 	// commented out since we don't currently need
 	// any special hashing logic
