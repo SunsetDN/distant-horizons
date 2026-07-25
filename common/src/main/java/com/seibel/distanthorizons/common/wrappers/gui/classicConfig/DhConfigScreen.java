@@ -661,9 +661,9 @@ class DhConfigScreen extends DhScreen
 			//==============//
 			//region
 			
-			#if MC_VER <= MC_1_12_2
+			#if MC_VER <= MC_1_7_10
 			String textComponent = this.GetTranslatableTextComponentForConfig(configEntry);
-			#elif MC_VER <= MC_1_7_10
+			#elif MC_VER <= MC_1_12_2
 			ITextComponent textComponent = this.GetTranslatableTextComponentForConfig(configEntry);
 			#else
 			Component textComponent = this.GetTranslatableTextComponentForConfig(configEntry);
