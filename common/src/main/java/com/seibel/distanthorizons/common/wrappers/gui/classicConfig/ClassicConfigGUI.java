@@ -561,25 +561,21 @@ public class ClassicConfigGUI
 		
 		
 		#if MC_VER <= MC_1_7_10
-		#else
+		#elif MC_VER <= MC_1_12_2
 		@Override
 		public void updatePosition(int slotIndex, int x, int y, float partialTicks) { }
 		
-		@Override
-		public @NotNull List<? extends GuiEventListener> children()
-		{ return this.children; }
-		#endif
-		
-		
-		#if MC_VER <= MC_1_12_2
 		@Override
 		public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY)
 		{ return false; /* handled in DhConfigScreen.mouseClicked */ }
 		
 		@Override
 		public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY) { }
+		#else
+		@Override
+		public @NotNull List<? extends GuiEventListener> children()
+		{ return this.children; }
 		#endif
-		
 		
 		#if MC_VER >= MC_1_17_1
 		@Override
