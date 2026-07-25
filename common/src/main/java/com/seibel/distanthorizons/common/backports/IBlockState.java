@@ -13,6 +13,7 @@ public interface IBlockState
 	
 	Block getBlock();
 	
+	/** kinda like the state on MC 1.16+ blocks, but stored as an int */
 	int getMeta();
 	
 	int getLightValue();

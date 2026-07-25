@@ -173,32 +173,13 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	//==============//
 	//region
 	
+	
+	#if MC_VER <= MC_1_7_10
+	
 	/**
-	 * Can be faster than BlockStateWrapper#fromBlockState(BlockState, ILevelWrapper)
+	 * Can be faster than BlockStateWrapper#fromBlockState(Block, int, ILevelWrapper)
 	 * in cases where the same block state is expected to be referenced multiple times.
 	 */
-	#if MC_VER <= MC_1_7_10
-	public static BlockStateWrapper fromBlockAndMeta(Block block, int meta, ILevelWrapper levelWrapper)
-	{
-		if (block == null || block == Blocks.air)
-		{
-			return AIR;
-		}
-		
-		final int blockId = Block.getIdFromBlock(block);
-		final Integer packed = FakeBlockState.calculateHashCode(blockId, meta);
-		BlockStateWrapper cached = WRAPPER_BY_BLOCK_ID_AND_META.get(packed);
-		if (cached != null)
-		{
-			return cached;
-		}
-		
-		FakeBlockState blockState = new FakeBlockState(block, meta, blockId);
-		BlockStateWrapper wrapper = new BlockStateWrapper(blockState, levelWrapper, null);
-		WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(packed, wrapper);
-		return wrapper;
-	}
-	
 	public static BlockStateWrapper fromBlockAndMeta(Block block, int meta, ILevelWrapper levelWrapper, IBlockStateWrapper guess)
 	{
 		FakeBlockState guessBlockState = (guess == null || guess.isAir()) ? null : (FakeBlockState) guess.getWrappedMcObject();
@@ -213,13 +194,36 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		return fromBlockAndMeta(block, meta, levelWrapper);
 	}
 	
-	public static BlockStateWrapper fromBlockState(IBlockState blockState, ILevelWrapper levelWrapper)
+	public static BlockStateWrapper fromBlockAndMeta(Block block, int meta, ILevelWrapper levelWrapper)
 	{
-		return fromBlockAndMeta(blockState.getBlock(), blockState.getMeta(), levelWrapper);
+		if (block == null 
+			|| block == Blocks.air)
+		{
+			return AIR;
+		}
+		
+		final int blockId = Block.getIdFromBlock(block);
+		final Integer packedIdMeta = FakeBlockState.packIdAndMeta(blockId, meta);
+		BlockStateWrapper existingBlockWrapper = WRAPPER_BY_BLOCK_ID_AND_META.get(packedIdMeta);
+		if (existingBlockWrapper != null)
+		{
+			return existingBlockWrapper;
+		}
+		
+		FakeBlockState fakeBlockState = new FakeBlockState(block, meta, blockId);
+		BlockStateWrapper wrapper = new BlockStateWrapper(fakeBlockState, levelWrapper, null);
+		WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(packedIdMeta, wrapper);
+		return wrapper;
 	}
+	public static BlockStateWrapper fromBlockState(IBlockState blockState, ILevelWrapper levelWrapper)
+	{ return fromBlockAndMeta(blockState.getBlock(), blockState.getMeta(), levelWrapper); }
 	
 	#else
 	
+	/**
+	 * Can be faster than BlockStateWrapper#fromBlockState(BlockState, ILevelWrapper)
+	 * in cases where the same block state is expected to be referenced multiple times.
+	 */
 	#if MC_VER <= MC_1_12_2
 	public static BlockStateWrapper fromBlockState(IBlockState blockState, ILevelWrapper levelWrapper, IBlockStateWrapper guess)
 	#else
@@ -455,7 +459,8 @@ public class BlockStateWrapper implements IBlockStateWrapper
 				int colorInt;
 				#if MC_VER <= MC_1_7_10
 				Block block = this.blockState.getBlock();
-				if (block instanceof BlockStainedGlass || block instanceof BlockStainedGlassPane)
+				if (block instanceof BlockStainedGlass 
+					|| block instanceof BlockStainedGlassPane)
 				{
 					colorInt = ItemDye.field_150922_c[BlockColored.func_150032_b(this.blockState.getMeta())];
 					beaconTintColor = ColorUtil.toColorObjRGB(colorInt);
@@ -649,9 +654,11 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		boolean isLavaBlock;
 		#if MC_VER <= MC_1_7_10
-		isLavaBlock = blockState.getBlock() == Blocks.lava || blockState.getBlock() == Blocks.flowing_lava;
+		isLavaBlock = blockState.getBlock() == Blocks.lava 
+			|| blockState.getBlock() == Blocks.flowing_lava;
 		#elif MC_VER <= MC_1_12_2
-		isLavaBlock = blockState.getBlock() == Blocks.LAVA || blockState.getBlock() == Blocks.FLOWING_LAVA;
+		isLavaBlock = blockState.getBlock() == Blocks.LAVA 
+			|| blockState.getBlock() == Blocks.FLOWING_LAVA;
 		#else
 		isLavaBlock = blockState.is(Blocks.LAVA);
 		#endif
@@ -671,9 +678,11 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		boolean isWaterBlock;
 	    #if MC_VER <= MC_1_7_10
-		isWaterBlock = blockState.getBlock() == Blocks.water || blockState.getBlock() == Blocks.flowing_water;
+		isWaterBlock = blockState.getBlock() == Blocks.water 
+			|| blockState.getBlock() == Blocks.flowing_water;
 	    #elif MC_VER <= MC_1_12_2
-		isWaterBlock = blockState.getBlock() == Blocks.WATER || blockState.getBlock() == Blocks.FLOWING_WATER;
+		isWaterBlock = blockState.getBlock() == Blocks.WATER 
+			|| blockState.getBlock() == Blocks.FLOWING_WATER;
 		#else
 		isWaterBlock = blockState.is(Blocks.WATER);
 		#endif
@@ -1240,10 +1249,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	public int getOpacity() { return this.opacity; }
 	
 	@Override
-	public int getLightEmission()
-	{
-		return getLightEmission(this.blockState);
-	}
+	public int getLightEmission() { return getLightEmission(this.blockState); }
 	
 	#if MC_VER <= MC_1_12_2
 	public static int getLightEmission(IBlockState blockState)
@@ -1438,7 +1444,9 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			{
 				throw new IOException("Failed to deserialize the string [" + finalResourceStateString + "] into a BlockStateWrapper: " + e.getMessage(), e);
 			}
+			
 			#else
+			
 			// try to parse out the BlockState
 			String blockStatePropertiesString = null; // will be null if no properties were included
 			int stateSeparatorIndex = resourceStateString.indexOf(STATE_STRING_SEPARATOR);
@@ -1591,7 +1599,16 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			if (foundWrapper != AIR)
 			{
 				#if MC_VER <= MC_1_7_10
-				WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(foundWrapper.blockState.hashCode(), foundWrapper);
+				
+				int blockIdAndMeta = 0;
+				// should always be true (the only exception should be air), 
+				// but just in case
+				if (foundWrapper.blockState instanceof FakeBlockState)
+				{
+					blockIdAndMeta = ((FakeBlockState)foundWrapper.blockState).getIdAndMeta();
+				}
+				
+				WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(blockIdAndMeta, foundWrapper);
 				#else
 				WRAPPER_BY_BLOCK_STATE.putIfAbsent(foundWrapper.blockState, foundWrapper);
 				#endif
@@ -1606,7 +1623,10 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	#else
 	private static String serializeBlockStateProperties(BlockState blockState)
 	#endif
-	#if MC_VER > MC_1_7_10
+	
+	#if MC_VER <= MC_1_7_10
+	// block properties aren't available in 1.7.10
+	#else
 	{
 		// get the property list for this block (doesn't contain this block state's values, just the names and possible values)
 		#if MC_VER <= MC_1_12_2

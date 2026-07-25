@@ -17,7 +17,8 @@ public class FakeBlockState implements IBlockState
 {
 	public final Block block;
 	public final int meta;
-	private final int hashCode;
+	/** also used as the hash code */
+	private final int idAndMeta;
 	
 	
 	
@@ -31,7 +32,7 @@ public class FakeBlockState implements IBlockState
 	{
 		this.block = block;
 		this.meta = meta;
-		this.hashCode = calculateHashCode(blockId, meta);
+		this.idAndMeta = packIdAndMeta(blockId, meta);
 	}
 	
 	//endregion
@@ -64,6 +65,8 @@ public class FakeBlockState implements IBlockState
 		return Math.min(15, block.getLightValue());
 	}
 	
+	public int getIdAndMeta() { return this.idAndMeta; }
+	
 	//endregion
 	
 	
@@ -87,8 +90,8 @@ public class FakeBlockState implements IBlockState
 	}
 	
 	@Override
-	public int hashCode() { return this.hashCode; }
-	public static int calculateHashCode(int blockId, int meta) { return (blockId << 16) + meta; }
+	public int hashCode() { return this.idAndMeta; }
+	public static int packIdAndMeta(int blockId, int meta) { return (blockId << 16) + meta; }
 	
 	//endregion
 	
