@@ -9,6 +9,9 @@ public enum Mixins implements IMixins {
 
     CORE(new MixinBuilder().setPhase(Phase.EARLY)
         .addCommonMixins("MixinBiomeGenBase")),
+    THREADED_FILE_IO_NO_SLEEP(new MixinBuilder().setPhase(Phase.EARLY)
+        .addExcludedMod(TargetedMod.HODGEPODGE)
+        .addCommonMixins("MixinThreadedFileIOBase")),
     CLIENT_CORE(new MixinBuilder().setPhase(Phase.EARLY)
         .addClientMixins(
             "MixinActiveRenderInfo",

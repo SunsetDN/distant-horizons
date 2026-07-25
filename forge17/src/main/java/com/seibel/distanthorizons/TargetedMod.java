@@ -7,7 +7,8 @@ import com.gtnewhorizon.gtnhmixins.builders.TargetModBuilder;
 
 public enum TargetedMod implements ITargetMod {
 
-    ANGELICA("loading.AngelicaTweaker", "angelica");
+    ANGELICA("loading.AngelicaTweaker", "angelica"),
+    HODGEPODGE("com.mitchej123.hodgepodge.core.HodgepodgeCore", "hodgepodge");
 
     private final TargetModBuilder builder;
 
