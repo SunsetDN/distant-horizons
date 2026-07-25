@@ -637,10 +637,6 @@ public class ChunkWrapper implements IChunkWrapper
 	#endif
 	
 	@Override
-	public int getMaxBlockX() { return this.chunkPos.getMaxBlockX(); }
-	@Override
-	public int getMaxBlockZ() { return this.chunkPos.getMaxBlockZ(); }
-	@Override
 	public int getMinBlockX() { return this.chunkPos.getMinBlockX(); }
 	@Override
 	public int getMinBlockZ() { return this.chunkPos.getMinBlockZ(); }
