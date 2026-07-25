@@ -421,7 +421,7 @@ public class WrapperFactory implements IWrapperFactory
 		
 		
 		
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
 		if (objectArray.length != 3
 			&& objectArray.length != 1)
 		{
@@ -435,7 +435,7 @@ public class WrapperFactory implements IWrapperFactory
 		#endif
 		
 		boolean blockClassCorrect;
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
 		blockClassCorrect =
 			(
 				(objectArray[0] instanceof Block)
@@ -445,6 +445,8 @@ public class WrapperFactory implements IWrapperFactory
 			||
 			(objectArray[0] instanceof IBlockState)
 		;
+		#elif MC_VER <= MC_1_12_2
+		blockClassCorrect = (objectArray[0] instanceof IBlockState);
 		#else
 		blockClassCorrect = (objectArray[0] instanceof BlockState);
 		#endif
@@ -453,7 +455,7 @@ public class WrapperFactory implements IWrapperFactory
 			throw new ClassCastException(createBlockStateWrapperErrorMessage(objectArray));
 		}
 		
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
 		IBlockState fakeBlockState;
 		if (objectArray[0] instanceof IBlockState)
 		{
@@ -469,6 +471,9 @@ public class WrapperFactory implements IWrapperFactory
 		}
 		
 		return BlockStateWrapper.fromBlockState(fakeBlockState, coreLevelWrapper);
+		#elif MC_VER <= MC_1_12_2
+		IBlockState blockState = (IBlockState) objectArray[0];
+		return BlockStateWrapper.fromBlockState(blockState, coreLevelWrapper);
 		#else
 		BlockState blockState = (BlockState) objectArray[0];
 		return BlockStateWrapper.fromBlockState(blockState, coreLevelWrapper);
