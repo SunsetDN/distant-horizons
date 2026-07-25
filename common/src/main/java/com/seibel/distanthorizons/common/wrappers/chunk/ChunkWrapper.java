@@ -137,6 +137,7 @@ public class ChunkWrapper implements IChunkWrapper
 	// constructor //
 	//=============//
 	//region
+	
 	/**
 	 * Note: this constructor should be very
 	 * fast since it will be called frequently on the MC
@@ -153,7 +154,7 @@ public class ChunkWrapper implements IChunkWrapper
 		
 		#if MC_VER <= MC_1_7_10
 		this.chunkPos = new DhChunkPos(chunk.xPosition, chunk.zPosition);
-		this.biomeList = this.fillBiomeMap();
+		this.biomeList = fillBiomeMap(chunk);
 		#elif MC_VER <= MC_1_21_11
 		this.chunkPos = new DhChunkPos(chunk.getPos().x, chunk.getPos().z);
 		#else
@@ -162,14 +163,19 @@ public class ChunkWrapper implements IChunkWrapper
 	}
 	
 	#if MC_VER <= MC_1_7_10
-	private ChunkWrapper(ChunkWrapper other, ILevelWrapper wrappedLevel)
+	/** used for copying */
+	private ChunkWrapper(ChunkWrapper that, ILevelWrapper wrappedLevel)
 	{
-		this.chunk = other.chunk;
+		this.chunk = that.chunk;
 		this.wrappedLevel = wrappedLevel;
-		this.chunkPos = new DhChunkPos(other.chunkPos.getX(), other.chunkPos.getZ());
-		this.biomeList = other.biomeList;
+		this.chunkPos = new DhChunkPos(that.chunkPos.getX(), that.chunkPos.getZ());
+		this.biomeList = that.biomeList;
 	}
 	#endif
+	
+	
+	// copiers //
+	//region
 	
 	@Override
 	public ChunkWrapper copy()
@@ -191,6 +197,32 @@ public class ChunkWrapper implements IChunkWrapper
 		#endif
 	}
 	
+	//endregion
+	
+	
+	
+	// constructor helpers //
+	//region
+	
+	#if MC_VER <= MC_1_7_10
+	private static BiomeGenBase[] fillBiomeMap(Chunk chunk)
+	{
+		// We must use World.getBiomeGenForCoords since mods like LOTR override those functions. Getting it from the chunk is incorrect.
+		BiomeGenBase[] biomeArray = new BiomeGenBase[LodUtil.CHUNK_WIDTH * LodUtil.CHUNK_WIDTH];
+		for (int x = 0; x < LodUtil.CHUNK_WIDTH; x++)
+		{
+			for (int z = 0; z < LodUtil.CHUNK_WIDTH; z++)
+			{
+				biomeArray[x * LodUtil.CHUNK_WIDTH + z] = chunk.worldObj.getBiomeGenForCoords(
+					(chunk.xPosition << 4) + x, 
+					(chunk.zPosition << 4) + z);
+			}
+		}
+		return biomeArray;
+	}
+	#endif
+	
+	//endregion
 	//endregion
 	
 	
@@ -337,22 +369,6 @@ public class ChunkWrapper implements IChunkWrapper
 	}
 	private int getChunkSectionMinHeight(int index) { return (index * 16) + this.getInclusiveMinBuildHeight(); }
 	
-	#if MC_VER <= MC_1_7_10
-	private BiomeGenBase[] fillBiomeMap()
-	{
-		BiomeGenBase[] biomeArray = new BiomeGenBase[256];
-		// We must use World.getBiomeGenForCoords since mods like LOTR override those functions. Getting it from the chunk is incorrect.
-		for (int x = 0; x < 16; x++)
-		{
-			for (int z = 0; z < 16; z++)
-			{
-				biomeArray[x * 16 + z] = this.chunk.worldObj.getBiomeGenForCoords((this.chunk.xPosition << 4) + x, (this.chunk.zPosition << 4) + z);
-			}
-		}
-		return biomeArray;
-	}
-	#endif
-	
 	@Override
 	public void createDhHeightMaps()
 	{
@@ -424,7 +440,7 @@ public class ChunkWrapper implements IChunkWrapper
 		if (this.solidHeightMap == null)
 		{
 			#if MC_VER <= MC_1_7_10
-			return 255;
+			return 255; // assume max height so we don't miss anything
 			#elif MC_VER <= MC_1_12_2
 			return this.chunk.getHeightValue(xRel, zRel);
 			#else
@@ -461,7 +477,7 @@ public class ChunkWrapper implements IChunkWrapper
 	public IBiomeWrapper getBiome(int relX, int relY, int relZ)
 	{
 		#if MC_VER <= MC_1_7_10
-		BiomeGenBase biome = this.biomeList[(relX * 16) + relZ];
+		BiomeGenBase biome = this.biomeList[(relX * LodUtil.CHUNK_WIDTH) + relZ];
 		return BiomeWrapper.getBiomeWrapper(biome, this.wrappedLevel);
 		#elif MC_VER <= MC_1_12_2
 		BlockPos.MutableBlockPos blockPos = MUTABLE_BLOCK_POS_REF.get();
@@ -652,7 +668,10 @@ public class ChunkWrapper implements IChunkWrapper
 	/** 
 	 * Returns true if the chunk has
 	 * been populated far enough for us to
-	 * convert it to an LOD.
+	 * convert it to an LOD. <br><br>
+	 * 
+	 * This method is only necessary for 1.7.10 since we handle
+	 * this logic in the save mixin for newer MC versions.
 	 */
 	public boolean canSaveChunk()
 	{
