@@ -341,6 +341,7 @@ public class ChunkWrapper implements IChunkWrapper
 	private BiomeGenBase[] fillBiomeMap()
 	{
 		BiomeGenBase[] biomeArray = new BiomeGenBase[256];
+		// We must use World.getBiomeGenForCoords since mods like LOTR override those functions. Getting it from the chunk is incorrect.
 		for (int x = 0; x < 16; x++)
 		{
 			for (int z = 0; z < 16; z++)
