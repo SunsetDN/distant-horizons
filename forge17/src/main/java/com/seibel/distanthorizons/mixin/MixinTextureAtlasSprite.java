@@ -46,15 +46,7 @@ public class MixinTextureAtlasSprite implements IMixinTextureAtlasSprite {
         if (data == null) {
             return;
         }
-        distanthorizons$spriteData = new int[data.length];
-        for (int i = 0; i < data.length; i++) {
-            int pixel = data[i];
-            int b = pixel & 0xFF;
-            int g = (pixel >> 8) & 0xFF;
-            int r = (pixel >> 16) & 0xFF;
-            int a = (pixel >> 24) & 0xFF;
-            distanthorizons$spriteData[i] = r | (g << 8) | (b << 16) | (a << 24);
-        }
+        distanthorizons$spriteData = data.clone();
     }
 
     @Override

@@ -564,17 +564,10 @@ public class ClientBlockStateColorCache
 				{
 					tempColor = TextureAtlasSpriteWrapper.getPixelARGB(texture, 0, u, v);
 					
-					#if MC_VER <= MC_1_7_10
-					int r = (tempColor & 0x000000FF);
-					int g = (tempColor & 0x0000FF00) >>> 8;
-					int b = (tempColor & 0x00FF0000) >>> 16;
-					int a = (tempColor & 0xFF000000) >>> 24;
-					#else
 					int r = ColorUtil.getRed(tempColor);
 					int g = ColorUtil.getGreen(tempColor);
 					int b = ColorUtil.getBlue(tempColor);
 					int a = ColorUtil.getAlpha(tempColor);
-					#endif
 					
 					int scale = 1;
 					if (colorMode == EColorMode.Leaves)

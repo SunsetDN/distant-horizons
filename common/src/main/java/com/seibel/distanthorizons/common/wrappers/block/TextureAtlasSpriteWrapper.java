@@ -50,7 +50,7 @@ public class TextureAtlasSpriteWrapper
 	{
 		#if MC_VER <= MC_1_7_10
 		// In 1.7.10 the sprite's pixel array isn't publicly accessible, so we rely on a Mixin
-		// (see forge17/.../MixinTextureAtlasSprite) which caches the base mipmap level in RGB-low order.
+		// (see forge17/.../MixinTextureAtlasSprite) which caches the base mipmap level.
 		IMixinTextureAtlasSprite spriteExt = (IMixinTextureAtlasSprite) sprite;
 		int[] spriteData = spriteExt.distanthorizons$getSpriteData();
 		if (spriteData == null)
