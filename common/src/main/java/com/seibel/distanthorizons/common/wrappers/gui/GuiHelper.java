@@ -33,18 +33,21 @@ public class GuiHelper
 	public static final Map<GuiButton, OnPressed> HANDLER_BY_BUTTON = new HashMap<>();
 	#endif
 	
-	#if MC_VER <= MC_1_12_2
 	#if MC_VER <= MC_1_7_10
 	public static GuiButton MakeBtn(String base, int posX, int posZ, int width, int height, OnPressed action)
-	#else
+	#elif MC_VER <= MC_1_12_2
 	public static GuiButton MakeBtn(ITextComponent base, int posX, int posZ, int width, int height, OnPressed action)
-	#endif
 	#else
 	public static Button MakeBtn(Component base, int posX, int posZ, int width, int height, Button.OnPress action)
 	#endif
 	{
 		#if MC_VER <= MC_1_12_2
-		GuiButton button = new GuiButton(HANDLER_BY_BUTTON.size(), posX, posZ, width, height, #if MC_VER <= MC_1_7_10 base #else base.getFormattedText() #endif);
+		GuiButton button = new GuiButton(
+			HANDLER_BY_BUTTON.size(), 
+			posX, posZ, 
+			width, height, 
+			#if MC_VER <= MC_1_7_10 base #else base.getFormattedText() #endif
+		);
 		HANDLER_BY_BUTTON.put(button, action);
 		return button;
         #elif MC_VER < MC_1_19_4
@@ -54,22 +57,18 @@ public class GuiHelper
         #endif
 	}
 	
-	#if MC_VER <= MC_1_12_2
 	#if MC_VER <= MC_1_7_10
 	public static String TextOrLiteral(String text)
-	#else
+	#elif MC_VER <= MC_1_12_2
 	public static ITextComponent TextOrLiteral(String text)
-	#endif
 	#else
 	public static MutableComponent TextOrLiteral(String text)
 	#endif
 	{
-		#if MC_VER <= MC_1_12_2
 		#if MC_VER <= MC_1_7_10
 		return text;
-		#else
+		#elif MC_VER <= MC_1_12_2
 		return new TextComponentString(text);
-		#endif
         #elif MC_VER < MC_1_19_2
 		return new TextComponent(text);
         #else
@@ -77,26 +76,22 @@ public class GuiHelper
         #endif
 	}
 	
-	#if MC_VER <= MC_1_12_2
 	#if MC_VER <= MC_1_7_10
 	public static String TextOrTranslatable(String text)
-	#else
+	#elif MC_VER <= MC_1_12_2
 	public static ITextComponent TextOrTranslatable(String text)
-	#endif
 	#else
 	public static MutableComponent TextOrTranslatable(String text)
 	#endif
 	{
-		#if MC_VER <= MC_1_12_2
 		#if MC_VER <= MC_1_7_10
 		if (StatCollector.canTranslate(text))
 		{
 			return StatCollector.translateToLocal(text);
 		}
 		return text;
-		#else
+		#elif MC_VER <= MC_1_12_2
 		return new TextComponentString(text);
-		#endif
         #elif MC_VER < MC_1_19_2
 		return new TextComponent(text);
         #else
@@ -104,22 +99,18 @@ public class GuiHelper
         #endif
 	}
 	
-	#if MC_VER <= MC_1_12_2
 	#if MC_VER <= MC_1_7_10
 	public static String Translatable(String text, Object... args)
-	#else
+	#elif MC_VER <= MC_1_12_2
 	public static ITextComponent Translatable(String text, Object... args)
-	#endif
 	#else
 	public static MutableComponent Translatable(String text, Object... args)
 	#endif
 	{
-		#if MC_VER <= MC_1_12_2
 		#if MC_VER <= MC_1_7_10
 		return StatCollector.translateToLocalFormatted(text, args);
-		#else
+		#elif MC_VER <= MC_1_12_2
 		return new TextComponentTranslation(text, args);
-		#endif
         #elif MC_VER < MC_1_19_2
 		return new TranslatableComponent(text, args);
         #else
@@ -160,5 +151,7 @@ public class GuiHelper
 		widget.setY(y);
         #endif
 	}
+	
+	
 	
 }

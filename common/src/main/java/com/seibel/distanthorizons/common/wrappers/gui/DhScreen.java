@@ -92,8 +92,11 @@ public class DhScreen extends Screen
 	
 	protected void DhDrawCenteredString(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text, int x, int y, int color) {
 		#if MC_VER <= MC_1_7_10
-		if (StatCollector.canTranslate(text)) text = StatCollector.translateToLocal(text);
-		drawCenteredString(fontRendererObj, text, x, y, color);
+		if (StatCollector.canTranslate(text))
+		{
+			text = StatCollector.translateToLocal(text);
+		}
+		this.drawCenteredString(this.fontRendererObj, text, x, y, color);
 		#else
 		drawCenteredString(fontRenderer, text.getFormattedText(), x, y, color);
 		#endif
@@ -101,8 +104,11 @@ public class DhScreen extends Screen
 	
 	protected void DhDrawString(#if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text, int x, int y, int color) {
 		#if MC_VER <= MC_1_7_10
-		if (StatCollector.canTranslate(text)) text = StatCollector.translateToLocal(text);
-		drawString(fontRendererObj, text, x, y, color);
+		if (StatCollector.canTranslate(text))
+		{
+			text = StatCollector.translateToLocal(text);
+		}
+		this.drawString(this.fontRendererObj, text, x, y, color);
 		#else
 		drawString(fontRenderer, text.getFormattedText(), x, y, color);
 		#endif

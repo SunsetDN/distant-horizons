@@ -163,6 +163,7 @@ public class TexturedButtonWidget extends Button
 	#else
 	public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks)
 	#endif
+	
 	#if MC_VER <= MC_1_7_10
 	{
 		if (this.visible)
@@ -182,8 +183,8 @@ public class TexturedButtonWidget extends Button
 				this.drawTexturedModalRect(this.xPosition + this.width / 2, this.yPosition, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
 			}
 			
-			mc.getTextureManager().bindTexture(textureResourceLocation);
-			func_146110_a(this.xPosition, this.yPosition, this.u, this.v + (hoveredVOffset * getIconHoverState(this.field_146123_n)), this.width, this.height, this.textureWidth, this.textureHeight);
+			mc.getTextureManager().bindTexture(this.textureResourceLocation);
+			func_146110_a(this.xPosition, this.yPosition, this.u, this.v + (this.hoveredVOffset * this.getIconHoverState(this.field_146123_n)), this.width, this.height, this.textureWidth, this.textureHeight);
 		}
 	}
 	
@@ -221,6 +222,7 @@ public class TexturedButtonWidget extends Button
 	}
 	#endif
 	#elif MC_VER < MC_1_20_2
+	
 	#if MC_VER < MC_1_19_4
 	@Override
 	public void renderButton(PoseStack matrices, int mouseX, int mouseY, float delta) 

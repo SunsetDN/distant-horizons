@@ -152,6 +152,7 @@ public class ClassicConfigGUI
 			#if MC_VER > MC_1_7_10
 			this.centerListVertically = false;
 			#endif
+			
 			#if MC_VER <= MC_1_12_2
 			this.textRenderer = minecraftClient.fontRenderer;
 			#else
@@ -188,8 +189,10 @@ public class ClassicConfigGUI
 		}
 		#endif
 		
-		#if MC_VER <= MC_1_12_2
-		public void addButton(DhConfigScreen gui, AbstractConfigBase dhConfigType, Gui button, GuiButton resetButton, GuiButton indexButton, #if MC_VER <= MC_1_7_10 String #else ITextComponent #endif text)
+		#if MC_VER <= MC_1_7_10
+		public void addButton(DhConfigScreen gui, AbstractConfigBase dhConfigType, Gui button, GuiButton resetButton, GuiButton indexButton, String text)
+		#elif MC_VER <= MC_1_12_2
+		public void addButton(DhConfigScreen gui, AbstractConfigBase dhConfigType, Gui button, GuiButton resetButton, GuiButton indexButton, ITextComponent text)
 		#else
 		public void addButton(DhConfigScreen gui, AbstractConfigBase dhConfigType, AbstractWidget button, AbstractWidget resetButton, AbstractWidget indexButton, Component text)
 		#endif
@@ -229,7 +232,11 @@ public class ClassicConfigGUI
 				
 				if (gui instanceof GuiButton button)
 				{
-					if (!button.visible) continue;
+					if (!button.visible)
+					{
+						continue;
+					}
+					
 					minX = #if MC_VER <= MC_1_7_10 button.xPosition #else button.x #endif;
 					minY = #if MC_VER <= MC_1_7_10 button.yPosition #else button.y #endif;
 					maxX = minX + button.width;
@@ -237,15 +244,13 @@ public class ClassicConfigGUI
 				}
 				else if (gui instanceof GuiTextField field)
 				{
-					#if MC_VER <= MC_1_7_10
-					if (!field.getVisible()) continue;
-					minX = field.xPosition;
-					minY = field.yPosition;
-					#else
-					if (!field.getVisible()) continue;
-					minX = field.x;
-					minY = field.y;
-					#endif
+					if (!field.getVisible())
+					{
+						continue;
+					}
+					
+					minX = #if MC_VER <= MC_1_7_10 field.xPosition #else field.x #endif;
+					minY = #if MC_VER <= MC_1_7_10 field.yPosition #else field.y #endif;
 					maxX = minX + field.width;
 					maxY = minY + field.height;
 				}
@@ -445,12 +450,10 @@ public class ClassicConfigGUI
 					SetY(this.resetButton, y);
 					#endif
 					
-					#if MC_VER <= MC_1_12_2
 					#if MC_VER <= MC_1_7_10
 					((GuiButton) this.resetButton).drawButton(Minecraft.getMinecraft(), mouseX, mouseY);
-					#else
+					#elif MC_VER <= MC_1_12_2
 					((GuiButton) this.resetButton).drawButton(Minecraft.getMinecraft(), mouseX, mouseY, tickDelta);
-					#endif
 					#elif MC_VER <= MC_1_21_11
 					this.resetButton.render(matrices, mouseX, mouseY, tickDelta);
 					#else
@@ -466,12 +469,10 @@ public class ClassicConfigGUI
 					SetY(this.indexButton, y);
 					#endif
 					
-					#if MC_VER <= MC_1_12_2
 					#if MC_VER <= MC_1_7_10
 					((GuiButton) this.indexButton).drawButton(Minecraft.getMinecraft(), mouseX, mouseY);
-					#else
+					#elif MC_VER <= MC_1_12_2
 					((GuiButton) this.indexButton).drawButton(Minecraft.getMinecraft(), mouseX, mouseY, tickDelta);
-					#endif
 					#elif MC_VER <= MC_1_21_11
 					this.indexButton.render(matrices, mouseX, mouseY, tickDelta);
 					#else
@@ -481,8 +482,10 @@ public class ClassicConfigGUI
 				
 				if (this.text != null)
 				{
-					#if MC_VER <= MC_1_12_2
-					int translatedLength = textRenderer.getStringWidth(#if MC_VER <= MC_1_7_10 this.text #else this.text.getFormattedText() #endif);
+					#if MC_VER <= MC_1_7_10
+					int translatedLength = textRenderer.getStringWidth(this.text);
+					#elif MC_VER <= MC_1_12_2
+					int translatedLength = textRenderer.getStringWidth(this.text.getFormattedText());
 					#else
 					int translatedLength = textRenderer.width(this.text);
 					#endif
@@ -553,27 +556,28 @@ public class ClassicConfigGUI
 			}
 		}
 		
-		#if MC_VER <= MC_1_12_2
-		#if MC_VER > MC_1_7_10
+		
+		
+		#if MC_VER <= MC_1_7_10
+		#else
 		@Override
 		public void updatePosition(int slotIndex, int x, int y, float partialTicks) { }
-		#endif
 		
-		@Override
-		public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY)
-		{
-			return false; // handled in DhConfigScreen.mouseClicked
-		}
-		
-		@Override
-		public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY) { }
-		#endif
-
-		#if MC_VER > MC_1_12_2
 		@Override
 		public @NotNull List<? extends GuiEventListener> children()
 		{ return this.children; }
 		#endif
+		
+		
+		#if MC_VER <= MC_1_12_2
+		@Override
+		public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY)
+		{ return false; /* handled in DhConfigScreen.mouseClicked */ }
+		
+		@Override
+		public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY) { }
+		#endif
+		
 		
 		#if MC_VER >= MC_1_17_1
 		@Override

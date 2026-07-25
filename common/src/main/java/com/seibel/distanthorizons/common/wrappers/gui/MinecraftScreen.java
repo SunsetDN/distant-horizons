@@ -63,14 +63,12 @@ public class MinecraftScreen
 		private ConfigListWidget configListWidget;
 		private AbstractScreen screen;
 		
-		#if MC_VER <= MC_1_12_2
 		#if MC_VER <= MC_1_7_10
 		public static String translate(String str, Object... args)
 		{ return StatCollector.translateToLocalFormatted(str, args); }
-		#else
+		#elif MC_VER <= MC_1_12_2
 		public static net.minecraft.util.text.TextComponentTranslation translate(String str, Object... args)
 		{ return new net.minecraft.util.text.TextComponentTranslation(str, args); }
-		#endif
 		#elif MC_VER < MC_1_19_2
 		public static net.minecraft.network.chat.TranslatableComponent translate(String str, Object... args)
 		{ return new net.minecraft.network.chat.TranslatableComponent(str, args); }
@@ -274,6 +272,7 @@ public class MinecraftScreen
 			#else
 			super(minecraftClient, canvasWidth, canvasHeight - (topMargin + botMargin), topMargin, itemSpacing);
 			#endif
+			
 			#if MC_VER > MC_1_7_10
 			this.centerListVertically = false;
 			#endif
