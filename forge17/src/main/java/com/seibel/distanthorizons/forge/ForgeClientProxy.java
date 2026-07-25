@@ -134,28 +134,29 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy {
     // ===========//
 
     @SubscribeEvent
-    public void afterLevelRenderEvent(TickEvent.RenderTickEvent event) {
-        if (event.type.equals(TickEvent.RenderTickEvent.Type.RENDER)) {
-            boolean framebufferMixinWasEnabled = MixinFlags.framebufferMixinEnabled;
-            MixinFlags.framebufferMixinEnabled = true;
-            try {
-                if (!framebufferMixinWasEnabled) {
+    public void afterLevelRenderEvent(TickEvent.RenderTickEvent event)
+    {
+	    if (event.type.equals(TickEvent.RenderTickEvent.Type.RENDER))
+	    {
+		    boolean framebufferMixinWasEnabled = MixinFlags.framebufferMixinEnabled;
+		    MixinFlags.framebufferMixinEnabled = true;
+            try 
+            {
+                if (!framebufferMixinWasEnabled) 
+				{
                     // The splash screen may have created MC's main framebuffer before our redirect was enabled.
                     // Rebuild it once after the first real render tick so the depth attachment becomes a texture.
                     Framebuffer framebuffer = Minecraft.getMinecraft()
                         .getFramebuffer();
-                    if (framebuffer != null) {
+                    if (framebuffer != null) 
+					{
                         framebuffer.createBindFramebuffer(framebuffer.framebufferWidth, framebuffer.framebufferHeight);
                     }
                 }
-
-                // should generally only need to be set once per game session
-                // allows DH to render directly to Optifine's level frame buffer,
-                // allowing better shader support
-                // MinecraftRenderWrapper.INSTANCE.finalLevelFrameBufferId =
-                // GL32.glGetInteger(GL32.GL_FRAMEBUFFER_BINDING);
-            } catch (Exception | Error e) {
-                LOGGER.error("Unexpected error in afterLevelRenderEvent: " + e.getMessage(), e);
+            } 
+			catch (Throwable e) 
+			{
+                LOGGER.error("Unexpected error in afterLevelRenderEvent: [" + e.getMessage() + "].", e);
             }
         }
     }

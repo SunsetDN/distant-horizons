@@ -9,40 +9,32 @@ import com.gtnewhorizon.gtnhmixins.builders.IMixins;
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
-public class DistantHorizonsTweaker implements IEarlyMixinLoader, IFMLLoadingPlugin {
+/**
+ * Defines our mixins
+ */
+public class DistantHorizonsTweaker implements IEarlyMixinLoader, IFMLLoadingPlugin 
+{
+    @Override
+    public String getMixinConfig() { return "mixins.distanthorizons.early.json"; }
 
     @Override
-    public String getMixinConfig() {
-        return "mixins.distanthorizons.early.json";
-    }
+    public List<String> getMixins(Set<String> loadedCoreMods) { return IMixins.getEarlyMixins(Mixins.class, loadedCoreMods); }
 
     @Override
-    public List<String> getMixins(Set<String> loadedCoreMods) {
-        return IMixins.getEarlyMixins(Mixins.class, loadedCoreMods);
-    }
+    public String[] getASMTransformerClass() { return new String[0]; }
 
     @Override
-    public String[] getASMTransformerClass() {
-        return new String[0];
-    }
+    public String getModContainerClass() { return null; }
 
     @Override
-    public String getModContainerClass() {
-        return null;
-    }
+    public String getSetupClass() { return null; }
 
     @Override
-    public String getSetupClass() {
-        return null;
-    }
+    public void injectData(Map<String, Object> data) { }
 
     @Override
-    public void injectData(Map<String, Object> data) {
-
-    }
-
-    @Override
-    public String getAccessTransformerClass() {
-        return null;
-    }
+    public String getAccessTransformerClass() { return null; }
+	
+	
+	
 }
