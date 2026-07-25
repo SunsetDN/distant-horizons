@@ -643,27 +643,9 @@ public class ChunkWrapper implements IChunkWrapper
 		#endif
 	}
 	@Override
-	public int getMinBlockX() 
-	{ 
-		#if MC_VER <= MC_1_7_10
-		return this.chunk.xPosition * 16;
-		#elif MC_VER <= MC_1_12_2
-		return this.chunk.getPos().getXStart();
-		#else
-		return this.chunk.getPos().getMinBlockX();
-		#endif
-	}
+	public int getMinBlockX() { return this.chunkPos.getMinBlockX(); }
 	@Override
-	public int getMinBlockZ() 
-	{
-		#if MC_VER <= MC_1_7_10
-		return this.chunk.zPosition * 16;
-		#elif MC_VER <= MC_1_12_2
-		return this.chunk.getPos().getZStart();
-		#else
-		return this.chunk.getPos().getMinBlockZ();
-		#endif
-	}
+	public int getMinBlockZ() { return this.chunkPos.getMinBlockZ(); }
 	
 	
 	#if MC_VER <= MC_1_7_10
