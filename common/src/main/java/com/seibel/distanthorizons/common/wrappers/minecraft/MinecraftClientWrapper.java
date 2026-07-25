@@ -463,7 +463,7 @@ public class MinecraftClientWrapper extends AbstractMinecraftSharedWrapper imple
 		LOGGER.info("Disabling vanilla clouds... This is done to prevent vanilla clouds from rendering on top of Distant Horizons LODs.");
 		
 		#if MC_VER <= MC_1_7_10
-		// TODO
+		MINECRAFT.gameSettings.clouds = false;
 		#elif MC_VER <= MC_1_12_2
 		MINECRAFT.gameSettings.clouds = 0;
 		#elif MC_VER <= MC_1_18_2
