@@ -37,7 +37,7 @@ import net.minecraft.block.*;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemDye;
 import cpw.mods.fml.common.registry.GameData;
-import com.seibel.distanthorizons.common.backports.IDhBlockStateBackport;
+import com.seibel.distanthorizons.common.backports.IBlockState;
 import net.minecraftforge.fluids.IFluidBlock;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.block.*;
@@ -141,7 +141,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	
 	@Nullable
 	#if MC_VER <= MC_1_12_2
-	public final IDhBlockStateBackport blockState;
+	public final IBlockState blockState;
 	#else
 	public final BlockState blockState;
 	#endif
@@ -213,7 +213,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		return fromBlockAndMeta(block, meta, levelWrapper);
 	}
 	
-	public static BlockStateWrapper fromBlockState(IDhBlockStateBackport blockState, ILevelWrapper levelWrapper)
+	public static BlockStateWrapper fromBlockState(IBlockState blockState, ILevelWrapper levelWrapper)
 	{
 		return fromBlockAndMeta(blockState.getBlock(), blockState.getMeta(), levelWrapper);
 	}
@@ -334,7 +334,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	#endif
 
 	#if MC_VER <= MC_1_12_2
-	private BlockStateWrapper(@Nullable IDhBlockStateBackport blockState, ILevelWrapper levelWrapper, @Nullable DhApiBlockStateWrapperCreatedEvent.EventParam overrideEventParam)
+	private BlockStateWrapper(@Nullable IBlockState blockState, ILevelWrapper levelWrapper, @Nullable DhApiBlockStateWrapperCreatedEvent.EventParam overrideEventParam)
 	#else
 	private BlockStateWrapper(@Nullable BlockState blockState, ILevelWrapper levelWrapper, @Nullable DhApiBlockStateWrapperCreatedEvent.EventParam overrideEventParam)
 	#endif	
@@ -603,7 +603,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	//region
 	
 	#if MC_VER <= MC_1_12_2
-	private static EDhApiBlockMaterial calculateEDhApiBlockMaterialId(@Nullable IDhBlockStateBackport blockState, String lowercaseSerialString, boolean isLiquid)
+	private static EDhApiBlockMaterial calculateEDhApiBlockMaterialId(@Nullable IBlockState blockState, String lowercaseSerialString, boolean isLiquid)
 	#else
 	private static EDhApiBlockMaterial calculateEDhApiBlockMaterialId(@Nullable BlockState blockState, String lowercaseSerialString, boolean isLiquid)
 	#endif
@@ -881,7 +881,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	}
 	
 	#if MC_VER <= MC_1_12_2
-	private static int calculateOpacity(@Nullable IDhBlockStateBackport blockState, boolean isAir, boolean isLiquid)
+	private static int calculateOpacity(@Nullable IBlockState blockState, boolean isAir, boolean isLiquid)
 	#else
 	private static int calculateOpacity(@Nullable BlockState blockState, boolean isAir, boolean isLiquid)
 	#endif
@@ -925,7 +925,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	}
 	
 	#if MC_VER <= MC_1_12_2
-	private static boolean getCanOcclude(@Nullable IDhBlockStateBackport blockState)
+	private static boolean getCanOcclude(@Nullable IBlockState blockState)
 	#else
 	private static boolean getCanOcclude(@Nullable BlockState blockState)
 	#endif
@@ -945,7 +945,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	}
 	
 	#if MC_VER <= MC_1_12_2
-	private static boolean getPropagatesSkyLightDown(@Nullable IDhBlockStateBackport blockState)
+	private static boolean getPropagatesSkyLightDown(@Nullable IBlockState blockState)
 	#else
 	private static boolean getPropagatesSkyLightDown(@Nullable BlockState blockState)
 	#endif
@@ -969,7 +969,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	}
 	
 	#if MC_VER <= MC_1_12_2
-	private static boolean blockTagInCsv(@Nullable IDhBlockStateBackport blockState, String blockTagsCsv)
+	private static boolean blockTagInCsv(@Nullable IBlockState blockState, String blockTagsCsv)
 	#else
 	private static boolean blockTagInCsv(@Nullable BlockState blockState, String blockTagsCsv)
 	#endif
@@ -1246,7 +1246,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	}
 	
 	#if MC_VER <= MC_1_12_2
-	public static int getLightEmission(IDhBlockStateBackport blockState)
+	public static int getLightEmission(IBlockState blockState)
 	#else
 	public static int getLightEmission(BlockState blockState)
 	#endif
@@ -1273,7 +1273,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	@Override
 	public boolean isAir() { return isAir(this.blockState); }
 	#if MC_VER <= MC_1_12_2
-	public static boolean isAir(IDhBlockStateBackport blockState) 
+	public static boolean isAir(IBlockState blockState) 
 	#else
 	public static boolean isAir(BlockState blockState) 
 	#endif
@@ -1318,7 +1318,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	//region
 	
 	#if MC_VER <= MC_1_12_2
-	private static String serialize(IDhBlockStateBackport blockState, ILevelWrapper levelWrapper)
+	private static String serialize(IBlockState blockState, ILevelWrapper levelWrapper)
 	#else
 	private static String serialize(BlockState blockState, ILevelWrapper levelWrapper)
 	#endif

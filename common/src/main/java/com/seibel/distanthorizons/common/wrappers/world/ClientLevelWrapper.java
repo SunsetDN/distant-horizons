@@ -32,7 +32,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapp
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import net.minecraft.client.Minecraft;
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.common.backports.IDhBlockStateBackport;
+import com.seibel.distanthorizons.common.backports.IBlockState;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.WorldServer;
@@ -111,7 +111,7 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 	
 	#if MC_VER <= MC_1_12_2
 	private final WorldClient level;
-	private final ConcurrentHashMap<IDhBlockStateBackport, ClientBlockStateColorCache> blockColorCacheByBlockState = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<IBlockState, ClientBlockStateColorCache> blockColorCacheByBlockState = new ConcurrentHashMap<>();
 	#else
 	private final ClientLevel level;
 	private final ConcurrentHashMap<BlockState, ClientBlockStateColorCache> blockColorCacheByBlockState = new ConcurrentHashMap<>();
@@ -120,7 +120,7 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 
 	/** cached method reference to reduce GC overhead */
 	private final Function<
-		#if MC_VER <= MC_1_12_2 IDhBlockStateBackport
+		#if MC_VER <= MC_1_12_2 IBlockState
 		#else BlockState
 		#endif,
 		ClientBlockStateColorCache> createCachedBlockColorCacheFunc

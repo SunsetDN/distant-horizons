@@ -13,7 +13,7 @@ import net.minecraft.block.material.Material;
  * Allows for smoother use of blocks in
  * {@link IBlockStateWrapper}
  */
-public class FakeBlockState implements IDhBlockStateBackport
+public class FakeBlockState implements IBlockState
 {
 	public final Block block;
 	public final int meta;

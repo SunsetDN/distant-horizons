@@ -40,7 +40,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.util.ForgeDirection;
-import com.seibel.distanthorizons.common.backports.IDhBlockStateBackport;
+import com.seibel.distanthorizons.common.backports.IBlockState;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -100,7 +100,7 @@ public class ClientBlockStateColorCache
 	#endif
 
 	#if MC_VER <= MC_1_12_2
-	private static final HashSet<IDhBlockStateBackport> BROKEN_BLOCK_STATES = new HashSet<>();
+	private static final HashSet<IBlockState> BROKEN_BLOCK_STATES = new HashSet<>();
 	#else
 	private static final HashSet<BlockState> BROKEN_BLOCK_STATES = new HashSet<>();
 	#endif
@@ -144,7 +144,7 @@ public class ClientBlockStateColorCache
 
 	private final IClientLevelWrapper clientLevelWrapper;
 	#if MC_VER <= MC_1_12_2
-	private final IDhBlockStateBackport blockState;
+	private final IBlockState blockState;
 	#else
 	private final BlockState blockState;
 	#endif
@@ -241,7 +241,7 @@ public class ClientBlockStateColorCache
 	//region
 	
 	#if MC_VER <= MC_1_12_2
-	public ClientBlockStateColorCache(IDhBlockStateBackport blockState, IClientLevelWrapper clientLevelWrapper)
+	public ClientBlockStateColorCache(IBlockState blockState, IClientLevelWrapper clientLevelWrapper)
 	#else
 	public ClientBlockStateColorCache(BlockState blockState, IClientLevelWrapper clientLevelWrapper)
 	#endif
