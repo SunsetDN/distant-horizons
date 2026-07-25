@@ -485,13 +485,12 @@ class DhConfigScreen extends DhScreen
 		
 		final ConfigGuiInfo configGuiInfo = ((ConfigGuiInfo) enumConfigEntry.guiValue);
 		
-		String translatableEnum = TRANSLATION_PREFIX + "enum." + enumClass.getSimpleName() + "." + enumConfigEntry.get().toString();
 		#if MC_VER <= MC_1_7_10
-		Function<Object, String> getEnumTranslatableFunc = (value) -> Translatable(translatableEnum);
+		Function<Object, String> getEnumTranslatableFunc = (value) -> Translatable(TRANSLATION_PREFIX + "enum." + enumClass.getSimpleName() + "." + value.toString());
 		#elif MC_VER <= MC_1_12_2
-		Function<Object, ITextComponent> getEnumTranslatableFunc = (value) -> Translatable(translatableEnum);
+		Function<Object, ITextComponent> getEnumTranslatableFunc = (value) -> Translatable(TRANSLATION_PREFIX + "enum." + enumClass.getSimpleName() + "." + value.toString());
 		#else
-		Function<Object, Component> getEnumTranslatableFunc = (value) -> Translatable(translatableEnum);
+		Function<Object, Component> getEnumTranslatableFunc = (value) -> Translatable(TRANSLATION_PREFIX + "enum." + enumClass.getSimpleName() + "." + value.toString());
 		#endif
 		
 		configGuiInfo.buttonOptionMap =
@@ -689,7 +688,7 @@ class DhConfigScreen extends DhScreen
 				
 				if (configEntry.getType().isEnum())
 				{
-					widget.setValue((value) -> Translatable(TRANSLATION_PREFIX + "enum." + configEntry.getType().getSimpleName() + "." + configEntry.get().toString()));
+					widget.setValue((value) -> Translatable(TRANSLATION_PREFIX + "enum." + configEntry.getType().getSimpleName() + "." + value.toString()));
 				}
 				
 				#if MC_VER <= MC_1_12_2
