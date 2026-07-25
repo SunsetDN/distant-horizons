@@ -1,7 +1,12 @@
 package com.seibel.distanthorizons.common.wrappers.gui;
 
+#if MC_VER <= MC_1_12_2
+import javax.swing.JOptionPane;
+#else
 import org.lwjgl.util.tinyfd.TinyFileDialogs;
+#endif
 
+#if MC_VER > MC_1_12_2
 /**
  * Should be used instead of the direct call to {@link TinyFileDialogs}
  * so we can run additional validation and/or string cleanup.
@@ -12,6 +17,8 @@ import org.lwjgl.util.tinyfd.TinyFileDialogs;
  * 
  * @see TinyFileDialogs
  */
+ #endif
+
 public class NativeDialogUtil
 {
 	/**
@@ -27,12 +34,15 @@ public class NativeDialogUtil
 		title = title.replaceAll(unsafeCharsRegex, "");
 		message = message.replaceAll(unsafeCharsRegex, "");
 		
-		#if MC_VER == MC_1_7_10
-		// TODO not supported on MC 1.7.10
-		// use a separate library or Java swing (swing may not work on Mac)
-		#elif MC_VER <= MC_1_12_2
-		// https://mfbridge.github.io/tinyfiledialogs/reference/messageBox.html
-		TinyFileDialogs.tinyfd_messageBox(title, message, dialogType, iconType, 1 /* ok/yes */);
+		#if MC_VER <= MC_1_12_2
+		int messageType = switch (iconType) {
+			case "error" -> JOptionPane.ERROR_MESSAGE;
+			case "warning" -> JOptionPane.WARNING_MESSAGE;
+			case "info" -> JOptionPane.INFORMATION_MESSAGE;
+			case "question" -> JOptionPane.QUESTION_MESSAGE;
+			default -> JOptionPane.PLAIN_MESSAGE;
+		};
+		JOptionPane.showConfirmDialog(null, message, title, JOptionPane.DEFAULT_OPTION, messageType);
 		#elif MC_VER <= MC_1_21_11
 		TinyFileDialogs.tinyfd_messageBox(title, message, dialogType, iconType, false);
 		#else
