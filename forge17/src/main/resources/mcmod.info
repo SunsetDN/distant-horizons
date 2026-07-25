@@ -1,4 +1,6 @@
 {
+    "DH_TODO": "// TODO these variables should be populated via gradle",
+    
 	"modListVersion": 2,
 	"modList": [{
 		"modid": "distanthorizons",
