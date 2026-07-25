@@ -28,6 +28,7 @@ import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import com.seibel.distanthorizons.coreapi.util.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraftforge.common.util.ForgeDirection;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
@@ -755,10 +756,18 @@ public class ClientBlockStateTextureCache
 			return null;
 		}
 		
+		// shouldn't happen, but just in case
+		int directionIndex = 0;
+		ForgeDirection forgeDirection = McObjectConverter.convert(direction);
+		if (forgeDirection != null)
+		{
+			directionIndex = forgeDirection.ordinal();
+		}
+		
 		return TextureAtlasSpriteWrapper.resolveFaceSprite(
 			blockStateWrapper.blockState.getBlock(),
 			blockStateWrapper.blockState.getMeta(),
-			McObjectConverter.convert(direction).ordinal());
+			directionIndex);
 	}
 	#endif
 	

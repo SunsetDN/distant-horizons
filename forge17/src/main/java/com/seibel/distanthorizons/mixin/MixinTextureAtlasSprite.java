@@ -21,36 +21,40 @@ public class MixinTextureAtlasSprite implements IMixinTextureAtlasSprite {
     @Shadow
     protected List<int[][]> framesTextureData;
 
+	/** contains the individual pixel data in ARGB format */
     @Unique
     private int[] distanthorizons$spriteData;
-
-    @Unique
-    private boolean distanthorizons$dataLoaded;
-
-    @Inject(method = "loadSprite", at = @At("RETURN"))
-    private void injectLoadSprite(BufferedImage[] bufferedImages, AnimationMetadataSection p_147964_2_,
-        boolean p_147964_3_, CallbackInfo ci) {
-        distanthorizons$loadData();
-    }
-
-    public void distanthorizons$loadData() {
-        if (framesTextureData.isEmpty()) {
-            return;
-        }
-
-        int[][] frameData = framesTextureData.get(0);
-        if (frameData == null) {
-            return;
-        }
-        int[] data = frameData[0];
-        if (data == null) {
-            return;
-        }
-        distanthorizons$spriteData = data.clone();
-    }
-
-    @Override
-    public int[] distanthorizons$getSpriteData() {
-        return distanthorizons$spriteData;
-    }
+	
+	
+	
+	@Inject(method = "loadSprite", at = @At("RETURN"))
+	private void injectLoadSprite(BufferedImage[] bufferedImages, AnimationMetadataSection p_147964_2_, boolean p_147964_3_, CallbackInfo ci)
+	{ this.distanthorizons$loadData(); }
+	public void distanthorizons$loadData()
+	{
+		if (this.framesTextureData.isEmpty())
+		{
+			return;
+		}
+		
+		int[][] frameData = this.framesTextureData.get(0); 
+		if (frameData == null)
+		{
+			return;
+		} 
+		
+		int[] data = frameData[0];
+		if (data == null)
+		{
+			return;
+		}
+		
+		this.distanthorizons$spriteData = data.clone();
+	}
+	
+	@Override 
+	public int[] distanthorizons$getSpriteData() { return this.distanthorizons$spriteData; }
+	
+	
+	
 }

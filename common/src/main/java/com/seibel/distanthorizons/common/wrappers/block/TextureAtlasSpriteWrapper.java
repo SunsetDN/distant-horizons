@@ -55,8 +55,8 @@ public class TextureAtlasSpriteWrapper
 		int[] spriteData = spriteExt.distanthorizons$getSpriteData();
 		if (spriteData == null)
 		{
-			// missing texture sentinel (matches the magenta "missing" colour used elsewhere)
-			return 0xFFFF00FF;
+			// missing texture sentinel (matches the pink "missing" color used elsewhere)
+			return ColorUtil.HOT_PINK;
 		}
 		return spriteData[sprite.getIconWidth() * y + x];
 		#elif MC_VER <= MC_1_12_2
@@ -183,6 +183,8 @@ public class TextureAtlasSpriteWrapper
 	public static TextureAtlasSprite resolveFaceSprite(Block block, int meta, int sideOrdinal)
 	{
 		IIcon icon = null;
+		
+		// GregTech
 		if (ForgeMain.gtCompat != null)
 		{
 			// GregTech icons are resolved per block/meta, not per face
@@ -192,27 +194,32 @@ public class TextureAtlasSpriteWrapper
 		{
 			icon = block.getIcon(sideOrdinal, meta);
 		}
-
+		
 		if (icon instanceof IconFlipped)
 		{
 			icon = ((IconFlipped) icon).baseIcon;
 		}
-		if (icon != null && icon.getClass().getName().equals("twilightforest.block.GiantBlockIcon"))
+		
+		// twilight forest
+		if (icon != null 
+			&& icon.getClass().getName().equals("twilightforest.block.GiantBlockIcon"))
 		{
 			icon = unwrapIcon(icon, "baseIcon");
 		}
-		if (icon != null && icon.getClass().getName().equals("ic2.core.block.BlockTextureStitched"))
+		// Industrial Craft 2
+		if (icon != null 
+			&& icon.getClass().getName().equals("ic2.core.block.BlockTextureStitched"))
 		{
 			icon = unwrapIcon(icon, "mappedTexture");
 		}
-
+		
 		return (icon instanceof TextureAtlasSprite) ? (TextureAtlasSprite) icon : null;
 	}
 
 	/**
 	 * Some mods wrap their real atlas sprite inside an {@link IIcon} field
 	 * (IE TwilightForest's GiantBlockIcon, IC2's BlockTextureStitched). <br>
-	 * Returns the icon stored in the named field, or the original {@code icon}
+	 * This returns the icon stored in the named field, or the original {@code icon}
 	 * unchanged if the field is missing, inaccessible, or null.
 	 */
 	private static IIcon unwrapIcon(IIcon icon, String fieldName)
