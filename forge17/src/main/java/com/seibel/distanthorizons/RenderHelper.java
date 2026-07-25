@@ -116,8 +116,11 @@ public class RenderHelper
 
     public static void setProjectionMatrix(FloatBuffer projection) {  projectionMatrix = new Matrix4f(projection);  }
 
-	// TODO why is this here?
-    public static void HelpTesselator() { GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, 0); }
+	/** 
+	 * Unbinding is necessary to prevent 
+	 * a crash if DH is enabled while MC starts loading into the world 
+	 */
+    public static void UnbindAfterTesselatorDraw() { GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, 0); }
 
     public static void enableFog() { GL11.glEnable(GL11.GL_FOG); }
 
