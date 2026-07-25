@@ -220,7 +220,9 @@ public class ClientBlockStateTextureCache
 		#if MC_VER <= MC_1_7_10
 		TextureAtlasSprite sprite = getFaceSprite(blockStateWrapper, dhDirection);
 		return bakeSpriteTexture(sprite, true);
+		
 		#else
+		
 		//=============//
 		// quad lookup //
 		//=============//
@@ -715,22 +717,6 @@ public class ClientBlockStateTextureCache
 	//================//
 	//region
 	
-	#if MC_VER <= MC_1_7_10
-	@Nullable
-	private static TextureAtlasSprite getFaceSprite(BlockStateWrapper blockStateWrapper, EDhDirection direction)
-	{
-		if (blockStateWrapper.blockState == null)
-		{
-			return null;
-		}
-		
-		return TextureAtlasSpriteWrapper.resolveFaceSprite(
-			blockStateWrapper.blockState.getBlock(),
-			blockStateWrapper.blockState.getMeta(),
-			McObjectConverter.convert(direction).ordinal());
-	}
-	#endif
-	
 	@Nullable
 	private static TextureAtlasSprite getParticleSprite(BlockStateWrapper blockStateWrapper)
 	{
@@ -759,6 +745,22 @@ public class ClientBlockStateTextureCache
 			return null;
 		}
 	}
+	
+	#if MC_VER <= MC_1_7_10
+	@Nullable
+	private static TextureAtlasSprite getFaceSprite(BlockStateWrapper blockStateWrapper, EDhDirection direction)
+	{
+		if (blockStateWrapper.blockState == null)
+		{
+			return null;
+		}
+		
+		return TextureAtlasSpriteWrapper.resolveFaceSprite(
+			blockStateWrapper.blockState.getBlock(),
+			blockStateWrapper.blockState.getMeta(),
+			McObjectConverter.convert(direction).ordinal());
+	}
+	#endif
 	
 	#if MC_VER > MC_1_7_10
 	/** Picks which quad represents the face when several overlap. */
