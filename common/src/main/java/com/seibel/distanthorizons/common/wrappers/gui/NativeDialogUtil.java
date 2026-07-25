@@ -28,6 +28,8 @@ public class NativeDialogUtil
 		message = message.replaceAll(unsafeCharsRegex, "");
 		
 		#if MC_VER == MC_1_7_10
+		// TODO not supported on MC 1.7.10
+		// use a separate library or Java swing (swing may not work on Mac)
 		#elif MC_VER <= MC_1_12_2
 		// https://mfbridge.github.io/tinyfiledialogs/reference/messageBox.html
 		TinyFileDialogs.tinyfd_messageBox(title, message, dialogType, iconType, 1 /* ok/yes */);
