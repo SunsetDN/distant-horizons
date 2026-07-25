@@ -21,7 +21,6 @@ public enum Mixins implements IMixins {
             "MixinNetHandlerPlayClient",
             "MixinOptionsScreen",
             "MixinRenderGlobal",
-            "MixinTesselator",
             "MixinTextureAtlasSprite",
             "MixinTextureMap")),
     FIX_SIDE_FACING_UNLOADED_CHUNKS_BEING_RENDERED(new MixinBuilder().addExcludedMod(TargetedMod.ANGELICA)

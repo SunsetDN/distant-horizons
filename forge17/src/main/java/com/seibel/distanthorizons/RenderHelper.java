@@ -116,9 +116,6 @@ public class RenderHelper
 
     public static void setProjectionMatrix(FloatBuffer projection) {  projectionMatrix = new Matrix4f(projection);  }
 
-	// TODO why is this here?
-    public static void HelpTesselator() { GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, 0); }
-
     public static void enableFog() { GL11.glEnable(GL11.GL_FOG); }
 
     public static void disableFog() 
