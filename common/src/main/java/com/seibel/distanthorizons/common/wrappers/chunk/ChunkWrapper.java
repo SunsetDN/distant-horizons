@@ -259,12 +259,9 @@ public class ChunkWrapper implements IChunkWrapper
 		}
 		
 		
-		#if MC_VER <= MC_1_7_10
-		this.minNonEmptyHeight = 0;
-		#else
 		// default if every section is empty or missing
 		this.minNonEmptyHeight = this.getInclusiveMinBuildHeight();
-		
+
 		// determine the lowest empty section (bottom up)
 		#if MC_VER <= MC_1_12_2
 		ExtendedBlockStorage[] sections = this.chunk.getBlockStorageArray();
@@ -277,15 +274,14 @@ public class ChunkWrapper implements IChunkWrapper
 			{
 				continue;
 			}
-			
+
 			if (!isChunkSectionEmpty(sections[index]))
 			{
 				this.minNonEmptyHeight = this.getChunkSectionMinHeight(index);
 				break;
 			}
 		}
-		#endif
-		
+
 		return this.minNonEmptyHeight;
 	}
 	
@@ -299,12 +295,9 @@ public class ChunkWrapper implements IChunkWrapper
 		}
 		
 		
-		#if MC_VER <= MC_1_7_10
-		this.maxNonEmptyHeight = 255;
-		#else
 		// default if every section is empty or missing
 		this.maxNonEmptyHeight = this.getExclusiveMaxBuildHeight();
-		
+
 		// determine the highest empty section (top down)
 		#if MC_VER <= MC_1_12_2
 		ExtendedBlockStorage[] sections = this.chunk.getBlockStorageArray();
@@ -315,29 +308,26 @@ public class ChunkWrapper implements IChunkWrapper
 		{
 			// update at each position to fix using the max height if the chunk is empty
 			this.maxNonEmptyHeight = this.getChunkSectionMinHeight(index) + 16;
-			
+
 			if (sections[index] == null)
 			{
 				continue;
 			}
-			
+
 			if (!isChunkSectionEmpty(sections[index]))
 			{
 				// non-empty section found
 				break;
 			}
 		}
-		#endif
-		
+
 		return this.maxNonEmptyHeight;
 	}
-	#if MC_VER <= MC_1_7_10
-	#elif MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_12_2
 	private static boolean isChunkSectionEmpty(ExtendedBlockStorage section)
 	#else
 	private static boolean isChunkSectionEmpty(LevelChunkSection section)
 	#endif
-	#if MC_VER > MC_1_7_10
 	{
 		#if MC_VER <= MC_1_17_1
 		return section.isEmpty();
@@ -345,7 +335,6 @@ public class ChunkWrapper implements IChunkWrapper
 		return section.hasOnlyAir();
 		#endif
 	}
-	#endif
 	private int getChunkSectionMinHeight(int index) { return (index * 16) + this.getInclusiveMinBuildHeight(); }
 	
 	#if MC_VER <= MC_1_7_10
