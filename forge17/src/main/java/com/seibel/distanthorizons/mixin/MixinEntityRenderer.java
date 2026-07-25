@@ -40,7 +40,7 @@ public abstract class MixinEntityRenderer implements IMixinEntityRenderer
             ordinal = 1))
     private boolean disableFog(EventBus instance, Event event, @Local(argsOnly = true) int p_78468_1_)
     {
-		// TODO what is this variable?
+	    // p_78468_1_ fogMode: -1 = sky fog pass, >=0 = terrain fog pass
 	    if (p_78468_1_ == -1)
 	    {
 		    return false;
