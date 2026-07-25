@@ -335,7 +335,7 @@ public class ChangelogScreen extends DhScreen
 		}
 		
 		#if MC_VER <= MC_1_7_10
-		public void addButtonString(String text)
+		public void addButton(String text)
 		#elif MC_VER <= MC_1_12_2
 		public void addButton(ITextComponent text)
 		#else

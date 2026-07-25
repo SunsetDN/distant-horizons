@@ -44,7 +44,6 @@ import net.minecraftforge.common.util.ForgeDirection;
 import com.seibel.distanthorizons.common.backports.IBlockState;
 import com.seibel.distanthorizons.common.backports.FakeBlockState;
 import com.seibel.distanthorizons.common.backports.FakeWorld;
- */
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
