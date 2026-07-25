@@ -18,10 +18,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 public class MixinChunkMapCommon
 {
-	#if MC_VER <= MC_1_7_10
-	// no custom logic needed
-	#else
-	
 	#if MC_VER <= MC_1_12_2
 	public static void onChunkSave(WorldServer level, Chunk chunk)
 	#else
@@ -32,7 +28,10 @@ public class MixinChunkMapCommon
 		
 		int chunkPosX;
 		int chunkPosZ;
-		#if MC_VER <= MC_1_21_11
+		#if MC_VER <= MC_1_7_10
+		chunkPosX = chunk.xPosition;
+		chunkPosZ = chunk.zPosition;
+		#elif MC_VER <= MC_1_21_11
 		chunkPosX = chunk.getPos().x;
 		chunkPosZ = chunk.getPos().z;
 		#else
@@ -62,7 +61,12 @@ public class MixinChunkMapCommon
 		
 		// MC has a tendency to try saving incomplete or corrupted chunks (which show up as empty or black chunks)
 		// this logic should prevent that from happening
-		#if MC_VER <= MC_1_12_2
+		#if MC_VER <= MC_1_7_10
+		if (!chunk.isTerrainPopulated || !chunk.isLightPopulated)
+		{
+			return;
+		}
+		#elif MC_VER <= MC_1_12_2
 		if (!chunk.isTerrainPopulated() || !chunk.isLightPopulated())
 		{
 			return;
@@ -85,7 +89,7 @@ public class MixinChunkMapCommon
 		
 		// some chunks may be missing their biomes, which cause issues when attempting to save them
 		#if MC_VER <= MC_1_12_2
-		if (chunk. getBiomeArray() == null)
+		if (chunk.getBiomeArray() == null)
 		{
 			return;
 		}
@@ -114,7 +118,4 @@ public class MixinChunkMapCommon
 			levelWrapper
 		);
 	}
-	
-	#endif
-
 }

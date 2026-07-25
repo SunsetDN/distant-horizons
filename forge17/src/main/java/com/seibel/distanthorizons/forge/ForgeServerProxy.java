@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import com.seibel.distanthorizons.common.commonMixins.MixinChunkMapCommon;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -36,7 +37,6 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
 
 	
 	private static final ConcurrentLinkedQueue<ScheduledTask<?>> TASK_QUEUE = new ConcurrentLinkedQueue<>();
-	private static final ConcurrentLinkedQueue<ChunkLoadEvent> CHUNK_LOAD_EVENTS = new ConcurrentLinkedQueue<>();
 	
 	
     private final boolean isDedicated;
@@ -95,71 +95,33 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
     {
 		if (event.phase == TickEvent.Phase.END)
 	    {
-			//==========================//
-			// handle chunk load events //
-		    //==========================//
-		    //region
+		    // limit how many tasks we can run at a time
+		    // to prevent lagging the server thread
+		    long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(15);
+		    boolean processedAtLeastOne = false;
+		    while (!TASK_QUEUE.isEmpty())
 		    {
-			    Iterator<ChunkLoadEvent> chunkEventIterator = CHUNK_LOAD_EVENTS.iterator();
-			    while (chunkEventIterator.hasNext())
+			    ScheduledTask<?> scheduledTask = TASK_QUEUE.poll();
+			    if (scheduledTask == null)
 			    {
-				    ChunkLoadEvent chunkLoadEvent = chunkEventIterator.next();
-				    if (chunkLoadEvent.chunkWrapper.canSaveChunk())
+				    continue;
+			    }
+			    
+			    scheduledTask.run();
+			    
+				// TODO why do we ignore the timeout if the current task is "limited"?
+			    if (scheduledTask.limited)
+			    {
+				    if (!processedAtLeastOne)
 				    {
-					    ServerApi.INSTANCE.serverChunkLoadEvent(chunkLoadEvent.chunkWrapper, chunkLoadEvent.level);
-					    chunkEventIterator.remove();
+					    processedAtLeastOne = true;
 				    }
-				    else
+				    else if (System.nanoTime() >= deadline)
 				    {
-					    // Cleanup old events if they never got ready
-					    
-					    chunkLoadEvent.numberOfTicksSinceQueue++;
-					    // 20 ticks per second = ~10 seconds before removal
-					    if (chunkLoadEvent.numberOfTicksSinceQueue > 200)
-					    {
-						    chunkEventIterator.remove();
-					    }
+					    break;
 				    }
 			    }
 		    }
-		    //endregion
-			
-			
-			
-		    //===================//
-		    // handle task queue //
-		    //===================//
-		    //region
-		    {
-			    // limit how many tasks we can run at a time
-			    // to prevent lagging the server thread
-			    long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(15);
-			    boolean processedAtLeastOne = false;
-			    while (!TASK_QUEUE.isEmpty())
-			    {
-				    ScheduledTask<?> scheduledTask = TASK_QUEUE.poll();
-				    if (scheduledTask == null)
-				    {
-					    continue;
-				    }
-				    
-				    scheduledTask.run();
-				    
-					// TODO why do we ignore the timeout if the current task is "limited"?
-				    if (scheduledTask.limited)
-				    {
-					    if (!processedAtLeastOne)
-					    {
-						    processedAtLeastOne = true;
-					    }
-					    else if (System.nanoTime() >= deadline)
-					    {
-						    break;
-					    }
-				    }
-			    }
-		    }
-			//endregion
 		}
 	}
 
@@ -182,9 +144,6 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
 			// Make new server level wrapper so it's not cached...
 			ServerApi.INSTANCE.serverLevelUnloadEvent(new ServerLevelWrapper((WorldServer) GetEventLevel(event)));
 		}
-		
-		// remove any unprocessed chunks that belong to this level
-		CHUNK_LOAD_EVENTS.removeIf(existingEvent -> existingEvent.level.getWrappedMcObject() == event.world);
 	}
 
     @SubscribeEvent
@@ -195,15 +154,15 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
 			return;
 		}
 		
+		Chunk chunk = event.getChunk();
 		ILevelWrapper levelWrapper = ProxyUtil.getLevelWrapper(GetEventLevel(event));
-		ChunkWrapper chunk = new ChunkWrapper(event.getChunk(), levelWrapper);
-		if (chunk.canSaveChunk())
+		ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, levelWrapper);
+		// Only handle event if chunk is ready, otherwise drop the update - we'll get it later during save
+		if (!chunk.isTerrainPopulated || !chunk.isLightPopulated)
 	    {
-			ServerApi.INSTANCE.serverChunkLoadEvent(chunk, levelWrapper);
 			return;
 		}
-		
-		CHUNK_LOAD_EVENTS.add(new ChunkLoadEvent(chunk, levelWrapper));
+	    ServerApi.INSTANCE.serverChunkLoadEvent(chunkWrapper, levelWrapper);
 	}
 
     @SubscribeEvent
@@ -213,10 +172,7 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
 		{
             return;
         }
-        ILevelWrapper levelWrapper = ProxyUtil.getLevelWrapper(GetEventLevel(event));
-        Chunk chunk = event.getChunk();
-        ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, levelWrapper);
-        ServerApi.INSTANCE.serverChunkSaveEvent(chunkWrapper, levelWrapper);
+	    MixinChunkMapCommon.onChunkSave((WorldServer) event.world, event.getChunk());
     }
 
     @SubscribeEvent
