@@ -38,7 +38,7 @@ public abstract class MixinEntityRenderer implements IMixinEntityRenderer
             target = "Lcpw/mods/fml/common/eventhandler/EventBus;post(Lcpw/mods/fml/common/eventhandler/Event;)Z",
             remap = false,
             ordinal = 1))
-    private boolean disableFog(EventBus instance, Event event, @Local(argsOnly = true) int p_78468_1_)
+    private boolean disableFogDuringSetup(EventBus instance, Event event, @Local(argsOnly = true) int p_78468_1_)
     {
 	    // p_78468_1_ fogMode: -1 = sky fog pass, >=0 = terrain fog pass
 	    if (p_78468_1_ == -1)
@@ -50,11 +50,10 @@ public abstract class MixinEntityRenderer implements IMixinEntityRenderer
 	    return false;
     }
 	
-	// TODO rename
 	@Redirect(
 		method = "renderWorld",
 		at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V", remap = false))
-	private void disableFog2(int cap) 
+	private void disableFogDuringRender(int cap)
 	{ RenderHelper.glEnable(cap); }
 	
 	@Inject(method = "updateCameraAndRender", at = @At("HEAD"))

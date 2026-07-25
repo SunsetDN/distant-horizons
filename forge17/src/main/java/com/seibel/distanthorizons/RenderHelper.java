@@ -134,7 +134,7 @@ public class RenderHelper
 	
 	public static void glEnable(int cap)
 	{
-		// enable fog if requested
+		// Cancel enabling of fog if needed
 		if (MixinVanillaFogCommon.cancelFog()
 			&& cap == GL11.GL_FOG)
 		{
