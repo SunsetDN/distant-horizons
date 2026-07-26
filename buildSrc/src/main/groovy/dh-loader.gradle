@@ -126,9 +126,9 @@ if (isNotCommonProject) {
                 'Multi-Release': true,
                 'Main-Class': 'com.seibel.distanthorizons.core.jar.JarMain',
             )
-            if (project.name == "cleanroom") {
+            if (project.name == "forgevintage") {
                 attributes(
-                    'FMLCorePlugin': 'com.seibel.distanthorizons.cleanroom.DistantHorizonsLoadingPlugin',
+                    'FMLCorePlugin': 'com.seibel.distanthorizons.forgevintage.DistantHorizonsLoadingPlugin',
                     'FMLCorePluginContainsFMLMod': true,
                     'FMLAT': "${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg",
                     'ForceLoadAsMod': true
@@ -195,7 +195,7 @@ if (isNotCommonProject) {
     unimined.minecraft {
         if (gradle.ext.minecraft_version.equals("1.12.2")) {
             minecraftForge {
-                loader gradle.ext.cleanroom_loader_version
+                loader gradle.ext.forge_version
                 accessTransformer project.file("src/main/resources/${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg")
             }
         } else {
@@ -468,7 +468,7 @@ if (isNotCommonProject) {
         def loaderPaths = configurations.minecraftLibraries.resolve().collect { it.path }.toSet()
         tasks.withType(JavaExec).configureEach { runTask ->
             dependsOn(shadowJar)
-            if (project.name != "cleanroom") {
+            if (project.name != "forgevintage") {
                 classpath = files(shadowJar.archiveFile) + classpath.filter { file ->
                     file != shadowJar.archiveFile.get().asFile &&
                         !file.path.contains(project.buildDir.path) &&
@@ -478,8 +478,7 @@ if (isNotCommonProject) {
                         !(shadowedPaths.contains(file.path) && !loaderPaths.contains(file.path))
                 }
             } else {
-                // For cleanroom, don't put shadow jar on app classpath.
-                // crl.dev.extrapath loads it via LaunchClassLoader instead.
+                // For forgevintage(1.8-1.12.2), don't put shadow jar on app classpath.
                 dependsOn(tasks.named("shadeDowngradedApi"))
                 classpath = classpath.filter { file ->
                     !file.path.contains(project.buildDir.path) &&
@@ -505,7 +504,7 @@ if (isNotCommonProject) {
 
             if (project.name == "forge"
                 || project.name == "neoforge"
-                || project.name == "cleanroom") {
+                || project.name == "forgevintage") {
                 // fix (Neo)forge, Cleanroom debug running
                 doFirst {
                     def modsDir = rootProject.file("run/${isClient ? 'client' : 'server'}/mods")
@@ -519,7 +518,7 @@ if (isNotCommonProject) {
                     });
 
 
-                    def jarSource = project.name == "cleanroom"
+                    def jarSource = project.name == "forgevintage"
                         ? tasks.named("shadeDowngradedApi").get().archiveFile
                         : shadowJar.archiveFile
 
@@ -689,9 +688,9 @@ if (isNotCommonProject) {
     downgradeJar.archiveClassifier.set(null)
     shadeDowngradedApi.archiveClassifier.set(null)
 
-    if (project.name == "cleanroom") {
+    if (project.name == "forgevintage") {
         gradle.taskGraph.whenReady { graph ->
-            if (graph.hasTask(":cleanroom:runClient")) {
+            if (graph.hasTask(":forgevintage:runClient")) {
                 downgradeJar.inputFile.set(shadowJar.archiveFile)
                 downgradeJar.archiveClassifier.set("dev")
                 shadeDowngradedApi.archiveClassifier.set("dev")
