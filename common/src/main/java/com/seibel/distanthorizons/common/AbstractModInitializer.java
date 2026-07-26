@@ -61,6 +61,11 @@ public abstract class AbstractModInitializer
 {
 	protected static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
+	#if MC_VER <= MC_1_12_2
+	#else
+	private CommandInitializer commandInitializer;
+	#endif
+	
 	
 	
 	//==================//
@@ -146,7 +151,8 @@ public abstract class AbstractModInitializer
 		this.initializeModCompat();
 		
 		LOGGER.info(ModInfo.READABLE_NAME + " server Initialized, adding event subscribers...");
-		#if MC_VER > MC_1_12_2
+		#if MC_VER <= MC_1_12_2
+		#else
 		this.commandInitializer = new CommandInitializer();
 		this.subscribeRegisterCommandsEvent(dispatcher -> { this.commandInitializer.initCommands(dispatcher); });
 		#endif
