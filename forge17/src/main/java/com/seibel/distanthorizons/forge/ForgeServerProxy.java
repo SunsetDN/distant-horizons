@@ -40,7 +40,6 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
 	
 	
     private final boolean isDedicated;
-	public static boolean connected = false;
 	
 	
 	

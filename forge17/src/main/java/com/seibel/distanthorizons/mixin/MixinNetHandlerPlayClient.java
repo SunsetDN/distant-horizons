@@ -12,17 +12,17 @@ import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.forge.ForgeServerProxy;
 
 @Mixin(NetHandlerPlayClient.class)
-public class MixinNetHandlerPlayClient {
+public class MixinNetHandlerPlayClient 
+{
 
     @Inject(method = "handleJoinGame", at = @At("RETURN"))
-    private void connect(S01PacketJoinGame packetIn, CallbackInfo ci) {
-        ClientApi.INSTANCE.onClientOnlyConnected();
-        ForgeServerProxy.connected = true;
-    }
+    private void connect(S01PacketJoinGame packetIn, CallbackInfo ci) 
+    { ClientApi.INSTANCE.onClientOnlyConnected(); }
 
     @Inject(method = "cleanup", at = @At("RETURN"))
-    private void disconnect(CallbackInfo ci) {
-        ForgeServerProxy.connected = false;
-        ClientApi.INSTANCE.onClientOnlyDisconnected();
-    }
+    private void disconnect(CallbackInfo ci) 
+    { ClientApi.INSTANCE.onClientOnlyDisconnected(); }
+	
+	
+	
 }

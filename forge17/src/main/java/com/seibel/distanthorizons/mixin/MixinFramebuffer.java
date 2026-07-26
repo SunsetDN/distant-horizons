@@ -26,6 +26,11 @@ public class MixinFramebuffer
 	
 	
 	
+	//========================//
+	// depth texture handling //
+	//========================//
+	//region
+	
     @Redirect(
         method = "createFramebuffer",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OpenGlHelper;func_153185_f()I"))
@@ -90,6 +95,8 @@ public class MixinFramebuffer
 		
         GL11.glDeleteTextures(depthTexture);
     }
+	
+	//endregion
 	
 	
 	
