@@ -67,6 +67,8 @@ public class RenderHelper
 	    }
 	    
 	    
+		
+		// set GL state for DH rendering
 	    if (ForgeMain.angelicaCompat == null) 
 		{
             GL32.glDisable(GL32.GL_ALPHA_TEST);
@@ -76,8 +78,13 @@ public class RenderHelper
         int oldActiveTex = GL11.glGetInteger(GL32.GL_ACTIVE_TEXTURE);
         int oldBoundTex = GL11.glGetInteger(GL32.GL_TEXTURE_BINDING_2D);
        
+		
+		
         ClientApi.INSTANCE.renderLods();
         
+		
+		
+		// restore the GL State
 		GL32.glDepthFunc(GL32.GL_LEQUAL);
         if (ForgeMain.angelicaCompat == null) 
 		{

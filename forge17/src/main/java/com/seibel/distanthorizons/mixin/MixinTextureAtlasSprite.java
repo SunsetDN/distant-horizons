@@ -27,6 +27,11 @@ public class MixinTextureAtlasSprite implements IMixinTextureAtlasSprite
 	
 	
 	
+	//=====================//
+	// getters and setters //
+	//=====================//
+	//region
+	
 	@Inject(method = "loadSprite", at = @At("RETURN"))
 	private void injectLoadSprite(BufferedImage[] bufferedImages, AnimationMetadataSection p_147964_2_, boolean p_147964_3_, CallbackInfo ci)
 	{ this.distanthorizons$setSpriteData(); }
@@ -55,6 +60,8 @@ public class MixinTextureAtlasSprite implements IMixinTextureAtlasSprite
 	
 	@Override 
 	public int[] distanthorizons$getSpriteData() { return this.distanthorizons$spriteData; }
+	
+	//endregion
 	
 	
 	
