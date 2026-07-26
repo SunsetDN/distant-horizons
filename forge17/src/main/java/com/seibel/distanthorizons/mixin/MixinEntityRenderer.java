@@ -21,11 +21,11 @@ import cpw.mods.fml.common.eventhandler.EventBus;
 @Mixin(EntityRenderer.class)
 public abstract class MixinEntityRenderer implements IMixinEntityRenderer 
 {
-
+	
     @Override
     @Accessor("lightmapTexture")
     public abstract DynamicTexture getLightmapTexture();
-
+	
 	
 	
     @Inject(method = "setupFog", at = @At(value = "HEAD"))
@@ -54,7 +54,7 @@ public abstract class MixinEntityRenderer implements IMixinEntityRenderer
 		method = "renderWorld",
 		at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V", remap = false))
 	private void disableFogDuringRender(int cap)
-	{ RenderHelper.glEnable(cap); }
+	{ RenderHelper.disableFogDuringRender(cap); }
 	
 	@Inject(method = "updateCameraAndRender", at = @At("HEAD"))
 	private void updateLightmap(float partialTicks, CallbackInfo ci)

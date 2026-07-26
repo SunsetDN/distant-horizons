@@ -21,7 +21,7 @@ public class MixinRenderGlobal
 		// Solid render pass
 		if (renderPass == 0)
 		{
-			RenderHelper.drawLods();
+			RenderHelper.renderLods();
 		}
 		
 		// Translucent render pass
@@ -39,13 +39,13 @@ public class MixinRenderGlobal
 		// Solid render pass
 		if (renderPass == 0)
 		{
-			RenderHelper.drawLodsFade(false);
+			RenderHelper.renderFade(false);
 		}
 		
 		// Translucent render pass
 		if (renderPass == 1)
 		{
-			RenderHelper.drawLodsFade(true);
+			RenderHelper.renderFade(true);
 		}
 	}
 
@@ -62,7 +62,7 @@ public class MixinRenderGlobal
 	    // Translucent render pass
 	    if (renderPass == 1)
 	    {
-		    RenderHelper.drawDeferredLods();
+		    RenderHelper.renderDeferredLods();
 	    }
     }
 	

@@ -3,6 +3,8 @@ package com.seibel.distanthorizons;
 import java.nio.FloatBuffer;
 
 import com.seibel.distanthorizons.common.commonMixins.MixinVanillaFogCommon;
+import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapper;
+import com.seibel.distanthorizons.coreapi.ModInfo;
 import net.minecraft.client.Minecraft;
 
 import org.joml.Matrix4f;
@@ -24,34 +26,72 @@ import com.seibel.distanthorizons.forge.ForgeMain;
  */
 public class RenderHelper 
 {
-
-    public static void drawLods() 
+	private static DhMat4f modelViewMatrix;
+	private static DhMat4f projectionMatrix;
+	
+	
+	
+	//=================//
+	// matrix handling //
+	//=================//
+	//region
+	
+	public static DhMat4f getModelViewMatrix() { return new DhMat4f(modelViewMatrix); }
+	public static DhMat4f getProjectionMatrix() { return new DhMat4f(projectionMatrix); }
+	
+	public static void setModelViewMatrixFromBuffer(FloatBuffer modelviewBuffer)
+	{ modelViewMatrix = McObjectConverter.convert(new Matrix4f(modelviewBuffer)); }
+	public static void setProjectionMatrixFromBuffer(FloatBuffer projectionBuffer)
+	{ projectionMatrix = McObjectConverter.convert(new Matrix4f(projectionBuffer)); }
+	
+	//endregion
+	
+	
+	
+	//===========//
+	// rendering //
+	//===========//
+	//region
+	
+	public static void renderLods() 
     {
         ClientApi.RENDER_STATE.mcModelViewMatrix = getModelViewMatrix();
         ClientApi.RENDER_STATE.mcProjectionMatrix = getProjectionMatrix();
         ClientApi.RENDER_STATE.clientLevelWrapper = ClientLevelWrapper.getWrapper(Minecraft.getMinecraft().theWorld);
-
-        if (ForgeMain.angelicaCompat == null) 
+	    ClientApi.RENDER_STATE.partialTickTime = MinecraftRenderWrapper.INSTANCE.getPartialTickTime();
+		
+	    // only crash during development
+	    if (ModInfo.IS_DEV_BUILD)
+	    {
+		    ClientApi.RENDER_STATE.canRenderOrThrow();
+	    }
+	    
+	    
+	    if (ForgeMain.angelicaCompat == null) 
 		{
             GL32.glDisable(GL32.GL_ALPHA_TEST);
         }
         GL11.glClearColor(1, 1, 1, 0.0F);
+       
         int oldActiveTex = GL11.glGetInteger(GL32.GL_ACTIVE_TEXTURE);
         int oldBoundTex = GL11.glGetInteger(GL32.GL_TEXTURE_BINDING_2D);
+       
         ClientApi.INSTANCE.renderLods();
-        GL32.glDepthFunc(GL32.GL_LEQUAL);
+        
+		GL32.glDepthFunc(GL32.GL_LEQUAL);
         if (ForgeMain.angelicaCompat == null) 
 		{
             GL32.glEnable(GL32.GL_ALPHA_TEST);
         }
         GL32.glDisable(GL32.GL_BLEND);
+		
         GL32.glActiveTexture(oldActiveTex);
         GL32.glBindTexture(GL32.GL_TEXTURE_2D, oldBoundTex);
     }
-
+	
     public static void beforeWater() { GL11.glDepthMask(true); }
-
-    public static void drawLodsFade(boolean translucent) 
+	
+    public static void renderFade(boolean translucent) 
     {
         if (ForgeMain.angelicaCompat != null
             && !ForgeMain.angelicaCompat.canDoFadeShader()) 
@@ -83,8 +123,8 @@ public class RenderHelper
         GL32.glDepthFunc(GL32.GL_LEQUAL);
         GL32.glDisable(GL32.GL_BLEND);
     }
-
-    public static void drawDeferredLods() 
+	
+    public static void renderDeferredLods() 
     {
         if (ForgeMain.angelicaCompat == null) 
 		{
@@ -96,24 +136,26 @@ public class RenderHelper
 
         ClientApi.INSTANCE.renderDeferredLodsForShaders();
     }
-
-    private static DhMat4f modelViewMatrix;
-    private static DhMat4f projectionMatrix;
-
-    public static DhMat4f getModelViewMatrix() { return new DhMat4f(modelViewMatrix); }
-
-    public static DhMat4f getProjectionMatrix() { return new DhMat4f(projectionMatrix); }
-
-    public static void setModelViewMatrix(FloatBuffer modelview) { modelViewMatrix = McObjectConverter.convert(new Matrix4f(modelview)); }
-
-    public static void setProjectionMatrix(FloatBuffer projection) {  projectionMatrix = McObjectConverter.convert(new Matrix4f(projection));  }
-
+	
+	//endregion
+	
+	
+	
+	
+	
 	/** 
 	 * Unbinding is necessary to prevent 
 	 * a crash if DH is enabled while MC starts loading into the world 
 	 */
     public static void UnbindAfterTesselatorDraw() { GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, 0); }
 
+	
+	
+	//=====//
+	// fog //
+	//=====//
+	//region
+	
     public static void enableFog() { GL11.glEnable(GL11.GL_FOG); }
 
     public static void disableFog() 
@@ -130,9 +172,9 @@ public class RenderHelper
         GL11.glFogf(GL11.GL_FOG_END, 1024 * 1024 * 16);
     }
 	
-	public static void glEnable(int cap)
+	public static void disableFogDuringRender(int cap)
 	{
-		// Cancel enabling of fog if needed
+		// Cancel enabling fog if needed
 		if (MixinVanillaFogCommon.cancelFog()
 			&& cap == GL11.GL_FOG)
 		{
@@ -141,6 +183,10 @@ public class RenderHelper
 		
 		GL11.glEnable(cap);
 	}
+	
+	//endregion
+	
+	
 	
 	
 	
