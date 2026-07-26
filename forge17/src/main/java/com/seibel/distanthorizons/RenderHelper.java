@@ -69,6 +69,7 @@ public class RenderHelper
 	    
 		
 		// set GL state for DH rendering
+	    // TODO could we use DH's GLState object? or would that be overkill?
 	    if (ForgeMain.angelicaCompat == null) 
 		{
             GL32.glDisable(GL32.GL_ALPHA_TEST);
