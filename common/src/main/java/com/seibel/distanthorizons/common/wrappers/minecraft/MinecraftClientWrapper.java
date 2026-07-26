@@ -589,11 +589,12 @@ public class MinecraftClientWrapper extends AbstractMinecraftSharedWrapper imple
 			throw new RuntimeException(exception);
 			#elif MC_VER <= MC_1_12_2
 			CrashReport report = new CrashReport(errorMessage, exception);
-			#elif MC_VER <= MC_1_12_2
 			MINECRAFT.crashed(report);
 			#elif MC_VER < MC_1_20_4
+			CrashReport report = new CrashReport(errorMessage, exception);
 			Minecraft.crash(report);
 			#else
+			CrashReport report = new CrashReport(errorMessage, exception);
 			MINECRAFT.delayCrash(report);
 			#endif
 		});

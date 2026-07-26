@@ -35,12 +35,24 @@ public class NativeDialogUtil
 		message = message.replaceAll(unsafeCharsRegex, "");
 		
 		#if MC_VER <= MC_1_12_2
-		int messageType = switch (iconType) {
-			case "error" -> JOptionPane.ERROR_MESSAGE;
-			case "warning" -> JOptionPane.WARNING_MESSAGE;
-			case "info" -> JOptionPane.INFORMATION_MESSAGE;
-			case "question" -> JOptionPane.QUESTION_MESSAGE;
-			default -> JOptionPane.PLAIN_MESSAGE;
+		int messageType;
+		switch (iconType) 
+		{
+			case "error": 
+				messageType = JOptionPane.ERROR_MESSAGE;
+				break;
+			case "warning": 
+				messageType= JOptionPane.WARNING_MESSAGE;
+				break;
+			case "info": 
+				messageType = JOptionPane.INFORMATION_MESSAGE;
+				break;
+			case "question": 
+				messageType = JOptionPane.QUESTION_MESSAGE;
+				break;
+			default:
+				messageType = JOptionPane.PLAIN_MESSAGE;
+				break;
 		};
 		JOptionPane.showConfirmDialog(null, message, title, JOptionPane.DEFAULT_OPTION, messageType);
 		#elif MC_VER <= MC_1_21_11
