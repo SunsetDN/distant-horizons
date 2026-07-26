@@ -88,35 +88,43 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy {
                 });
         }
     }
-
-    public static void onClientChunkFilled(Chunk chunk) {
-        if (!MC.clientConnectedToDedicatedServer()) {
-            return;
-        }
-
-        World level = chunk.worldObj;
-        if (level == null || !level.isRemote) {
-            return;
-        }
-
-        ILevelWrapper wrappedLevel = ProxyUtil.getLevelWrapper(level);
-        ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, wrappedLevel);
-        if (!chunkWrapper.canSaveChunk()) {
-            LOGGER.info(
-                "Skipping client chunk update for not-ready chunk [" + chunk.xPosition + "," + chunk.zPosition + "].");
-            return;
-        }
-
-        SharedApi.INSTANCE.applyChunkUpdate(chunkWrapper, wrappedLevel, true);
-    }
-
-    // ==============//
+	
+	public static void onClientChunkFilled(Chunk chunk)
+	{
+		if (!MC.clientConnectedToDedicatedServer())
+		{
+			return;
+		}
+		
+		World level = chunk.worldObj;
+		if (level == null || !level.isRemote)
+		{
+			return;
+		}
+		
+		ILevelWrapper wrappedLevel = ProxyUtil.getLevelWrapper(level);
+		ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, wrappedLevel);
+		if (!chunkWrapper.canSaveChunk())
+		{
+			LOGGER.info(
+				"Skipping client chunk update for not-ready chunk [" + chunk.xPosition + "," + chunk.zPosition + "].");
+			return;
+		}
+		
+		SharedApi.INSTANCE.applyChunkUpdate(chunkWrapper, wrappedLevel, true);
+	}
+	
+	
+	
+    //==============//
     // key bindings //
-    // ==============//
+    //==============//
 
     @SubscribeEvent
-    public void registerKeyBindings(InputEvent.KeyInputEvent event) {
-        if (Minecraft.getMinecraft().thePlayer == null) {
+    public void registerKeyBindings(InputEvent.KeyInputEvent event) 
+    {
+        if (Minecraft.getMinecraft().thePlayer == null) 
+		{
             return;
         }
         /*
@@ -129,9 +137,9 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy {
         // TODO ClientApi.INSTANCE.keyPressedEvent(event.getKey());
     }
 
-    // ===========//
+    //===========//
     // rendering //
-    // ===========//
+    //===========//
 
     @SubscribeEvent
     public void afterLevelRenderEvent(TickEvent.RenderTickEvent event)

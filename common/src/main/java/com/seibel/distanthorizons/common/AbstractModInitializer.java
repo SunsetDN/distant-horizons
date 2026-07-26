@@ -61,8 +61,6 @@ public abstract class AbstractModInitializer
 {
 	protected static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
-	private CommandInitializer commandInitializer;
-	
 	
 	
 	//==================//

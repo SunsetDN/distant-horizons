@@ -28,7 +28,6 @@ import com.seibel.distanthorizons.forge.ForgeMain;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.IconFlipped;
 import net.minecraft.util.IIcon;
-import net.minecraftforge.common.util.ForgeDirection;
 import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Field;
 #endif
@@ -185,10 +184,10 @@ public class TextureAtlasSpriteWrapper
 		IIcon icon = null;
 		
 		// GregTech
-		if (ForgeMain.gtCompat != null)
+		if (ForgeMain.gregTechCompat != null)
 		{
 			// GregTech icons are resolved per block/meta, not per face
-			icon = ForgeMain.gtCompat.resolveIcon(block, meta);
+			icon = ForgeMain.gregTechCompat.resolveIcon(block, meta);
 		}
 		if (icon == null)
 		{

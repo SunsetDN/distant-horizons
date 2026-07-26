@@ -1,7 +1,9 @@
-package com.seibel.distanthorizons.forge;
+package com.seibel.distanthorizons.forge.wrappers.modCompat;
 
 import java.awt.Color;
 
+import com.seibel.distanthorizons.forge.wrappers.modCompat.exceptions.AngelicaVersionGuiException;
+import com.seibel.distanthorizons.forge.ForgeMain;
 import net.coderbot.iris.rendertarget.IRenderTargetExt;
 import net.minecraft.client.shader.Framebuffer;
 
@@ -15,17 +17,17 @@ import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.versioning.ArtifactVersion;
 import cpw.mods.fml.common.versioning.DefaultArtifactVersion;
 
-public class AngelicaCompat {
+public class AngelicaCompat 
+{
 
-    public int getDepthTextureId(Framebuffer framebuffer) {
-        return ((IRenderTargetExt) framebuffer).iris$getDepthTextureId();
-    }
+    public int getDepthTextureId(Framebuffer framebuffer) 
+    { return ((IRenderTargetExt) framebuffer).iris$getDepthTextureId(); }
 
-    public boolean canDoFadeShader() {
-        return AngelicaConfig.enableIris;
-    }
+    public boolean canDoFadeShader() 
+    { return AngelicaConfig.enableIris; }
 
-    public Color getFogColor() {
+    public Color getFogColor() 
+    {
         Vector3d color = GLStateManager.getFogColor();
         return new Color(
             Math.max(0.0f, Math.min(1.0f, (float) color.x)),
@@ -33,20 +35,28 @@ public class AngelicaCompat {
             Math.max(0.0f, Math.min(1.0f, (float) color.z)));
     }
 
-    public void verifyAngelicaVersion() {
+    public void throwIfUnsupportedAngelicaVersion() 
+	    throws IllegalStateException, AngelicaVersionGuiException
+    {
         ModContainer angelica = Loader.instance()
             .getIndexedModList()
             .get(ForgeMain.ANGELICA_MOD_ID);
-        if (angelica == null) {
+		
+        if (angelica == null) 
+		{
             throw new IllegalStateException("Angelica mod container could not be found.");
         }
 
         String installedVersion = angelica.getVersion();
         ArtifactVersion installedArtifactVersion = new DefaultArtifactVersion(installedVersion);
-        if (ForgeMain.SUPPORTED_ANGELICA_RANGE.containsVersion(installedArtifactVersion)) {
+        if (ForgeMain.SUPPORTED_ANGELICA_RANGE.containsVersion(installedArtifactVersion)) 
+		{
             return;
         }
 
         throw new AngelicaVersionGuiException(installedVersion, ForgeMain.MINIMUM_ANGELICA_VERSION);
     }
+	
+	
+	
 }

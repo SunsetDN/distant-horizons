@@ -4,13 +4,11 @@ import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.params.GlobalWorldGenParams;
-import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
 import com.seibel.distanthorizons.core.api.internal.chunkUpdating.ChunkUpdateQueueManager;
 import com.seibel.distanthorizons.core.api.internal.chunkUpdating.WorldChunkUpdateManager;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
-import com.seibel.distanthorizons.core.enums.MinecraftTextFormat;
 import com.seibel.distanthorizons.core.generation.DhLightingEngine;
 import com.seibel.distanthorizons.core.level.IDhServerLevel;
 import com.seibel.distanthorizons.core.logging.DhLogger;
@@ -25,7 +23,7 @@ import com.seibel.distanthorizons.coreapi.ModInfo;
 
 import org.jetbrains.annotations.Nullable;
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.forge.HodgePodgeCompat;
+import com.seibel.distanthorizons.forge.wrappers.modCompat.HodgePodgeCompat;
 import com.seibel.distanthorizons.forge.ForgeMain;
 import com.seibel.distanthorizons.forge.ForgeServerProxy;
 import com.seibel.distanthorizons.common.backports.ChunkPos;
@@ -55,10 +53,8 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 #endif
 
 import java.util.*;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.function.Function;
 #if MC_VER <= MC_1_7_10
 import java.lang.reflect.Field;
 #endif

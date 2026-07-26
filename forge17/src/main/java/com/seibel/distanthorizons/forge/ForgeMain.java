@@ -19,6 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.seibel.distanthorizons.forge.wrappers.modAccessor.*;
+import com.seibel.distanthorizons.forge.wrappers.modCompat.AngelicaCompat;
+import com.seibel.distanthorizons.forge.wrappers.modCompat.GregTechCompat;
+import com.seibel.distanthorizons.forge.wrappers.modCompat.RPLECompat;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
@@ -29,7 +33,6 @@ import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IPluginPacketSender;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker;
-import com.seibel.distanthorizons.forge.wrappers.modAccessor.ModChecker;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
@@ -42,6 +45,7 @@ import cpw.mods.fml.common.network.NetworkCheckHandler;
 import cpw.mods.fml.common.versioning.VersionParser;
 import cpw.mods.fml.common.versioning.VersionRange;
 import cpw.mods.fml.relauncher.Side;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Initialize and setup the Mod. <br>
@@ -61,138 +65,172 @@ public class ForgeMain extends AbstractModInitializer {
 
     private static final boolean DISABLE_SERVER_FOR_TESTING = false;
 
-    public static boolean isHodgePodgeInstalled;
-    public static GTCompat gtCompat;
-    public static AngelicaCompat angelicaCompat;
-    public static RPLECompat rpleCompat;
-
-    private boolean enableGTCompat() {
-        try {
-            Class.forName("gregtech.api.interfaces.IBlockWithTextures");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
+    public static boolean isHodgePodgeInstalled = false;
+	@Nullable
+    public static GregTechCompat gregTechCompat = null;
+	@Nullable
+    public static AngelicaCompat angelicaCompat = null;
+	@Nullable
+    public static RPLECompat rpleCompat = null;
+	
+	private Consumer<MinecraftServer> eventHandlerStartServer;
+	
+	
+	
+	
     @Mod.EventHandler
-    public void init(FMLInitializationEvent event) {
+    public void init(FMLInitializationEvent event) 
+    {
         if (FMLCommonHandler.instance()
             .getEffectiveSide()
-            .isClient()) {
+            .isClient()) 
+		{
             this.onInitializeClient();
-            if (Loader.isModLoaded("gregtech") && enableGTCompat()) {
-                gtCompat = new GTCompat();
+			
+			// greg tech
+            if (Loader.isModLoaded("gregtech") 
+	            && this.enableGregTechAccessor())
+            {	
+                gregTechCompat = new GregTechCompat();
             }
-            if (Loader.isModLoaded(ANGELICA_MOD_ID) && event.getSide() == Side.CLIENT) {
+			
+			// angelica
+            if (Loader.isModLoaded(ANGELICA_MOD_ID) 
+	            && event.getSide() == Side.CLIENT) 
+			{
                 angelicaCompat = new AngelicaCompat();
-                angelicaCompat.verifyAngelicaVersion();
+                angelicaCompat.throwIfUnsupportedAngelicaVersion();
             }
-            if (Loader.isModLoaded("rple")) {
+			
+			// RPLE
+            if (Loader.isModLoaded("rple")) 
+			{
                 rpleCompat = new RPLECompat();
             }
-        } else if (!DISABLE_SERVER_FOR_TESTING) {
+        } 
+		else if (!DISABLE_SERVER_FOR_TESTING) 
+		{
             this.onInitializeServer();
         }
+		
         ForgeChunkManager.setForcedChunkLoadingCallback(
             instance,
             (List<ForgeChunkManager.Ticket> tickets, World world) -> chunkLoadedCallback());
     }
+	private boolean enableGregTechAccessor()
+	{
+		try
+		{
+			Class.forName("gregtech.api.interfaces.IBlockWithTextures");
+			return true;
+		}
+		catch (ClassNotFoundException e)
+		{
+			return false;
+		}
+	}
+	private void chunkLoadedCallback() { }
 
-    private void chunkLoadedCallback() {
-
-    }
-
+	
+	
     // ServerWorldLoadEvent
     @Mod.EventHandler
-    public void dedicatedWorldLoadEvent(FMLServerAboutToStartEvent event) {
-        if (DISABLE_SERVER_FOR_TESTING) {
-            return;
-        }
-        ServerApi.INSTANCE.serverLoadEvent(
-            event.getServer()
-                .isDedicatedServer());
+    public void dedicatedWorldLoadEvent(FMLServerAboutToStartEvent event)
+    {
+	    if (DISABLE_SERVER_FOR_TESTING)
+	    {
+		    return;
+	    }
+		
+	    ServerApi.INSTANCE.serverLoadEvent(
+		    event.getServer()
+			    .isDedicatedServer());
     }
 
     // ServerWorldUnloadEvent
     @Mod.EventHandler
-    public void serverWorldUnloadEvent(FMLServerStoppingEvent event) {
-        if (DISABLE_SERVER_FOR_TESTING) {
+    public void serverWorldUnloadEvent(FMLServerStoppingEvent event) 
+    {
+        if (DISABLE_SERVER_FOR_TESTING) 
+		{
             return;
         }
+		
         ServerApi.INSTANCE.serverUnloadEvent();
     }
 
     @Mod.EventHandler
-    public void serverWorldUnloadEvent(FMLServerStoppedEvent event) {
-        if (DISABLE_SERVER_FOR_TESTING) {
+    public void serverWorldUnloadEvent(FMLServerStoppedEvent event) 
+    {
+        if (DISABLE_SERVER_FOR_TESTING) 
+		{
             return;
         }
+		
         ForgeServerProxy.serverStopping();
     }
 
     @Override
-    protected void createInitialSharedBindings() {
+    protected void createInitialSharedBindings() 
+    {
         SingletonInjector.INSTANCE.bind(IModChecker.class, ModChecker.INSTANCE);
         SingletonInjector.INSTANCE.bind(IPluginPacketSender.class, new ForgePluginPacketSender());
     }
 	
 	@Override
-	protected void createInitialClientBindings()
-	{
-		
-	}
+	protected void createInitialClientBindings() { }
 	@Override
-    protected IEventProxy createClientProxy() {
-        return new ForgeClientProxy();
-    }
-
+    protected IEventProxy createClientProxy() { return new ForgeClientProxy(); }
+	
     @Override
-    protected IEventProxy createServerProxy(boolean isDedicated) {
-        return new ForgeServerProxy(isDedicated);
-    }
-
+    protected IEventProxy createServerProxy(boolean isDedicated) {  return new ForgeServerProxy(isDedicated); }
+	
     @Override
-    protected void initializeModCompat() {
+    protected void initializeModCompat() 
+    {
         this.tryCreateModCompatAccessor("angelica", IIrisAccessor.class, IrisAccessor::new);
+		
         /*
          * TODO
          * ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
          * () -> (client, parent) -> GetConfigScreen.getScreen(parent));
          */
     }
-
+	
     @Override
-    protected void subscribeClientStartedEvent(Runnable eventHandler) {
-        eventHandler.run();
-    }
-
+    protected void subscribeClientStartedEvent(Runnable eventHandler) { eventHandler.run(); }
+	
     @Mod.EventHandler
-    public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
-        if (DISABLE_SERVER_FOR_TESTING) {
-            return;
-        }
-        if (eventHandlerStartServer != null) eventHandlerStartServer.accept(event.getServer());
+    public void onServerAboutToStart(FMLServerAboutToStartEvent event)
+    {
+	    if (DISABLE_SERVER_FOR_TESTING)
+	    {
+		    return;
+	    }
+		
+	    if (this.eventHandlerStartServer != null)
+	    {
+			this.eventHandlerStartServer.accept(event.getServer());
+	    }
     }
-
-    Consumer<MinecraftServer> eventHandlerStartServer;
+	
+    @Override
+    protected void subscribeServerStartingEvent(Consumer<MinecraftServer> eventHandler) 
+    { this.eventHandlerStartServer = eventHandler; }
 
     @Override
-    protected void subscribeServerStartingEvent(Consumer<MinecraftServer> eventHandler) {
-        eventHandlerStartServer = eventHandler;
-    }
-
-    @Override
-    protected void runDelayedSetup() {
-        SingletonInjector.INSTANCE.runDelayedSetup();
-    }
+    protected void runDelayedSetup() { SingletonInjector.INSTANCE.runDelayedSetup(); }
 
     @NetworkCheckHandler
-    public boolean checkNetwork(Map<String, String> map, Side side) {
-        if (side == Side.SERVER) {
+    public boolean checkNetwork(Map<String, String> map, Side side) 
+    {
+        if (side == Side.SERVER) 
+		{
             isHodgePodgeInstalled = map.containsKey("hodgepodge");
         }
         return true;
     }
-
+	
+	
+	
 }

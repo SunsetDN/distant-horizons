@@ -24,17 +24,17 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 
-public class ModChecker implements IModChecker {
+public class ModChecker implements IModChecker 
+{
 
     public static final ModChecker INSTANCE = new ModChecker();
-
+	
     @Override
-    public boolean isModLoaded(String modid) {
-        return Loader.isModLoaded(modid);
-    }
-
+    public boolean isModLoaded(String modid) { return Loader.isModLoaded(modid); }
+	
     @Override
-    public File modLocation(String modid) {
+    public File modLocation(String modid) 
+    {
         Stream<ModContainer> foundStream = Loader.instance()
             .getModList()
             .stream()

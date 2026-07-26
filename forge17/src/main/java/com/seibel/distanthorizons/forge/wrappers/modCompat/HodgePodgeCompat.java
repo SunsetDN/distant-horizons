@@ -1,5 +1,5 @@
 
-package com.seibel.distanthorizons.forge;
+package com.seibel.distanthorizons.forge.wrappers.modCompat;
 
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;

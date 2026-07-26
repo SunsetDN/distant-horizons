@@ -53,12 +53,10 @@ public class RenderHelper
 
     public static void drawLodsFade(boolean translucent) 
     {
-        if (ForgeMain.angelicaCompat != null) 
+        if (ForgeMain.angelicaCompat != null
+            && !ForgeMain.angelicaCompat.canDoFadeShader()) 
 		{
-            if (!ForgeMain.angelicaCompat.canDoFadeShader()) 
-			{
-                return;
-            }
+			return;
         }
         ClientApi.RENDER_STATE.mcModelViewMatrix = getModelViewMatrix();
         ClientApi.RENDER_STATE.mcProjectionMatrix = getProjectionMatrix();
