@@ -106,6 +106,10 @@ public class TexturedButtonWidget
 	
 	
 	
+	//==============//
+	// constructors //
+	//==============//
+	//region
 	
 	#if MC_VER <= MC_1_12_2
 	public TexturedButtonWidget(int id, int x, int y, int width, int height, int u, int v, int hoveredVOffset, ResourceLocation textureResourceLocation, int textureWidth, int textureHeight, String text)
@@ -147,155 +151,18 @@ public class TexturedButtonWidget
 		this.renderBackground = renderBackground;
 	}
 	
+	//endregion
 	
 	
-	#if MC_VER <= MC_1_7_10
-	@Override
-	public void drawButton(Minecraft mc, int mouseX, int mouseY) { this.drawButton_7(mc, mouseX, mouseY); }
-	#elif MC_VER <= MC_1_12_2
-	@Override
-	public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks) { this.drawButton_12(mc, mouseX, mouseY); }
-	#elif MC_VER < MC_1_20_2
 	
-	#if MC_VER < MC_1_19_4
-	@Override
-	public void renderButton(PoseStack matrices, int mouseX, int mouseY, float delta) 
-	{
-		if (this.renderBackground) // Renders the background of the button
-		{
-			#if MC_VER < MC_1_17_1
-			Minecraft.getInstance().getTextureManager().bind(WIDGETS_LOCATION);
-			RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
-			#else
-			RenderSystem.setShader(GameRenderer::getPositionTexShader);
-			RenderSystem.setShaderTexture(0, WIDGETS_LOCATION);
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
-			#endif
-
-			int i = this.getYImage(this.isHovered);
-			RenderSystem.enableBlend();
-			RenderSystem.defaultBlendFunc();
-			RenderSystem.enableDepthTest();
-			#if MC_VER < MC_1_19_4
-			this.blit(matrices, this.x, this.y, 0, 46 + i * 20, this.width / 2, this.height);
-			this.blit(matrices, this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
-			#else
-			this.blit(matrices, this.getX(), this.getY(), 0, 46 + i * 20, this.getWidth() / 2, this.getHeight());
-			this.blit(matrices, this.getX() + this.getWidth() / 2, this.getY(), 200 - this.width / 2, 46 + i * 20, this.getWidth() / 2, this.getHeight());
-			#endif
-		}
-
-		super.renderButton(matrices, mouseX, mouseY, delta);
-	}
-	
-	#else
-	    #if MC_VER < MC_1_20_1
-		@Override
-	    public void renderWidget(PoseStack matrices, int mouseX, int mouseY, float delta)
-	    {
-	        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-	        RenderSystem.setShaderTexture(0, WIDGETS_LOCATION);
-	        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
-	    #else
-		@Override
-		public void renderWidget(GuiGraphics matrices, int mouseX, int mouseY, float delta)
-		{
-	    #endif
-	    
-		if (this.renderBackground) // Renders the background of the button
-		{
-			int i = 1;
-			if (!this.active)           i = 0;
-			else if (this.isHovered)    i = 2;
-
-            #if MC_VER < MC_1_20_1
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.enableDepthTest();
-			
-            this.blit(matrices, this.getX(), this.getY(), 0, 46 + i * 20, this.getWidth() / 2, this.getHeight());
-            this.blit(matrices, this.getX() + this.getWidth() / 2, this.getY(), 200 - this.width / 2, 46 + i * 20, this.getWidth() / 2, this.getHeight());
-            #else
-			matrices.blit(WIDGETS_LOCATION, this.getX(), this.getY(), 0, 46 + i * 20, this.getWidth() / 2, this.getHeight());
-			matrices.blit(WIDGETS_LOCATION, this.getX() + this.getWidth() / 2, this.getY(), 200 - this.width / 2, 46 + i * 20, this.getWidth() / 2, this.getHeight());
-            #endif
-		}
-		
-		super.renderWidget(matrices, mouseX, mouseY, delta);
-	}
-	#endif
-	
-	#else
-		#if MC_VER < MC_1_21_11
-	@Override
-	public void renderWidget(GuiGraphics matrices, int mouseX, int mouseY, float delta)
-		#elif MC_VER <= MC_1_21_11
-	@Override 
-	protected void renderContents(GuiGraphics matrices, int mouseX, int mouseY, float delta)
-		#else
-	@Override
-	protected void extractContents(GuiGraphicsExtractor matrices, int mouseX, int mouseY, float delta)
-		#endif
-	{
-		if (this.renderBackground)
-		{
-			#if MC_VER < MC_1_21_3
-			matrices.blitSprite(SPRITES.get(this.active, this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
-			#elif MC_VER < MC_1_21_6
-			matrices.blitSprite(
-					RenderType::guiTextured,
-					SPRITES.get(this.active, this.isHoveredOrFocused()),
-					this.getX(), this.getY(),
-					this.getWidth(), this.getHeight());
-			#else
-			matrices.blitSprite(
-				RenderPipelines.GUI_TEXTURED,
-				SPRITES.get(this.active, this.isHoveredOrFocused()),
-				this.getX(), this.getY(),
-				this.getWidth(), this.getHeight());
-
-			#endif
-		}
-		
-		
-		// Renders the sprite
-		int i = 0;
-		if (!this.active)
-		{
-			i = 2;
-		}
-		else if (this.isHovered)
-		{
-			i = 1;
-		}
-		
-		#if MC_VER < MC_1_21_3
-		matrices.blit(this.textureResourceLocation, this.getX(), this.getY(), this.u, this.v + (this.hoveredVOffset * i), this.width, this.height, this.textureWidth, this.textureHeight);
-		#elif MC_VER < MC_1_21_6
-		matrices.blit(
-				RenderType::guiTextured,
-				this.textureResourceLocation,
-				this.getX(), this.getY(),
-				this.u, this.v + (this.hoveredVOffset * i),
-				this.width, this.height,
-				this.textureWidth, this.textureHeight);
-		#else
-		matrices.blit(
-				RenderPipelines.GUI_TEXTURED,
-				this.textureResourceLocation,
-				this.getX(), this.getY(),
-				this.u, this.v + (this.hoveredVOffset * i),
-				this.width, this.height,
-				this.textureWidth, this.textureHeight);
-
-		#endif
-	}
-	#endif
-	
-	
+	//===========//
+	// rendering //
+	//===========//
+	//region
 	
 	#if MC_VER <= MC_1_7_10
-	public void drawButton_7(Minecraft mc, int mouseX, int mouseY)
+	@Override
+	public void drawButton(Minecraft mc, int mouseX, int mouseY)
 	{
 		if (this.visible)
 		{
@@ -338,11 +205,13 @@ public class TexturedButtonWidget
 	}
 	
 	#elif MC_VER <= MC_1_12_2
-	public void drawButton_12(Minecraft mc, int mouseX, int mouseY)
+	public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks)
 	{
-		if (this.visible) 
+		if (this.visible)
 		{
-			this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
+			this.hovered =
+				mouseX >= this.x && mouseX < this.x + this.width
+				&& mouseY >= this.y && mouseY < this.y + this.height;
 			int i = this.getHoverState(this.hovered);
 			
 			GlStateManager.enableBlend();
@@ -352,19 +221,228 @@ public class TexturedButtonWidget
 			
 			if (this.renderBackground)
 			{
-				//Render vanilla background
+				// Render vanilla background
 				mc.getTextureManager().bindTexture(BUTTON_TEXTURES);
 				this.drawTexturedModalRect(this.x, this.y, 0, 46 + i * 20, this.width / 2, this.height);
 				this.drawTexturedModalRect(this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
 			}
 			
-			//Render DH texture
-			mc.getTextureManager().bindTexture(textureResourceLocation);
-			drawModalRectWithCustomSizedTexture(this.x, this.y, this.u, (hoveredVOffset * (i - 1)), this.width, this.height, this.textureWidth, this.textureHeight);
+			// Render DH texture
+			mc.getTextureManager().bindTexture(this.textureResourceLocation);
+			drawModalRectWithCustomSizedTexture(this.x, this.y, this.u, (this.hoveredVOffset * (i - 1)), this.width, this.height, this.textureWidth, this.textureHeight);
 		}
+	}
+	
+	#elif MC_VER <= MC_1_16_5
+	@Override
+	public void renderButton(PoseStack matrices, int mouseX, int mouseY, float delta)
+	{
+		if (this.renderBackground) // Renders the background of the button
+		{
+			Minecraft.getInstance().getTextureManager().bind(WIDGETS_LOCATION);
+			RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
+			
+			int i = this.getYImage(this.isHovered);
+			RenderSystem.enableBlend();
+			RenderSystem.defaultBlendFunc();
+			RenderSystem.enableDepthTest();
+			this.blit(matrices, this.x, this.y, 0, 46 + i * 20, this.width / 2, this.height);
+			this.blit(matrices, this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
+		}
+		
+		super.renderButton(matrices, mouseX, mouseY, delta);
+	}
+	
+	#elif MC_VER <= MC_1_19_2
+	@Override
+	public void renderButton(PoseStack matrices, int mouseX, int mouseY, float delta)
+	{
+		if (this.renderBackground) // Renders the background of the button
+		{
+			RenderSystem.setShader(GameRenderer::getPositionTexShader);
+			RenderSystem.setShaderTexture(0, WIDGETS_LOCATION);
+			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
+			
+			int i = this.getYImage(this.isHovered);
+			RenderSystem.enableBlend();
+			RenderSystem.defaultBlendFunc();
+			RenderSystem.enableDepthTest();
+			this.blit(matrices, this.x, this.y, 0, 46 + i * 20, this.width / 2, this.height);
+			this.blit(matrices, this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
+		}
+		
+		super.renderButton(matrices, mouseX, mouseY, delta);
+	}
+	
+	#elif MC_VER <= MC_1_19_4
+	@Override
+	public void renderWidget(PoseStack matrices, int mouseX, int mouseY, float delta)
+	{
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderTexture(0, WIDGETS_LOCATION);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
+		
+		if (this.renderBackground) // Renders the background of the button
+		{
+			int i = 1;
+			if (!this.active)           { i = 0; }
+			else if (this.isHovered)    { i = 2; }
+			
+			RenderSystem.enableBlend();
+			RenderSystem.defaultBlendFunc();
+			RenderSystem.enableDepthTest();
+			
+			this.blit(matrices, this.getX(), this.getY(), 0, 46 + i * 20, this.getWidth() / 2, this.getHeight());
+			this.blit(matrices, this.getX() + this.getWidth() / 2, this.getY(), 200 - this.width / 2, 46 + i * 20, this.getWidth() / 2, this.getHeight());
+		}
+		
+		super.renderWidget(matrices, mouseX, mouseY, delta);
+	}
+	
+	#elif MC_VER <= MC_1_20_1
+	@Override
+	public void renderWidget(GuiGraphics matrices, int mouseX, int mouseY, float delta)
+	{
+		if (this.renderBackground) // Renders the background of the button
+		{
+			int i = 1;
+			if (!this.active)           { i = 0; }
+			else if (this.isHovered)    { i = 2; }
+			
+			matrices.blit(WIDGETS_LOCATION, this.getX(), this.getY(), 0, 46 + i * 20, this.getWidth() / 2, this.getHeight());
+			matrices.blit(WIDGETS_LOCATION, this.getX() + this.getWidth() / 2, this.getY(), 200 - this.width / 2, 46 + i * 20, this.getWidth() / 2, this.getHeight());
+		}
+		
+		super.renderWidget(matrices, mouseX, mouseY, delta);
+	}
+	
+	#elif MC_VER <= MC_1_21_1
+	@Override
+	public void renderWidget(GuiGraphics matrices, int mouseX, int mouseY, float delta)
+	{
+		if (this.renderBackground)
+		{
+			matrices.blitSprite(SPRITES.get(this.active, this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+		}
+		
+		// Renders the sprite
+		int i = 0;
+		if (!this.active)        { i = 2; }
+		else if (this.isHovered) { i = 1; }
+		
+		matrices.blit(this.textureResourceLocation, this.getX(), this.getY(), this.u, this.v + (this.hoveredVOffset * i), this.width, this.height, this.textureWidth, this.textureHeight);
+	}
+	
+	#elif MC_VER <= MC_1_21_5
+	@Override
+	public void renderWidget(GuiGraphics matrices, int mouseX, int mouseY, float delta)
+	{
+		if (this.renderBackground)
+		{
+			matrices.blitSprite(
+					RenderType::guiTextured,
+					SPRITES.get(this.active, this.isHoveredOrFocused()),
+					this.getX(), this.getY(),
+					this.getWidth(), this.getHeight());
+		}
+		
+		// Renders the sprite
+		int i = 0;
+		if (!this.active)        { i = 2; }
+		else if (this.isHovered) { i = 1; }
+		
+		matrices.blit(
+				RenderType::guiTextured,
+				this.textureResourceLocation,
+				this.getX(), this.getY(),
+				this.u, this.v + (this.hoveredVOffset * i),
+				this.width, this.height,
+				this.textureWidth, this.textureHeight);
+	}
+	
+	#elif MC_VER <= MC_1_21_10
+	@Override
+	public void renderWidget(GuiGraphics matrices, int mouseX, int mouseY, float delta)
+	{
+		if (this.renderBackground)
+		{
+			matrices.blitSprite(
+					RenderPipelines.GUI_TEXTURED,
+					SPRITES.get(this.active, this.isHoveredOrFocused()),
+					this.getX(), this.getY(),
+					this.getWidth(), this.getHeight());
+		}
+		
+		// Renders the sprite
+		int i = 0;
+		if (!this.active)        { i = 2; }
+		else if (this.isHovered) { i = 1; }
+		
+		matrices.blit(
+				RenderPipelines.GUI_TEXTURED,
+				this.textureResourceLocation,
+				this.getX(), this.getY(),
+				this.u, this.v + (this.hoveredVOffset * i),
+				this.width, this.height,
+				this.textureWidth, this.textureHeight);
+	}
+	
+	#elif MC_VER <= MC_1_21_11
+	@Override
+	protected void renderContents(GuiGraphics matrices, int mouseX, int mouseY, float delta)
+	{
+		if (this.renderBackground)
+		{
+			matrices.blitSprite(
+				RenderPipelines.GUI_TEXTURED,
+				SPRITES.get(this.active, this.isHoveredOrFocused()),
+				this.getX(), this.getY(),
+				this.getWidth(), this.getHeight());
+		}
+		
+		// Renders the sprite
+		int i = 0;
+		if (!this.active)        { i = 2; }
+		else if (this.isHovered) { i = 1; }
+		
+		matrices.blit(
+			RenderPipelines.GUI_TEXTURED,
+			this.textureResourceLocation,
+			this.getX(), this.getY(),
+			this.u, this.v + (this.hoveredVOffset * i),
+			this.width, this.height,
+			this.textureWidth, this.textureHeight);
+	}
+	
+	#else
+	@Override
+	protected void extractContents(GuiGraphicsExtractor matrices, int mouseX, int mouseY, float delta)
+	{
+		if (this.renderBackground)
+		{
+			matrices.blitSprite(
+					RenderPipelines.GUI_TEXTURED,
+					SPRITES.get(this.active, this.isHoveredOrFocused()),
+					this.getX(), this.getY(),
+					this.getWidth(), this.getHeight());
+		}
+		
+		// Renders the sprite
+		int i = 0;
+		if (!this.active)        { i = 2; }
+		else if (this.isHovered) { i = 1; }
+		
+		matrices.blit(
+				RenderPipelines.GUI_TEXTURED,
+				this.textureResourceLocation,
+				this.getX(), this.getY(),
+				this.u, this.v + (this.hoveredVOffset * i),
+				this.width, this.height,
+				this.textureWidth, this.textureHeight);
 	}
 	#endif
 	
+	//endregion
 	
 	
 	
