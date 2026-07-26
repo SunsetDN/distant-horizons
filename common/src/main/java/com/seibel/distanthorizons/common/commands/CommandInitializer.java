@@ -49,26 +49,29 @@ public class CommandInitializer
 			public String getName() { return "dh"; }
 			
 			@Override
-			public String getUsage(ICommandSender sender) { return "/dh <debug|config|pregen>"; }
+			public String getUsage(ICommandSender sender)
+			{
+				return DEBUG_CODEC_CRASH_MESSAGE
+						? "/dh <help|debug|config|crash|pregen>"
+						: "/dh <help|debug|config|pregen>";
+			}
 			
 			@Override
 			public void execute(MinecraftServer server, ICommandSender sender, String[] args)
 			{
 				if (args.length == 0)
 				{
-					if (DEBUG_CODEC_CRASH_MESSAGE)
-					{
-						sender.sendMessage(new TextComponentString("Usage: /dh <debug|config|crash|pregen>"));
-					}
-					else
-					{
-						sender.sendMessage(new TextComponentString("Usage: /dh <debug|config|pregen"));
-					}
+					HelpCommand helpCommand = new HelpCommand();
+					helpCommand.execute(sender);
 					return;
 				}
 				
 				switch (args[0])
 				{
+					case "help":
+						HelpCommand helpCommand = new HelpCommand();
+						helpCommand.execute(sender);
+						break;
 					case "debug":
 						DebugCommand debugCommand = new DebugCommand();
 						debugCommand.execute(sender);
@@ -148,6 +151,7 @@ public class CommandInitializer
 				});
 		
 		builder.then(new ConfigCommand().buildCommand());
+		builder.then(new HelpCommand().buildCommand());
 		builder.then(new DebugCommand().buildCommand());
 		builder.then(new PregenCommand().buildCommand());
 		
