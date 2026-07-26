@@ -27,18 +27,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.components.Button;
 #endif
 
-
-#if MC_VER <= MC_1_12_2
+#if MC_VER <= MC_1_7_10
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
-#if MC_VER <= MC_1_7_10
 import net.minecraft.client.renderer.OpenGlHelper;
 import org.lwjgl.opengl.GL11;
-#else
+#elif MC_VER <= MC_1_12_2
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
-#endif
 import net.minecraft.util.ResourceLocation;
-#elif MC_VER < MC_1_17_1
+#elif MC_VER <= MC_1_16_5
 import net.minecraft.client.gui.components.ImageButton;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -80,49 +79,43 @@ import net.minecraft.resources.Identifier;
  * @author coolGi
  * @version 2023-10-03
  */
-#if MC_VER <= MC_1_12_2
-@SuppressWarnings("deprecation") // we use a few deprecated Mojang functions (as expected when running on old MC versions)
-public class TexturedButtonWidget extends GuiButton
-#elif MC_VER < MC_1_20_2
-@SuppressWarnings("deprecation") // we use a few deprecated Mojang functions (as expected when running on old MC versions)
-public class TexturedButtonWidget extends ImageButton
-#else
-@SuppressWarnings("deprecation") // we use a few deprecated Mojang functions (as expected when running on old MC versions)
-public class TexturedButtonWidget extends Button
-#endif
+@SuppressWarnings({ "RedundantSuppression", "deprecation"}) // we use a few deprecated Mojang functions (as expected when running on old MC versions)
+public class TexturedButtonWidget 
+	#if MC_VER <= MC_1_12_2
+	extends GuiButton
+	#elif MC_VER < MC_1_20_2
+	extends ImageButton
+	#else
+	extends Button
+	#endif
 {
 	public final boolean renderBackground;
 	
-	#if MC_VER >= MC_1_20_2 || MC_VER <= MC_1_12_2
 	private final int u;
 	private final int v;
 	private final int hoveredVOffset;
 	
-	#if MC_VER <= MC_1_21_10 
+	private final int textureWidth;
+	private final int textureHeight;
+	
+	#if MC_VER <= MC_1_21_10
 	private final ResourceLocation textureResourceLocation;
 	#else
 	private final Identifier textureResourceLocation;
 	#endif
 	
-	private final int textureWidth;
-	private final int textureHeight;
-	#endif
+	
+	
 	
 	#if MC_VER <= MC_1_12_2
 	public TexturedButtonWidget(int id, int x, int y, int width, int height, int u, int v, int hoveredVOffset, ResourceLocation textureResourceLocation, int textureWidth, int textureHeight, String text)
-	{
-		this(id, x, y, width, height, u, v, hoveredVOffset, textureResourceLocation, textureWidth, textureHeight, text, true);
-	}
+	{ this(id, x, y, width, height, u, v, hoveredVOffset, textureResourceLocation, textureWidth, textureHeight, text, true); }
 	#elif MC_VER <= MC_1_21_10
 	public TexturedButtonWidget(int x, int y, int width, int height, int u, int v, int hoveredVOffset, ResourceLocation textureResourceLocation, int textureWidth, int textureHeight, OnPress pressAction, Component text) 
-	{
-		this(x, y, width, height, u, v, hoveredVOffset, textureResourceLocation, textureWidth, textureHeight, pressAction, text, true);
-	}
+	{ this(x, y, width, height, u, v, hoveredVOffset, textureResourceLocation, textureWidth, textureHeight, pressAction, text, true); }
 	#else
 	public TexturedButtonWidget(int x, int y, int width, int height, int u, int v, int hoveredVOffset, Identifier textureResourceLocation, int textureWidth, int textureHeight, OnPress pressAction, Component text)
-	{
-		this(x, y, width, height, u, v, hoveredVOffset, textureResourceLocation, textureWidth, textureHeight, pressAction, text, true);
-	}
+	{ this(x, y, width, height, u, v, hoveredVOffset, textureResourceLocation, textureWidth, textureHeight, pressAction, text, true); }
 	#endif
 	
 	#if MC_VER <= MC_1_12_2
@@ -142,7 +135,6 @@ public class TexturedButtonWidget extends Button
 		super(x, y, width, height, Component.empty(), pressAction, DEFAULT_NARRATION);
 		#endif
 		
-		#if MC_VER >= MC_1_20_2 || MC_VER <= MC_1_12_2
 		this.u = u;
 		this.v = v;
 		this.hoveredVOffset = hoveredVOffset;
@@ -151,76 +143,18 @@ public class TexturedButtonWidget extends Button
 		
 		this.textureWidth = textureWidth;
 		this.textureHeight = textureHeight;
-		#endif
 		
 		this.renderBackground = renderBackground;
 	}
 	
-	#if MC_VER <= MC_1_12_2
+	
+	
+	#if MC_VER <= MC_1_7_10
 	@Override
-	#if MC_VER <= MC_1_7_10
-	public void drawButton(Minecraft mc, int mouseX, int mouseY)
-	#else
-	public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks)
-	#endif
-	
-	#if MC_VER <= MC_1_7_10
-	{
-		if (this.visible)
-		{
-			this.field_146123_n = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
-			int i = this.getHoverState(this.field_146123_n);
-			
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-			GL11.glEnable(GL11.GL_BLEND);
-			OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-			
-			if (this.renderBackground)
-			{
-				mc.getTextureManager().bindTexture(buttonTextures);
-				this.drawTexturedModalRect(this.xPosition, this.yPosition, 0, 46 + i * 20, this.width / 2, this.height);
-				this.drawTexturedModalRect(this.xPosition + this.width / 2, this.yPosition, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
-			}
-			
-			mc.getTextureManager().bindTexture(this.textureResourceLocation);
-			func_146110_a(this.xPosition, this.yPosition, this.u, this.v + (this.hoveredVOffset * this.getIconHoverState(this.field_146123_n)), this.width, this.height, this.textureWidth, this.textureHeight);
-		}
-	}
-	
-	public int getIconHoverState(boolean mouseOver)
-	{
-		if (!this.enabled || mouseOver)
-		{
-			return 1;
-		}
-		return 0;
-	}
-	#else
-	{
-		if (this.visible) {
-			this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
-			int i = this.getHoverState(this.hovered);
-			
-			GlStateManager.enableBlend();
-			GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-			GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-			
-			if (this.renderBackground)
-			{
-				//Render vanilla background
-				mc.getTextureManager().bindTexture(BUTTON_TEXTURES);
-				this.drawTexturedModalRect(this.x, this.y, 0, 46 + i * 20, this.width / 2, this.height);
-				this.drawTexturedModalRect(this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
-			}
-			
-			//Render DH texture
-			mc.getTextureManager().bindTexture(textureResourceLocation);
-			drawModalRectWithCustomSizedTexture(this.x, this.y, this.u, (hoveredVOffset * (i - 1)), this.width, this.height, this.textureWidth, this.textureHeight);
-		}
-	}
-	#endif
+	public void drawButton(Minecraft mc, int mouseX, int mouseY) { this.drawButton_7(mc, mouseX, mouseY); }
+	#elif MC_VER <= MC_1_12_2
+	@Override
+	public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks) { this.drawButton_12(mc, mouseX, mouseY, partialTicks); }
 	#elif MC_VER < MC_1_20_2
 	
 	#if MC_VER < MC_1_19_4
@@ -255,18 +189,19 @@ public class TexturedButtonWidget extends Button
 	}
 	
 	#else
-    #if MC_VER < MC_1_20_1
-	@Override
-    public void renderWidget(PoseStack matrices, int mouseX, int mouseY, float delta)
-    {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, WIDGETS_LOCATION);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
-    #else
-	@Override
-	public void renderWidget(GuiGraphics matrices, int mouseX, int mouseY, float delta)
-	{
-    #endif
+	    #if MC_VER < MC_1_20_1
+		@Override
+	    public void renderWidget(PoseStack matrices, int mouseX, int mouseY, float delta)
+	    {
+	        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+	        RenderSystem.setShaderTexture(0, WIDGETS_LOCATION);
+	        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
+	    #else
+		@Override
+		public void renderWidget(GuiGraphics matrices, int mouseX, int mouseY, float delta)
+		{
+	    #endif
+	    
 		if (this.renderBackground) // Renders the background of the button
 		{
 			int i = 1;
@@ -356,4 +291,81 @@ public class TexturedButtonWidget extends Button
 		#endif
 	}
 	#endif
+	
+	
+	
+	#if MC_VER <= MC_1_7_10
+	public void drawButton_7(Minecraft mc, int mouseX, int mouseY)
+	{
+		if (this.visible)
+		{
+			this.field_146123_n =
+				mouseX >= this.xPosition
+					&& mouseY >= this.yPosition
+					&& mouseX < this.xPosition + this.width
+					&& mouseY < this.yPosition + this.height;
+			int hoverState = this.getHoverState(this.field_146123_n);
+			
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+			GL11.glEnable(GL11.GL_BLEND);
+			OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+			
+			if (this.renderBackground)
+			{
+				mc.getTextureManager().bindTexture(buttonTextures);
+				this.drawTexturedModalRect(
+					this.xPosition, this.yPosition,
+					0, 46 + hoverState * 20,
+					this.width / 2, this.height);
+				this.drawTexturedModalRect(
+					this.xPosition + this.width / 2, this.yPosition,
+					200 - this.width / 2, 46 + hoverState * 20,
+					this.width / 2, this.height);
+			}
+			
+			mc.getTextureManager().bindTexture(this.textureResourceLocation);
+			func_146110_a(this.xPosition, this.yPosition, this.u, this.v + (this.hoveredVOffset * this.getIconHoverState(this.field_146123_n)), this.width, this.height, this.textureWidth, this.textureHeight);
+		}
+	}
+	private int getIconHoverState(boolean mouseOver)
+	{
+		if (!this.enabled || mouseOver)
+		{
+			return 1;
+		}
+		return 0;
+	}
+	
+	#elif MC_VER <= MC_1_12_2
+	public void drawButton_12(Minecraft mc, int mouseX, int mouseY)
+	{
+		if (this.visible) 
+		{
+			this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
+			int i = this.getHoverState(this.hovered);
+			
+			GlStateManager.enableBlend();
+			GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+			GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+			
+			if (this.renderBackground)
+			{
+				//Render vanilla background
+				mc.getTextureManager().bindTexture(BUTTON_TEXTURES);
+				this.drawTexturedModalRect(this.x, this.y, 0, 46 + i * 20, this.width / 2, this.height);
+				this.drawTexturedModalRect(this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
+			}
+			
+			//Render DH texture
+			mc.getTextureManager().bindTexture(textureResourceLocation);
+			drawModalRectWithCustomSizedTexture(this.x, this.y, this.u, (hoveredVOffset * (i - 1)), this.width, this.height, this.textureWidth, this.textureHeight);
+		}
+	}
+	#endif
+	
+	
+	
+	
 }
