@@ -14,14 +14,26 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 
 @Mixin(value = Block.class)
-public class MixinBlock_SideFacingUnloadedChunk {
-
+public class MixinBlock_SideFacingUnloadedChunk 
+{
+	/**
+	 * This is necessary for under-water chunks to look
+	 * correct on the faded LODs. <br><br>
+	 * 
+	 * If not included the water chunks will render walls when moving
+	 * which looks bad.
+	 */
     @ModifyReturnValue(method = "shouldSideBeRendered", at = @At("TAIL"))
-    private boolean shouldSideBeRenderedFix(boolean original, @Local(argsOnly = true) IBlockAccess blockAccess,
+    private boolean shouldSideBeRenderedFix(
+		boolean original, 
+	    @Local(argsOnly = true) IBlockAccess blockAccess,
         @Local(argsOnly = true, ordinal = 0) int x, @Local(argsOnly = true, ordinal = 2) int z,
-        @Local(argsOnly = true, ordinal = 3) int side) {
+        @Local(argsOnly = true, ordinal = 3) int side) 
+    {
         // Skip invalid orientations, and early exit for UP/DOWN
-        if (side < 2 || side >= 6) {
+        if (side < 2 
+	        || side >= 6) 
+		{
             return original;
         }
         ForgeDirection direction = ForgeDirection.VALID_DIRECTIONS[side];
@@ -33,23 +45,34 @@ public class MixinBlock_SideFacingUnloadedChunk {
         x >>= 4;
         z >>= 4;
 
-        if (originalChunkX == x && originalChunkZ == z) {
+        if (originalChunkX == x 
+	        && originalChunkZ == z)
+		{
             return original;
         }
 
-        if (blockAccess instanceof ChunkCache) {
+        if (blockAccess instanceof ChunkCache) 
+		{
             MixinChunkCache_SideFacingUnloaded cache = (MixinChunkCache_SideFacingUnloaded) blockAccess;
             Chunk[][] chunks = cache.getChunkArray();
 
             x -= cache.getChunkX();
             z -= cache.getChunkZ();
 
-            if (x < 0 || x >= chunks.length || z < 0 || z >= chunks[x].length) {
+            if (x < 0 || x >= chunks.length 
+	            || z < 0 || z >= chunks[x].length) 
+			{
                 return false;
-            } else if (chunks[x][z] instanceof EmptyChunk) {
+            } 
+			else if (chunks[x][z] instanceof EmptyChunk) 
+			{
                 return false;
             }
         }
+		
         return original;
     }
+	
+	
+	
 }
