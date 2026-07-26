@@ -91,7 +91,15 @@ public class FakeWorld implements IBlockAccess
 		}
 		else if (this.blockState.block instanceof BlockDoublePlant)
 		{
-			return 2; // TODO
+			/*
+			 * Double tall grass on 1.7.10 has
+			 * top block = meta 8
+			 * bottom block = meta 2
+			 * To get the color of the top block, BlockDoublePlant uses the meta of the bottom block.
+			 * Since this is a fake world we can't get the real meta for the bottom block.
+			 * We default to 2 since this applies a biome tint, which is what we want in most cases.
+			 */
+			return 2;
 		}
 		
 		return 0;

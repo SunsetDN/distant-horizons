@@ -641,23 +641,6 @@ public class ChunkWrapper implements IChunkWrapper
 	@Override
 	public int getMinBlockZ() { return this.chunkPos.getMinBlockZ(); }
 	
-	
-	#if MC_VER <= MC_1_7_10
-	/** 
-	 * Returns true if the chunk has
-	 * been populated far enough for us to
-	 * convert it to an LOD. <br><br>
-	 * 
-	 * This method is only necessary for 1.7.10 since we handle
-	 * this logic in the save mixin for newer MC versions.
-	 */
-	public boolean canSaveChunk()
-	{
-		return this.chunk.isTerrainPopulated
-			&& this.chunk.isLightPopulated;
-	}
-	#endif
-	
 	//endregion
 	
 	

@@ -13,37 +13,36 @@ import com.seibel.distanthorizons.RenderHelper;
 @Mixin(RenderGlobal.class)
 public class MixinRenderGlobal 
 {
-	// TODO why are we calling the renderer multiple times?
-	
 	@Inject(method = "sortAndRender", at = @At("HEAD"))
 	void renderLods(
 		EntityLivingBase p_72719_1_, int renderPass, double p_72719_3_,
 		CallbackInfoReturnable<Integer> cir)
 	{
-		// TODO what do these numbers mean?
+		// Solid render pass
 		if (renderPass == 0)
 		{
 			RenderHelper.drawLods();
 		}
 		
+		// Translucent render pass
 		if (renderPass == 1)
 		{
 			RenderHelper.beforeWater();
 		}
 	}
 	
-	// TODO rename
 	@Inject(method = "sortAndRender", at = @At("TAIL"))
-	void renderLods2(
+	void renderLodsFade(
 		EntityLivingBase p_72719_1_, int renderPass, double p_72719_3_,
 		CallbackInfoReturnable<Integer> cir)
 	{
-		// TODO what do these numbers mean?
+		// Solid render pass
 		if (renderPass == 0)
 		{
 			RenderHelper.drawLodsFade(false);
 		}
 		
+		// Translucent render pass
 		if (renderPass == 1)
 		{
 			RenderHelper.drawLodsFade(true);
@@ -60,7 +59,7 @@ public class MixinRenderGlobal
 	    EntityLivingBase p_72719_1_, int renderPass, double p_72719_3_,
 	    CallbackInfoReturnable<Integer> cir)
     {
-	    // TODO what do these numbers mean?
+	    // Translucent render pass
 	    if (renderPass == 1)
 	    {
 		    RenderHelper.drawDeferredLods();

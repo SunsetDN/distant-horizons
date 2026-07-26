@@ -97,22 +97,16 @@ public class RenderHelper
         ClientApi.INSTANCE.renderDeferredLodsForShaders();
     }
 
-	@Deprecated // TODO replace with DH matrix
-    private static Matrix4f modelViewMatrix;
-	@Deprecated // TODO replace with DH matrix
-    private static Matrix4f projectionMatrix;
+    private static DhMat4f modelViewMatrix;
+    private static DhMat4f projectionMatrix;
 
-    public static Matrix4f getModelViewMatrixMC() { return new Matrix4f(modelViewMatrix); }
+    public static DhMat4f getModelViewMatrix() { return new DhMat4f(modelViewMatrix); }
 
-    public static Matrix4f getProjectionMatrixMC() { return new Matrix4f(projectionMatrix); }
+    public static DhMat4f getProjectionMatrix() { return new DhMat4f(projectionMatrix); }
 
-    public static DhMat4f getModelViewMatrix() { return McObjectConverter.convert(modelViewMatrix); }
+    public static void setModelViewMatrix(FloatBuffer modelview) { modelViewMatrix = McObjectConverter.convert(new Matrix4f(modelview)); }
 
-    public static DhMat4f getProjectionMatrix() { return McObjectConverter.convert(projectionMatrix); }
-
-    public static void setModelViewMatrix(FloatBuffer modelview) { modelViewMatrix = new Matrix4f(modelview); }
-
-    public static void setProjectionMatrix(FloatBuffer projection) {  projectionMatrix = new Matrix4f(projection);  }
+    public static void setProjectionMatrix(FloatBuffer projection) {  projectionMatrix = McObjectConverter.convert(new Matrix4f(projection));  }
 
 	/** 
 	 * Unbinding is necessary to prevent 
@@ -138,7 +132,7 @@ public class RenderHelper
 	
 	public static void glEnable(int cap)
 	{
-		// enable fog if requested
+		// Cancel enabling of fog if needed
 		if (MixinVanillaFogCommon.cancelFog()
 			&& cap == GL11.GL_FOG)
 		{
