@@ -89,6 +89,7 @@ public class RenderHelper
         GL32.glBindTexture(GL32.GL_TEXTURE_2D, oldBoundTex);
     }
 	
+	// TODO why do we need to disable depth here?
     public static void beforeWater() { GL11.glDepthMask(true); }
 	
     public static void renderFade(boolean translucent) 
