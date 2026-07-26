@@ -1,7 +1,7 @@
 package com.seibel.distanthorizons.common.wrappers.gui;
 
 #if MC_VER <= MC_1_12_2
-import org.lwjglx.opengl.Display;
+import org.lwjgl.opengl.Display;
 #else
 import com.mojang.blaze3d.platform.Window;
 #endif
@@ -84,13 +84,6 @@ public class MinecraftScreen
 		#endif
 		{
 			super(translate(translationName));
-			#if MC_VER <= MC_1_12_2
-			screen.minecraftWindow = Display.getWindow();
-			#elif MC_VER < MC_1_21_9
-			screen.minecraftWindow = Minecraft.getInstance().getWindow().getWindow();
-			#else
-			screen.minecraftWindow = Minecraft.getInstance().getWindow().handle();
-			#endif
 			this.parent = parent;
 			this.screen = screen;
 		}
