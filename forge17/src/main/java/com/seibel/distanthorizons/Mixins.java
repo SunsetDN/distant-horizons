@@ -37,7 +37,7 @@ public enum Mixins implements IMixins
 	
     FIX_SIDE_FACING_UNLOADED_CHUNKS_BEING_RENDERED(
 		new MixinBuilder().addExcludedMod(TargetedMod.ANGELICA)
-        .addClientMixins("MixinBlock_SideFacingUnloadedChunk", "MixinChunkCache_SideFacingUnloaded")
+        .addClientMixins("MixinBlock_SideFacingUnloadedChunk", "IMixinChunkCache_SideFacingUnloaded")
         .setPhase(Phase.EARLY)),
 	
     CLIENT_FADE(

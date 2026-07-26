@@ -53,7 +53,7 @@ public class MixinBlock_SideFacingUnloadedChunk
 
         if (blockAccess instanceof ChunkCache) 
 		{
-            MixinChunkCache_SideFacingUnloaded cache = (MixinChunkCache_SideFacingUnloaded) blockAccess;
+            IMixinChunkCache_SideFacingUnloaded cache = (IMixinChunkCache_SideFacingUnloaded) blockAccess;
             Chunk[][] chunks = cache.getChunkArray();
 
             x -= cache.getChunkX();
