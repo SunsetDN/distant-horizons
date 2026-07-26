@@ -43,45 +43,60 @@ import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 
 /**
- * This handles all events sent to the client,
- * and is the starting point for most of the mod.
- *
- * @author James_Seibel
- * @version 2023-7-27
+ * This handles all events sent to the client.
  */
-public class ForgeClientProxy implements AbstractModInitializer.IEventProxy {
+public class ForgeClientProxy implements AbstractModInitializer.IEventProxy 
+{
 
     private static final IMinecraftClientWrapper MC = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
     private static final DhLogger LOGGER = new DhLoggerBuilder().build();
-
+	
+	
+	//=======//
+	// setup //
+	//=======//
+	//region
+	
     @Override
-    public void registerEvents() {
+    public void registerEvents()
+    {
         MinecraftForge.EVENT_BUS.register(this);
         FMLCommonHandler.instance()
             .bus()
             .register(this);
-        ForgePluginPacketSender.setPacketHandler((player, message) -> {
+		
+        ForgePluginPacketSender.setPacketHandler((player, message) -> 
+        {
             ClientApi.INSTANCE.pluginMessageReceived(message);
             ServerApi.INSTANCE.pluginMessageReceived(player, message);
         });
     }
-
-    // ==============//
+	
+	//endregion
+	
+	
+	
+    //==============//
     // chunk events //
-    // ==============//
-
+    //==============//
+	//region
+	
     @SubscribeEvent
-    public void clickBlockEvent(PlayerInteractEvent event) {
-        if (MC.clientConnectedToDedicatedServer()) {
+    public void clickBlockEvent(PlayerInteractEvent event) 
+    {
+        if (MC.clientConnectedToDedicatedServer()) 
+		{
             ILevelWrapper wrappedLevel = ProxyUtil.getLevelWrapper(event.world);
-            if (SharedApi.isChunkAtBlockPosAlreadyUpdating(wrappedLevel, event.x, event.z)) {
+            if (SharedApi.isChunkAtBlockPosAlreadyUpdating(wrappedLevel, event.x, event.z)) 
+			{
                 return;
             }
-
-            World level = event.world;
-
+			
             Minecraft.getMinecraft()
-                .func_152344_a(() -> {
+	            // add to render thread executor
+                .func_152344_a(() -> 
+                {
+	                World level = event.world;
                     Chunk chunk = level.getChunkFromBlockCoords(event.x, event.z);
                     ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, wrappedLevel);
                     SharedApi.INSTANCE.applyChunkUpdate(chunkWrapper, wrappedLevel, true);
@@ -114,11 +129,14 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy {
 		SharedApi.INSTANCE.applyChunkUpdate(chunkWrapper, wrappedLevel, true);
 	}
 	
+	//endregion
+	
 	
 	
     //==============//
     // key bindings //
     //==============//
+	//region
 
     @SubscribeEvent
     public void registerKeyBindings(InputEvent.KeyInputEvent event) 
@@ -136,10 +154,15 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy {
 
         // TODO ClientApi.INSTANCE.keyPressedEvent(event.getKey());
     }
-
+	
+	//endregion
+	
+	
+	
     //===========//
     // rendering //
     //===========//
+	//region
 
     @SubscribeEvent
     public void afterLevelRenderEvent(TickEvent.RenderTickEvent event)
@@ -170,11 +193,20 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy {
     }
 
     @SubscribeEvent
-    public void onRenderOverlay(RenderGameOverlayEvent.Text event) {
+    public void onRenderOverlay(RenderGameOverlayEvent.Text event) 
+    {
         Minecraft mc = Minecraft.getMinecraft();
-        if (event.isCanceled() || !mc.gameSettings.showDebugInfo) return;
+        if (event.isCanceled()
+	        || !mc.gameSettings.showDebugInfo)
+        {
+			return;
+        }
 
         F3Screen.addStringToDisplay(event.right);
     }
-
+	
+	//endregion
+	
+	
+	
 }

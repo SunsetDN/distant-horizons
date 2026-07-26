@@ -53,7 +53,8 @@ import org.jetbrains.annotations.Nullable;
  * check out the ClientProxy.
  */
 @Mod(modid = "distanthorizons", name = "DistantHorizons", dependencies = "after:angelica;")
-public class ForgeMain extends AbstractModInitializer {
+public class ForgeMain extends AbstractModInitializer
+{
 
     public static final String ANGELICA_MOD_ID = "angelica";
     public static final String MINIMUM_ANGELICA_VERSION = "2.1.5";
@@ -77,6 +78,10 @@ public class ForgeMain extends AbstractModInitializer {
 	
 	
 	
+	//=======//
+	// setup //
+	//=======//
+	//region
 	
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) 
@@ -130,10 +135,42 @@ public class ForgeMain extends AbstractModInitializer {
 		}
 	}
 	private void chunkLoadedCallback() { }
-
+	
+	@NetworkCheckHandler
+	public boolean checkNetwork(Map<String, String> map, Side side)
+	{
+		if (side == Side.SERVER)
+		{
+			isHodgePodgeInstalled = map.containsKey("hodgepodge");
+		}
+		
+		return true;
+	}
+	
+	//endregion
 	
 	
-    // ServerWorldLoadEvent
+	
+	//=====================//
+	// server world events //
+	//=====================//
+	//region
+	
+	@Mod.EventHandler
+	public void onServerAboutToStart(FMLServerAboutToStartEvent event)
+	{
+		if (DISABLE_SERVER_FOR_TESTING)
+		{
+			return;
+		}
+		
+		if (this.eventHandlerStartServer != null)
+		{
+			this.eventHandlerStartServer.accept(event.getServer());
+		}
+	}
+	
+	// ServerWorldLoadEvent
     @Mod.EventHandler
     public void dedicatedWorldLoadEvent(FMLServerAboutToStartEvent event)
     {
@@ -146,7 +183,7 @@ public class ForgeMain extends AbstractModInitializer {
 		    event.getServer()
 			    .isDedicatedServer());
     }
-
+	
     // ServerWorldUnloadEvent
     @Mod.EventHandler
     public void serverWorldUnloadEvent(FMLServerStoppingEvent event) 
@@ -158,7 +195,7 @@ public class ForgeMain extends AbstractModInitializer {
 		
         ServerApi.INSTANCE.serverUnloadEvent();
     }
-
+	
     @Mod.EventHandler
     public void serverWorldUnloadEvent(FMLServerStoppedEvent event) 
     {
@@ -169,7 +206,16 @@ public class ForgeMain extends AbstractModInitializer {
 		
         ForgeServerProxy.serverStopping();
     }
-
+	
+	//endregion
+	
+	
+	
+	//========================//
+	// AbstractModInitializer //
+	//========================//
+	//region
+	
     @Override
     protected void createInitialSharedBindings() 
     {
@@ -187,43 +233,19 @@ public class ForgeMain extends AbstractModInitializer {
 	
     @Override
     protected void initializeModCompat() 
-    {
-        this.tryCreateModCompatAccessor("angelica", IIrisAccessor.class, IrisAccessor::new);
-    }
+    { this.tryCreateModCompatAccessor("angelica", IIrisAccessor.class, IrisAccessor::new); }
 	
     @Override
     protected void subscribeClientStartedEvent(Runnable eventHandler) { eventHandler.run(); }
 	
-    @Mod.EventHandler
-    public void onServerAboutToStart(FMLServerAboutToStartEvent event)
-    {
-	    if (DISABLE_SERVER_FOR_TESTING)
-	    {
-		    return;
-	    }
-		
-	    if (this.eventHandlerStartServer != null)
-	    {
-			this.eventHandlerStartServer.accept(event.getServer());
-	    }
-    }
+	@Override
+	protected void subscribeServerStartingEvent(Consumer<MinecraftServer> eventHandler)
+	{ this.eventHandlerStartServer = eventHandler; }
 	
-    @Override
-    protected void subscribeServerStartingEvent(Consumer<MinecraftServer> eventHandler) 
-    { this.eventHandlerStartServer = eventHandler; }
-
-    @Override
-    protected void runDelayedSetup() { SingletonInjector.INSTANCE.runDelayedSetup(); }
-
-    @NetworkCheckHandler
-    public boolean checkNetwork(Map<String, String> map, Side side) 
-    {
-        if (side == Side.SERVER) 
-		{
-            isHodgePodgeInstalled = map.containsKey("hodgepodge");
-        }
-        return true;
-    }
+	@Override
+	protected void runDelayedSetup() { SingletonInjector.INSTANCE.runDelayedSetup(); }
+	
+	//region
 	
 	
 	
