@@ -62,7 +62,7 @@ public class MixinChunkMapCommon
 		// MC has a tendency to try saving incomplete or corrupted chunks (which show up as empty or black chunks)
 		// this logic should prevent that from happening
 		#if MC_VER <= MC_1_7_10
-		if (!chunk.isTerrainPopulated || !chunk.isLightPopulated)
+		if (!ChunkWrapper.canSaveChunk(chunk))
 		{
 			return;
 		}
