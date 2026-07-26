@@ -31,7 +31,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.OpenGlHelper;
-import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;11;
+import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -67,6 +67,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 
 #if MC_VER <= MC_1_12_2
 import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
 #elif MC_VER <= MC_1_21_10
 import net.minecraft.resources.ResourceLocation;
 #else
@@ -306,10 +307,10 @@ public class TexturedButtonWidget
 					&& mouseY < this.yPosition + this.height;
 			int hoverState = this.getHoverState(this.field_146123_n);
 			
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-			GL11.glEnable(GL11.GL_BLEND);
+			LWJGL.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+			LWJGL.glEnable(GL11.GL_BLEND);
 			OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+			LWJGL.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 			
 			if (this.renderBackground)
 			{

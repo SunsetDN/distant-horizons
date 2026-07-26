@@ -185,6 +185,7 @@ public interface LWJGLService {
 	void glPolygonMode(int face, int mode);
 	void glStencilFunc(int func, int ref, int mask);
 	int glGetError();
+	void glColor4f(float v, float v1, float v2, float v3);
 	
 	// ===================== COMPATIBILITY PROFILE =====================
 	
@@ -242,5 +243,4 @@ public interface LWJGLService {
 	long memGetLong(long address);
 	long memGetAddress(long address);
 	ByteBuffer memSlice(ByteBuffer buffer, int offset, int capacity);
-	
 }

@@ -34,10 +34,8 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftCli
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import com.seibel.distanthorizons.coreapi.ModInfo;
-#if MC_VER > MC_1_7_10
 import com.seibel.distanthorizons.lwjgl.GLExtension;
 import org.lwjgl.opengl.GL11;
-#endif
 import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 
 import java.io.PrintStream;

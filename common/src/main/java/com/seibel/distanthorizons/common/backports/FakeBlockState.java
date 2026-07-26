@@ -5,7 +5,7 @@ package com.seibel.distanthorizons.common.backports;
 import java.util.Objects;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.block.IBlockStateWrapper;
-import com.seibel.distanthorizons.forge.ForgeMain;
+import com.seibel.distanthorizons.forgearchaic.ForgeMain;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 

@@ -1,72 +1,34 @@
 plugins {
     id 'root'
-    id 'io.github.pacifistmc.forgix' version '2.+' apply false
+    id 'io.github.pacifistmc.forgix' version '2.+'
 }
 
-if (gradle.ext.minecraft_version != "1.7.10") {
-    apply plugin: 'io.github.pacifistmc.forgix'
+forgix {
 
-    forgix {
-        int loaderCount = 0
-        String modLoaders = ""
-        ((String) gradle.builds_for)
-            .split(",")
-            .each { loader ->
+    // add the mod loaders to the end of the jar
+    // put together in the format: "a", "a-b", "a-b-c"
+    int loaderCount = 0;
+    String modLoaders = "";
+    ((String) gradle.builds_for)
+        .split(",")
+        .each
+            { loader ->
                 def loaderName = loader.trim()
-                if (modLoaders != "") modLoaders += "-"
-                modLoaders += loaderName
-                loaderCount++
-            }
-        autoRun = (loaderCount > 1)
-        archiveClassifier = modLoaders
-    }
-} else {
-    // GTNHGradle's IdeIntegrationModule (which would auto-register IDEA run configs) is
-    // disabled for this multi-project layout because it NPEs on subprojects, so wire the
-    // forge17 run config up manually via idea-ext on the root project.
-    apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
-
-    gradle.projectsEvaluated {
-        def forge17Project = project(':forge17')
-        def publishableObfJar = forge17Project.ext.publishableObfJar
-
-        def copyForge17MergedJar = tasks.register('copyForge17MergedJar', Copy) {
-            group = 'build'
-            description = 'Copies the 1.7.10 Forge jar to the same directory and naming convention used by Forgix.'
-            dependsOn(publishableObfJar)
-            from(publishableObfJar.flatMap { it.archiveFile })
-            into(layout.buildDirectory.dir('forgix'))
-            rename { "${mod_name}-${mod_version}-${minecraft_version}-${builds_for}.jar" }
-        }
-
-        tasks.named('assemble').configure {
-            dependsOn(copyForge17MergedJar)
-        }
-        tasks.named('build').configure {
-            dependsOn(copyForge17MergedJar)
-        }
-    }
-
-    idea {
-        project {
-            settings {
-                runConfigurations {
-                    create('forge17: Run Client (Java 21)', org.jetbrains.gradle.ext.Gradle) {
-                        taskNames = [':forge17:runClient21']
-                    }
-                    create('forge17: Run Client (Java 21, Hotswap)', org.jetbrains.gradle.ext.Gradle) {
-                        taskNames = [':forge17:runClient21']
-                        envs = ['HOTSWAP': 'true']
-                    }
-                    create('forge17: Run Server (Java 21)', org.jetbrains.gradle.ext.Gradle) {
-                        taskNames = [':forge17:runServer21']
-                    }
-                    create('forge17: Run Server (Java 21, Hotswap)', org.jetbrains.gradle.ext.Gradle) {
-                        taskNames = [':forge17:runServer21']
-                        envs = ['HOTSWAP': 'true']
-                    }
+                if (modLoaders != "")
+                {
+                    modLoaders += "-";
                 }
+
+                modLoaders += loaderName;
+
+                loaderCount++;
             }
-        }
-    }
+
+    // run if there are multiple launchers that need merging
+    autoRun = (loaderCount > 1);
+
+    // merged jars are named in the format: 
+    // "DistantHorizons-3.0.1-b-dev-26.1-fabric-neoforge.jar"
+    archiveClassifier = modLoaders
 }
+

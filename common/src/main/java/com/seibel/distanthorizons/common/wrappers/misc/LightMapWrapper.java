@@ -24,21 +24,18 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
 #endif
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.forge.ForgeMain;
-import com.seibel.distanthorizons.interfaces.IMixinEntityRenderer;
+import com.seibel.distanthorizons.forgearchaic.ForgeMain;
+import com.seibel.distanthorizons.forgearchaic.interfaces.IMixinEntityRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 #endif
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
-import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.ILightMapWrapper;
 import com.seibel.distanthorizons.core.logging.DhLogger;
-import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 
 #if MC_VER < MC_1_21_3
-import java.nio.ByteBuffer;
 #else
 #endif
 

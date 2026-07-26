@@ -1,3 +1,1 @@
-if (gradle.ext.minecraft_version != "1.7.10") {
-    apply plugin: 'dh-loader'
-}
+apply plugin: 'dh-loader'

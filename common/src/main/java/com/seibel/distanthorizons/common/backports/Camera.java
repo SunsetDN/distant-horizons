@@ -7,7 +7,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector4f;
 
-import com.seibel.distanthorizons.RenderHelper;
+import com.seibel.distanthorizons.forgearchaic.RenderHelper;
 #endif
 
 /**

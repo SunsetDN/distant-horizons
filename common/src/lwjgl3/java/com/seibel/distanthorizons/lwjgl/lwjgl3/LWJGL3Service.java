@@ -869,8 +869,14 @@ public record LWJGL3Service(
     public int glGetError() {
         return GL11C.glGetError();
     }
-
-    // ===================== COMPATIBILITY PROFILE (GL1.x) =====================
+	
+	@Override
+	public void glColor4f(float v, float v1, float v2, float v3)
+	{
+		GL11.glColor4f(v, v1, v2, v3);
+	}
+	
+	// ===================== COMPATIBILITY PROFILE (GL1.x) =====================
 
     @Override
     public void glMatrixMode(int mode) {

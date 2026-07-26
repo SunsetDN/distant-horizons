@@ -30,8 +30,6 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 #endif
-import com.seibel.distanthorizons.api.enums.config.EDhApiLodShading;
-import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.misc.LightMapWrapper;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
 
@@ -56,8 +54,6 @@ import net.minecraft.client.renderer.fog.FogRenderer;
 #endif
 
 #if MC_VER < MC_1_19_4
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
 #else
 #endif
 
@@ -72,8 +68,8 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IOptifineAc
 
 #if MC_VER <= MC_1_12_2
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.forge.ForgeMain;
-import com.seibel.distanthorizons.interfaces.IMixinMinecraft;
+import com.seibel.distanthorizons.forgearchaic.ForgeMain;
+import com.seibel.distanthorizons.forgearchaic.interfaces.IMixinMinecraft;
 import com.seibel.distanthorizons.common.backports.Camera;
 import net.minecraft.block.Block;
 import net.minecraft.client.shader.Framebuffer;
@@ -88,7 +84,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraft.init.MobEffects;
 #endif
-import net.minecraft.client.renderer.entity.RenderManager;
 #else
 import net.minecraft.client.Camera;
 import net.minecraft.core.BlockPos;
@@ -100,7 +95,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.client.Minecraft;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
 #if MC_VER <= MC_1_12_2

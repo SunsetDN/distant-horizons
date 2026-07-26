@@ -23,9 +23,9 @@ import com.seibel.distanthorizons.coreapi.ModInfo;
 
 import org.jetbrains.annotations.Nullable;
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.forge.wrappers.modCompat.HodgePodgeCompat;
-import com.seibel.distanthorizons.forge.ForgeMain;
-import com.seibel.distanthorizons.forge.ForgeServerProxy;
+import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.HodgePodgeCompat;
+import com.seibel.distanthorizons.forgearchaic.ForgeMain;
+import com.seibel.distanthorizons.forgearchaic.ForgeServerProxy;
 import com.seibel.distanthorizons.common.backports.ChunkPos;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.WorldServer;
@@ -53,7 +53,6 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 #endif
 
 import java.util.*;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 #if MC_VER <= MC_1_7_10

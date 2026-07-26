@@ -17,6 +17,7 @@ import com.seibel.distanthorizons.GenerateLWJGLAbstraction
 
 plugins {
     id 'java'
+    id 'java-library'
     id 'maven-publish'
     id 'xyz.wagyourtail.unimined'
     id 'com.gradleup.shadow'
@@ -49,7 +50,13 @@ repositories {
     maven { url "https://repo.enonic.com/public/" }
     maven { url "https://maven.parchmentmc.org" }
     maven { url "https://maven.architectury.dev" }
-    maven { url "https://jitpack.io" }
+    maven {
+        url "https://jitpack.io"
+
+        content {
+            excludeGroup "io.github.legacymoddingmc" // resolve UniMixins with GTNH Maven
+        }
+    }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     maven {
         name = "Modrinth"
@@ -133,6 +140,14 @@ if (isNotCommonProject) {
                     'FMLAT': "${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg",
                     'ForceLoadAsMod': true
                 )
+            } else if (project.name == "forgearchaic") {
+                attributes(
+                    'FMLCorePlugin': 'com.seibel.distanthorizons.forgearchaic.DistantHorizonsLoadingPlugin',
+                    'FMLCorePluginContainsFMLMod': true,
+                    'FMLAT': "${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg",
+                    'ForceLoadAsMod': true,
+                    "Lwjgl3ify-Aware": "true"
+                )
             }
         }
     }
@@ -146,14 +161,21 @@ unimined.minecraft(sourceSets.main, true) {
 
     if (gradle.ext.minecraft_version.startsWith("1.")) { // 26.1+ doesn't use obfuscation
         mappings {
-            if (gradle.ext.minecraft_version.startsWith("1.12.2")) {
+            if (gradle.ext.minecraft_version == "1.7.10")
+            {
+                mcp("stable", "12-1.7.10")
+                devNamespace "mcp"
+            }
+            else if (gradle.ext.minecraft_version == "1.12.2")
+            {
                 mcp("stable", "39-1.12")
                 devNamespace "mcp"
-            } else {
+            }
+            else
+            {
                 mojmap()
                 devNamespace "mojmap"
             }
-
         }
     }
 }
@@ -180,7 +202,7 @@ if (isNotCommonProject) {
         from project(":common").sourceSets.main.resources
     }
 
-    def lwjglVariant = gradle.ext.minecraft_version.startsWith("1.12.2") ? "lwjgl2" : "lwjgl3"
+    def lwjglVariant = ["1.7.10", "1.12.2"].contains(gradle.ext.minecraft_version) ? "lwjgl2" : "lwjgl3"
 
     tasks.withType(JavaCompile).configureEach {
         source(project(":common").sourceSets.main.allSource)
@@ -193,7 +215,7 @@ if (isNotCommonProject) {
     }
 } else {
     unimined.minecraft {
-        if (gradle.ext.minecraft_version.equals("1.12.2")) {
+        if (["1.7.10", "1.12.2"].contains(gradle.ext.minecraft_version)) {
             minecraftForge {
                 loader gradle.ext.forge_version
                 accessTransformer project.file("src/main/resources/${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg")
@@ -454,7 +476,7 @@ if (isNotCommonProject) {
 
         mergeServiceFiles()
     }
-    
+
     afterEvaluate {
         tasks.named("remapJar").configure {
             dependsOn(shadowJar)
@@ -468,7 +490,7 @@ if (isNotCommonProject) {
         def loaderPaths = configurations.minecraftLibraries.resolve().collect { it.path }.toSet()
         tasks.withType(JavaExec).configureEach { runTask ->
             dependsOn(shadowJar)
-            if (project.name != "forgevintage") {
+            if (project.name != "forgevintage" || project.name != "forgearchaic") {
                 classpath = files(shadowJar.archiveFile) + classpath.filter { file ->
                     file != shadowJar.archiveFile.get().asFile &&
                         !file.path.contains(project.buildDir.path) &&
@@ -478,7 +500,7 @@ if (isNotCommonProject) {
                         !(shadowedPaths.contains(file.path) && !loaderPaths.contains(file.path))
                 }
             } else {
-                // For forgevintage(1.8-1.12.2), don't put shadow jar on app classpath.
+                // For forgearchaic(1.7.10), forgevintage(1.8-1.12.2), don't put shadow jar on app classpath.
                 dependsOn(tasks.named("shadeDowngradedApi"))
                 classpath = classpath.filter { file ->
                     !file.path.contains(project.buildDir.path) &&
@@ -504,8 +526,9 @@ if (isNotCommonProject) {
 
             if (project.name == "forge"
                 || project.name == "neoforge"
-                || project.name == "forgevintage") {
-                // fix (Neo)forge, Cleanroom debug running
+                || project.name == "forgevintage"
+                || project.name == "forgearchaic") {
+                // fix (Neo)forge, debug running
                 doFirst {
                     def modsDir = rootProject.file("run/${isClient ? 'client' : 'server'}/mods")
                     modsDir.mkdirs()
@@ -518,7 +541,7 @@ if (isNotCommonProject) {
                     });
 
 
-                    def jarSource = project.name == "forgevintage"
+                    def jarSource = project.name in ["forgevintage", "forgearchaic"]
                         ? tasks.named("shadeDowngradedApi").get().archiveFile
                         : shadowJar.archiveFile
 
@@ -688,7 +711,7 @@ if (isNotCommonProject) {
     downgradeJar.archiveClassifier.set(null)
     shadeDowngradedApi.archiveClassifier.set(null)
 
-    if (project.name == "forgevintage") {
+    if (project.name == "forgevintage" || project.name == "forgearchaic") {
         gradle.taskGraph.whenReady { graph ->
             if (graph.hasTask(":forgevintage:runClient")) {
                 downgradeJar.inputFile.set(shadowJar.archiveFile)

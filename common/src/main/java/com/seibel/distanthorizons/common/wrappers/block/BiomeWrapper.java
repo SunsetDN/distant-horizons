@@ -32,7 +32,7 @@ import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IBiomeWrapper;
 
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.forge.BiomeHandler;
+import com.seibel.distanthorizons.forgearchaic.BiomeHandler;
 #endif
 
 #if MC_VER > MC_1_12_2
