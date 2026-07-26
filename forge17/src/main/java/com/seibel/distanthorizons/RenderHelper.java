@@ -158,7 +158,7 @@ public class RenderHelper
 	
     public static void enableFog() { GL11.glEnable(GL11.GL_FOG); }
 
-    public static void disableFog() 
+    public static void disableFogDuringSetup() 
     {
         if (!MixinVanillaFogCommon.cancelFog()) 
 		{

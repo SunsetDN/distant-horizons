@@ -28,8 +28,14 @@ public abstract class MixinEntityRenderer implements IMixinEntityRenderer
 	
 	
 	
+	//=====//
+	// fog //
+	//=====//
+	//region
+	
     @Inject(method = "setupFog", at = @At(value = "HEAD"))
-    private void enableFog(int p_78468_1_, float p_78468_2_, CallbackInfo ci) { RenderHelper.enableFog(); }
+    private void enableFog(int p_78468_1_, float p_78468_2_, CallbackInfo ci) 
+    { RenderHelper.enableFog(); }
 
     @Redirect(
         method = "setupFog",
@@ -46,7 +52,7 @@ public abstract class MixinEntityRenderer implements IMixinEntityRenderer
 		    return false;
 	    }
 		
-	    RenderHelper.disableFog();
+	    RenderHelper.disableFogDuringSetup();
 	    return false;
     }
 	
@@ -56,6 +62,15 @@ public abstract class MixinEntityRenderer implements IMixinEntityRenderer
 	private void disableFogDuringRender(int cap)
 	{ RenderHelper.disableFogDuringRender(cap); }
 	
+	//endregion
+	
+	
+	
+	//==========//
+	// lightmap //
+	//==========//
+	//region
+	
 	@Inject(method = "updateCameraAndRender", at = @At("HEAD"))
 	private void updateLightmap(float partialTicks, CallbackInfo ci)
 	{
@@ -64,6 +79,8 @@ public abstract class MixinEntityRenderer implements IMixinEntityRenderer
 			ForgeMain.rpleCompat.updateLightmap();
 		}
 	}
+	
+	//endregion
 	
 	
 	
