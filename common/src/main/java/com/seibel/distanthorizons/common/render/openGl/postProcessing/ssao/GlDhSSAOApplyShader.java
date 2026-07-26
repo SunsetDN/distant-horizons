@@ -26,7 +26,12 @@ import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.render.openGl.util.GlAbstractShaderRenderer;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.RenderUtil;
-import org.lwjgl.opengl.GL33;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL14;
+import org.lwjgl.opengl.GL30;
+
+import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 
 /**
  * Draws the SSAO texture onto DH's FrameBuffer. <br><br>
@@ -85,33 +90,33 @@ public class GlDhSSAOApplyShader extends GlAbstractShaderRenderer
 	@Override
 	protected void onApplyUniforms(RenderParams renderParams)
 	{
-		GLMC.glActiveTexture(GL33.GL_TEXTURE0);
+		GLMC.glActiveTexture(GL13.GL_TEXTURE0);
 		GLMC.glBindTexture(GlDhMetaRenderer.INSTANCE.getActiveDepthTextureId());
-		GL33.glUniform1i(this.gDepthMapUniform, 0);
+		LWJGL.glUniform1i(this.gDepthMapUniform, 0);
 		
-		GLMC.glActiveTexture(GL33.GL_TEXTURE1);
+		GLMC.glActiveTexture(GL13.GL_TEXTURE1);
 		GLMC.glBindTexture(this.ssaoTexture);
-		GL33.glUniform1i(this.gSSAOMapUniform, 1);
+		LWJGL.glUniform1i(this.gSSAOMapUniform, 1);
 		
-		GL33.glUniform1i(this.gBlurRadiusUniform, 2);
+		LWJGL.glUniform1i(this.gBlurRadiusUniform, 2);
 		
 		if (this.gViewSizeUniform >= 0)
 		{
-			GL33.glUniform2f(this.gViewSizeUniform,
+			LWJGL.glUniform2f(this.gViewSizeUniform,
 					MC_RENDER.getTargetFramebufferViewportWidth(),
 					MC_RENDER.getTargetFramebufferViewportHeight());
 		}
 		
 		if (this.gNearUniform >= 0)
 		{
-			GL33.glUniform1f(this.gNearUniform,
+			LWJGL.glUniform1f(this.gNearUniform,
 					RenderUtil.getNearClipPlaneInBlocks());
 		}
 		
 		if (this.gFarUniform >= 0)
 		{
 			float farClipPlane = RenderUtil.getFarClipPlaneDistanceInBlocks();
-			GL33.glUniform1f(this.gFarUniform, farClipPlane);
+			LWJGL.glUniform1f(this.gFarUniform, farClipPlane);
 		}
 	}
 	
@@ -125,8 +130,8 @@ public class GlDhSSAOApplyShader extends GlAbstractShaderRenderer
 	protected void onRender()
 	{
 		GLMC.enableBlend();
-		GL33.glBlendEquation(GL33.GL_FUNC_ADD);
-		GLMC.glBlendFuncSeparate(GL33.GL_ZERO, GL33.GL_SRC_ALPHA, GL33.GL_ZERO, GL33.GL_ONE);
+		LWJGL.glBlendEquation(GL14.GL_FUNC_ADD);
+		GLMC.glBlendFuncSeparate(GL11.GL_ZERO, GL11.GL_SRC_ALPHA, GL11.GL_ZERO, GL11.GL_ONE);
 
 		// Depth testing must be disabled otherwise this application shader won't apply anything.
 		// setting this isn't necessary in vanilla, but some mods may change this, requiring it to be set manually, 
@@ -134,8 +139,8 @@ public class GlDhSSAOApplyShader extends GlAbstractShaderRenderer
 		GLMC.disableDepthTest();
 		
 		// apply the rendered SSAO to the LODs 
-		GLMC.glBindFramebuffer(GL33.GL_READ_FRAMEBUFFER, GlDhSSAOShader.INSTANCE.frameBuffer);
-		GLMC.glBindFramebuffer(GL33.GL_DRAW_FRAMEBUFFER, GlDhMetaRenderer.INSTANCE.getActiveFramebufferId());
+		GLMC.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, GlDhSSAOShader.INSTANCE.frameBuffer);
+		GLMC.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, GlDhMetaRenderer.INSTANCE.getActiveFramebufferId());
 		
 		
 		GlScreenQuad.INSTANCE.render();

@@ -13,8 +13,8 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ProtoChunk;
-#endif
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+#endif
 
 public class MixinChunkMapCommon
 {

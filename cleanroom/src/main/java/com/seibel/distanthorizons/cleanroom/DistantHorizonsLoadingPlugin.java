@@ -21,30 +21,48 @@ package com.seibel.distanthorizons.cleanroom;
 
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.jetbrains.annotations.Nullable;
+import zone.rong.mixinbooter.IEarlyMixinLoader;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
-public class DistantHorizonsLoadingPlugin implements IFMLLoadingPlugin
+@IFMLLoadingPlugin.Name("DistantHorizons")
+@IFMLLoadingPlugin.MCVersion("1.12.2")
+public class DistantHorizonsLoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader
 {
 	@Override
-	public @Nullable String[] getASMTransformerClass()
+	public List<String> getMixinConfigs()
+	{
+		return Collections.singletonList("DistantHorizons.cleanroom.mixins.json");
+	}
+	
+	@Override
+	public String[] getASMTransformerClass()
 	{
 		return new String[0];
 	}
+	
 	@Override
-	public @Nullable String getModContainerClass()
+	public String getModContainerClass()
 	{
 		return null;
 	}
+	
 	@Override
 	public @Nullable String getSetupClass()
 	{
 		return null;
 	}
+	
 	@Override
-	public void injectData(Map<String, Object> data) { }
+	public void injectData(Map<String, Object> map)
+	{
+		
+	}
+	
 	@Override
-	public @Nullable String getAccessTransformerClass()
+	public String getAccessTransformerClass()
 	{
 		return null;
 	}

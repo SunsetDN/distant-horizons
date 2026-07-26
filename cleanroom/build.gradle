@@ -2,16 +2,10 @@ plugins {
     id 'unimined-cleanroom'
 }
 
-// Mojang removed ARM LWJGL natives, which causes CI to fail for 1.12.2. Note: this means we cannot build on ARM CPUs right now.
-configurations.configureEach {
-    incoming.beforeResolve {
-        dependencies.withType(ExternalDependency).each { dep ->
-            if (dep.group == 'org.lwjgl') {
-                dep.artifacts.removeIf {
-                    it.classifier?.contains('arm')
-                }
-            }
-        }
+repositories {
+    maven {
+        name 'CleanroomMC Maven'
+        url 'https://maven.cleanroommc.com' // MixinBooter
     }
 }
 
@@ -35,8 +29,13 @@ dependencies {
     
     addMod('curse.maven:cofh-core-69162:2920433', rootProject.enable_thermal_dynamics)
     addMod('curse.maven:thermal-dynamics-227443:2920505', rootProject.enable_thermal_dynamics)
+
+    implementation("zone.rong:mixinbooter:10.7")
 }
 
+configurations.compileClasspath {
+    exclude group: 'org.lwjgl', module: 'lwjgl'
+}
 
 // ==================== Tasks ====================
 
@@ -45,10 +44,13 @@ task deleteResources(type: Delete) {
 }
 
 processResources {
-    rename '(.+_at.cfg)', 'META-INF/$1'
     dependsOn(copyCoreResources)
     dependsOn(convertJsonToLang)
     // dependsOn(copyCommonLoaderResources)
+
+    from(project(":common").file("src/main/resources/${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg")) {
+        into 'META-INF'
+    }
 }
 
 tasks.named('runClient') {

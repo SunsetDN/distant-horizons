@@ -101,14 +101,15 @@ import net.minecraft.client.Minecraft;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector4f;
+import org.lwjgl.opengl.GL11;
 
 #if MC_VER <= MC_1_12_2
-import org.lwjgl.opengl.GL15;
+import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 #elif MC_VER < MC_1_17_1
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.material.FluidState;
-import org.lwjgl.opengl.GL15;
+import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 #else
 import net.minecraft.world.level.material.FogType;
 #endif
@@ -314,7 +315,7 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		#endif
 		
 		float[] colorValues = new float[4];
-		GL15.glGetFloatv(GL15.GL_FOG_COLOR, colorValues);
+		LWJGL.glGetFloatv(GL11.GL_FOG_COLOR, colorValues);
 		return new Color(
 				Math.max(0f, Math.min(colorValues[0], 1f)), // r
 				Math.max(0f, Math.min(colorValues[1], 1f)), // g

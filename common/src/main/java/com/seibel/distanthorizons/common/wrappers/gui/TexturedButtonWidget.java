@@ -31,7 +31,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.OpenGlHelper;
-import org.lwjgl.opengl.GL11;
+import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;11;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -154,7 +154,7 @@ public class TexturedButtonWidget
 	public void drawButton(Minecraft mc, int mouseX, int mouseY) { this.drawButton_7(mc, mouseX, mouseY); }
 	#elif MC_VER <= MC_1_12_2
 	@Override
-	public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks) { this.drawButton_12(mc, mouseX, mouseY, partialTicks); }
+	public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks) { this.drawButton_12(mc, mouseX, mouseY); }
 	#elif MC_VER < MC_1_20_2
 	
 	#if MC_VER < MC_1_19_4

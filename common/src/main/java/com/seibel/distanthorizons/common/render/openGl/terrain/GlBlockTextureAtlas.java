@@ -22,9 +22,12 @@ package com.seibel.distanthorizons.common.render.openGl.terrain;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.core.dataObjects.render.textures.BlockTextureRegistry;
 import com.seibel.distanthorizons.core.render.AbstractBlockTextureAtlas;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 
 import java.nio.ByteBuffer;
+
+import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 
 /**
  * The GPU side of the {@link BlockTextureRegistry},
@@ -72,26 +75,26 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 	{
 		if (this.textureId != 0)
 		{
-			GL32.glDeleteTextures(this.textureId);
+			LWJGL.glDeleteTextures(this.textureId);
 		}
 		
-		this.textureId = GL32.glGenTextures();
-		GL32.glBindTexture(GL32.GL_TEXTURE_2D, this.textureId);
-		GL32.glTexImage2D(
-			GL32.GL_TEXTURE_2D, 0,
-			GL32.GL_RGBA8,
+		this.textureId = LWJGL.glGenTextures();
+		LWJGL.glBindTexture(GL11.GL_TEXTURE_2D, this.textureId);
+		LWJGL.glTexImage2D(
+			GL11.GL_TEXTURE_2D, 0,
+			GL11.GL_RGBA8,
 			width, height, 
 			0,
-			GL32.GL_RGBA, GL32.GL_UNSIGNED_BYTE, 
+			GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, 
 			(ByteBuffer) null
 		);
 		
 		// nearest filtering keeps the blocky look and prevents
 		// texels bleeding between unrelated tiles on adjacent layers
-		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MIN_FILTER, GL32.GL_NEAREST_MIPMAP_LINEAR);
-		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MAG_FILTER, GL32.GL_NEAREST);
-		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_WRAP_S, GL32.GL_REPEAT);
-		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_WRAP_T, GL32.GL_REPEAT);
+		LWJGL.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST_MIPMAP_LINEAR);
+		LWJGL.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+		LWJGL.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
+		LWJGL.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 	}
 	
 	//endregion
@@ -105,16 +108,16 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 	
 	public void bind()
 	{
-		GL32.glActiveTexture(GL32.GL_TEXTURE0 + GL_BOUND_INDEX);
-		GL32.glBindTexture(GL32.GL_TEXTURE_2D, this.textureId);
-		GL32.glActiveTexture(GL32.GL_TEXTURE0);
+		LWJGL.glActiveTexture(GL13.GL_TEXTURE0 + GL_BOUND_INDEX);
+		LWJGL.glBindTexture(GL11.GL_TEXTURE_2D, this.textureId);
+		LWJGL.glActiveTexture(GL13.GL_TEXTURE0);
 	}
 	
 	public void unbind()
 	{
-		GL32.glActiveTexture(GL32.GL_TEXTURE0 + GL_BOUND_INDEX);
-		GL32.glBindTexture(GL32.GL_TEXTURE_2D, 0);
-		GL32.glActiveTexture(GL32.GL_TEXTURE0);
+		LWJGL.glActiveTexture(GL13.GL_TEXTURE0 + GL_BOUND_INDEX);
+		LWJGL.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+		LWJGL.glActiveTexture(GL13.GL_TEXTURE0);
 	}
 	
 	//endregion
@@ -131,29 +134,29 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 	{
 		uploadGlState.saveState();
 		
-		GL32.glBindTexture(GL32.GL_TEXTURE_2D, this.textureId);
+		LWJGL.glBindTexture(GL11.GL_TEXTURE_2D, this.textureId);
 		
-		GL32.glPixelStorei(GL32.GL_UNPACK_ROW_LENGTH, BlockTextureRegistry.TILE_HEIGHT_AND_WIDTH);
-		GL32.glPixelStorei(GL32.GL_UNPACK_SKIP_PIXELS, 0);
-		GL32.glPixelStorei(GL32.GL_UNPACK_SKIP_ROWS, 0);
-		GL32.glPixelStorei(GL32.GL_UNPACK_ALIGNMENT, 1);
+		LWJGL.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, BlockTextureRegistry.TILE_HEIGHT_AND_WIDTH);
+		LWJGL.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, 0);
+		LWJGL.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, 0);
+		LWJGL.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
 	}
 	
 	@Override 
 	protected void writeToTexture(ByteBuffer pixelBuffer, int destinationX, int destinationY, int tileWidth, int tileHeight)
 	{
-		GL32.glTexSubImage2D(
-			GL32.GL_TEXTURE_2D, 0,
+		LWJGL.glTexSubImage2D(
+			GL11.GL_TEXTURE_2D, 0,
 			destinationX, destinationY,
 			tileWidth, tileHeight,
-			GL32.GL_RGBA, GL32.GL_UNSIGNED_BYTE, pixelBuffer
+			GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixelBuffer
 		);
 	}
 	
 	@Override
 	protected void afterWriteToTexture()
 	{
-		GL32.glGenerateMipmap(GL32.GL_TEXTURE_2D);
+		LWJGL.glGenerateMipmap(GL11.GL_TEXTURE_2D);
 		uploadGlState.close();
 	}
 	
@@ -179,24 +182,24 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 		
 		public void saveState()
 		{
-			this.unpackRowLength = GL32.glGetInteger(GL32.GL_UNPACK_ROW_LENGTH);
-			this.unpackSkipPixels = GL32.glGetInteger(GL32.GL_UNPACK_SKIP_PIXELS);
-			this.unpackSkipRows = GL32.glGetInteger(GL32.GL_UNPACK_SKIP_ROWS);
-			this.unpackAlignment = GL32.glGetInteger(GL32.GL_UNPACK_ALIGNMENT);
+			this.unpackRowLength = LWJGL.glGetInteger(GL11.GL_UNPACK_ROW_LENGTH);
+			this.unpackSkipPixels = LWJGL.glGetInteger(GL11.GL_UNPACK_SKIP_PIXELS);
+			this.unpackSkipRows = LWJGL.glGetInteger(GL11.GL_UNPACK_SKIP_ROWS);
+			this.unpackAlignment = LWJGL.glGetInteger(GL11.GL_UNPACK_ALIGNMENT);
 			
-			GLMC.glActiveTexture(GL32.GL_TEXTURE0);
-			this.textureBinding = GL32.glGetInteger(GL32.GL_TEXTURE_BINDING_2D);
+			GLMC.glActiveTexture(GL13.GL_TEXTURE0);
+			this.textureBinding = LWJGL.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
 		}
 		
 		@Override 
 		public void close()
 		{
-			GL32.glBindTexture(GL32.GL_TEXTURE_2D, this.textureBinding);
+			LWJGL.glBindTexture(GL11.GL_TEXTURE_2D, this.textureBinding);
 			
-			GL32.glPixelStorei(GL32.GL_UNPACK_ROW_LENGTH, this.unpackRowLength);
-			GL32.glPixelStorei(GL32.GL_UNPACK_SKIP_PIXELS, this.unpackSkipPixels);
-			GL32.glPixelStorei(GL32.GL_UNPACK_SKIP_ROWS, this.unpackSkipRows);
-			GL32.glPixelStorei(GL32.GL_UNPACK_ALIGNMENT, this.unpackAlignment);
+			LWJGL.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, this.unpackRowLength);
+			LWJGL.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, this.unpackSkipPixels);
+			LWJGL.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, this.unpackSkipRows);
+			LWJGL.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, this.unpackAlignment);
 		}
 		
 	}

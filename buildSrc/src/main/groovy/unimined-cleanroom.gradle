@@ -3,18 +3,18 @@ plugins {
 }
 
 unimined.minecraft {
-    cleanroom {
-        loader gradle.ext.cleanroom_loader_version
+    minecraftForge {
+        loader "14.23.5.2859"
         useToolchains = false
         accessTransformer project(":common").file("src/main/resources/${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg")
-        runs.all {
-            systemProperty("crl.dev.mixin", "${mod_id}.default.mixin.json,${mod_id}.mod.mixin.json")
-            systemProperty("fml.coreMods.load", "com.seibel.distanthorizons.cleanroom.DistantHorizonsLoadingPlugin")
-        }
-    }
-    
-    mods {
-        remap(configurations.modCompileOnly)
-        remap(configurations.modRuntimeOnly)
+        mixinConfig("DistantHorizons.cleanroom.mixins.json")
     }
 }
+
+/*// set the java version for running is necessary for older MC versions
+// that don't support the latest java version
+def launcher = javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(rootProject.java_version as Integer))
+}
+runClient.javaLauncher.set(launcher)
+runServer.javaLauncher.set(launcher)*/

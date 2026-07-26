@@ -31,7 +31,10 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IProfilerWrap
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.objects.IVertexBufferWrapper;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
-import org.lwjgl.opengl.GL33;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL14;
+
+import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 
 /**
  * Handles rendering the normal LOD terrain.
@@ -281,12 +284,12 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 		boolean renderWireframe = Config.Client.Advanced.Debugging.renderWireframe.get();
 		if (renderWireframe)
 		{
-			GL33.glPolygonMode(GL33.GL_FRONT_AND_BACK, GL33.GL_LINE);
+			LWJGL.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 			GLMC.disableFaceCulling();
 		}
 		else
 		{
-			GL33.glPolygonMode(GL33.GL_FRONT_AND_BACK, GL33.GL_FILL);
+			LWJGL.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
 			GLMC.enableFaceCulling();
 		}
 		
@@ -294,8 +297,8 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 		{
 			GLMC.enableBlend();
 			GLMC.enableDepthTest();
-			GL33.glBlendEquation(GL33.GL_FUNC_ADD);
-			GLMC.glBlendFuncSeparate(GL33.GL_SRC_ALPHA, GL33.GL_ONE_MINUS_SRC_ALPHA, GL33.GL_ONE, GL33.GL_ONE_MINUS_SRC_ALPHA);
+			LWJGL.glBlendEquation(GL14.GL_FUNC_ADD);
+			GLMC.glBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		}
 		else
 		{
@@ -304,7 +307,7 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 		
 		// needs to be explicitly called since Iris may disable color rendering and not re-enable it
 		// when boats are rendered in the scene (due to rendering out water inside the boat)
-		GL33.glColorMask(true, true, true, true);
+		LWJGL.glColorMask(true, true, true, true);
 		
 		// needs to be triggered after DH attempts to set the GL state so that Iris 
 		// can override it as needed
@@ -388,8 +391,8 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 						vbo.getQuadIBO().bind();
 						
 						GlDhMetaRenderer.INSTANCE.shaderProgramForThisFrame.bindVertexBuffer(vbo.getId());
-						GL33.glDrawElements(
-							GL33.GL_TRIANGLES,
+						LWJGL.glDrawElements(
+							GL11.GL_TRIANGLES,
 							indexCount,
 							vbo.getQuadIBO().getGlType(), 0);
 						
@@ -414,7 +417,7 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 		if (renderWireframe)
 		{
 			// default back to GL_FILL since all other rendering uses it 
-			GL33.glPolygonMode(GL33.GL_FRONT_AND_BACK, GL33.GL_FILL);
+			LWJGL.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
 			GLMC.enableFaceCulling();
 		}
 		
@@ -423,7 +426,7 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 		if (!opaquePass)
 		{
 			GLMC.disableBlend();
-			GLMC.glBlendFuncSeparate(GL33.GL_SRC_ALPHA, GL33.GL_ONE, GL33.GL_ONE, GL33.GL_ZERO);
+			GLMC.glBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ONE, GL11.GL_ZERO);
 		}
 		#endif
 	}

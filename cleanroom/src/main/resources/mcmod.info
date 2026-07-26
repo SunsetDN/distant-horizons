@@ -8,8 +8,5 @@
     "credits": "",
     "url": "",
     "updateJSON": "",
-    "requiredMods": [ "cleanroom" ],
-    "dependencies": [ "cleanroom" ],
-    "useDependencyInformation": true,
     "logoFile": "${logo_path}"
 }]
