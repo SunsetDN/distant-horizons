@@ -27,7 +27,7 @@ public class MixinTextureMap
         boolean returnValue = original.call(instance, manager, location);
 		
         IMixinTextureAtlasSprite mixinSprite = (IMixinTextureAtlasSprite) instance;
-        mixinSprite.distanthorizons$loadData();
+        mixinSprite.distanthorizons$setSpriteData();
 		
         return returnValue;
     }

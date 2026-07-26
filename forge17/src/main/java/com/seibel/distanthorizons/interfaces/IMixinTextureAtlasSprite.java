@@ -4,7 +4,8 @@ public interface IMixinTextureAtlasSprite
 {
 	/** packed in ARGB format */
     int[] distanthorizons$getSpriteData();
-
-    void distanthorizons$loadData();
+	
+	/** set from the base texture */
+    void distanthorizons$setSpriteData();
 	
 }

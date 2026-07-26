@@ -16,11 +16,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.seibel.distanthorizons.interfaces.IMixinTextureAtlasSprite;
 
 @Mixin(TextureAtlasSprite.class)
-public class MixinTextureAtlasSprite implements IMixinTextureAtlasSprite {
-
+public class MixinTextureAtlasSprite implements IMixinTextureAtlasSprite 
+{
     @Shadow
     protected List<int[][]> framesTextureData;
-
+	
 	/** contains the individual pixel data in ARGB format */
     @Unique
     private int[] distanthorizons$spriteData;
@@ -29,8 +29,9 @@ public class MixinTextureAtlasSprite implements IMixinTextureAtlasSprite {
 	
 	@Inject(method = "loadSprite", at = @At("RETURN"))
 	private void injectLoadSprite(BufferedImage[] bufferedImages, AnimationMetadataSection p_147964_2_, boolean p_147964_3_, CallbackInfo ci)
-	{ this.distanthorizons$loadData(); }
-	public void distanthorizons$loadData()
+	{ this.distanthorizons$setSpriteData(); }
+	
+	public void distanthorizons$setSpriteData()
 	{
 		if (this.framesTextureData.isEmpty())
 		{

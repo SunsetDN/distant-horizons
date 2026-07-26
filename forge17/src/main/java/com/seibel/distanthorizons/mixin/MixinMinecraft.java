@@ -9,8 +9,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import com.seibel.distanthorizons.interfaces.IMixinMinecraft;
 
 @Mixin(Minecraft.class)
-public abstract class MixinMinecraft implements IMixinMinecraft {
-
+public abstract class MixinMinecraft implements IMixinMinecraft 
+{
     @Override
     @Accessor("timer")
     public abstract Timer getTimer();
