@@ -19,8 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IAngelicaAccessor;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.*;
-import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.AngelicaCompat;
+import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.AngelicaAccessor;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.GregTechCompat;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.RPLECompat;
 import net.minecraft.server.MinecraftServer;
@@ -56,11 +57,6 @@ import org.jetbrains.annotations.Nullable;
 public class ForgeMain extends AbstractModInitializer
 {
 
-    public static final String ANGELICA_MOD_ID = "angelica";
-    public static final String MINIMUM_ANGELICA_VERSION = "2.1.5";
-    public static final VersionRange SUPPORTED_ANGELICA_RANGE = VersionParser
-        .parseRange("[" + MINIMUM_ANGELICA_VERSION + ",)");
-
     @Mod.Instance
     public static Object instance;
 
@@ -69,8 +65,6 @@ public class ForgeMain extends AbstractModInitializer
     public static boolean isHodgePodgeInstalled = false;
 	@Nullable
     public static GregTechCompat gregTechCompat = null;
-	@Nullable
-    public static AngelicaCompat angelicaCompat = null;
 	@Nullable
     public static RPLECompat rpleCompat = null;
 	
@@ -100,12 +94,16 @@ public class ForgeMain extends AbstractModInitializer
             }
 			
 			// angelica
-            if (Loader.isModLoaded(ANGELICA_MOD_ID) 
+            if (Loader.isModLoaded(AngelicaAccessor.ANGELICA_MOD_ID) 
 	            && event.getSide() == Side.CLIENT) 
 			{
-                angelicaCompat = new AngelicaCompat();
-                angelicaCompat.throwIfUnsupportedAngelicaVersion();
-            }
+				AngelicaAccessor angelicaAccessor = new AngelicaAccessor();
+                angelicaAccessor.throwIfUnsupportedAngelicaVersion();
+				
+				// we don't use try-add here since there's some additional validation beyond 
+				// just the mod being present 
+				this.addModCompatAccessor(IAngelicaAccessor.class, AngelicaAccessor::new);
+			}
 			
 			// RPLE
             if (Loader.isModLoaded("rple")) 
@@ -233,7 +231,9 @@ public class ForgeMain extends AbstractModInitializer
 	
     @Override
     protected void initializeModCompat() 
-    { this.tryCreateModCompatAccessor("angelica", IIrisAccessor.class, IrisAccessor::new); }
+    { 
+		this.tryCreateModCompatAccessor("angelica", IIrisAccessor.class, IrisAccessor::new); 
+	}
 	
     @Override
     protected void subscribeClientStartedEvent(Runnable eventHandler) { eventHandler.run(); }

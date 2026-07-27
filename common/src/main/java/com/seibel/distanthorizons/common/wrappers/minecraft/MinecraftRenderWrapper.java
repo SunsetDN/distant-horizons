@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.seibel.distanthorizons.core.render.RenderThreadTaskHandler;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IAngelicaAccessor;
 import org.jetbrains.annotations.Nullable;
 
 #if MC_VER > MC_1_12_2
@@ -129,8 +130,10 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 {
 	public static final MinecraftRenderWrapper INSTANCE = new MinecraftRenderWrapper();
 	
-	private static final IOptifineAccessor OPTIFINE_ACCESSOR = ModAccessorInjector.INSTANCE.get(IOptifineAccessor.class);
 	private static final IMinecraftClientWrapper MC_CLIENT = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
+	
+	private static final IOptifineAccessor OPTIFINE_ACCESSOR = ModAccessorInjector.INSTANCE.get(IOptifineAccessor.class);
+	private static final IAngelicaAccessor ANGELICA_ACCESSOR = ModAccessorInjector.INSTANCE.get(IAngelicaAccessor.class);
 	
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
@@ -304,9 +307,9 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		#if MC_VER < MC_1_17_1
 		
 		#if MC_VER <= MC_1_7_10
-		if (ForgeMain.angelicaCompat != null)
+		if (ANGELICA_ACCESSOR != null)
 		{
-			return ForgeMain.angelicaCompat.getFogColor();
+			return ANGELICA_ACCESSOR.getFogColor();
 		}
 		#endif
 		
@@ -466,7 +469,7 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		#if MC_VER <= MC_1_12_2
 		
 		#if MC_VER <= MC_1_7_10
-		if (ForgeMain.angelicaCompat != null)
+		if (ANGELICA_ACCESSOR != null)
 		{
 			// TODO why is there a "-2" here?
 			return MC.gameSettings.renderDistanceChunks - 2;
@@ -588,11 +591,12 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	public int getGlDepthTextureId()
 	{
 		#if MC_VER <= MC_1_7_10
-		final Framebuffer framebuffer = Minecraft.getMinecraft().getFramebuffer();
-		if (ForgeMain.angelicaCompat != null)
+		if (ANGELICA_ACCESSOR != null)
 		{
-			return ForgeMain.angelicaCompat.getDepthTextureId(framebuffer);
+			return ANGELICA_ACCESSOR.getDepthTextureId();
 		}
+		
+		final Framebuffer framebuffer = Minecraft.getMinecraft().getFramebuffer();
 		return framebuffer.depthBuffer;
 		#elif MC_VER <= MC_1_12_2
 		//1.12.2 is using renderbuffer instead of framebuffer for depth texture

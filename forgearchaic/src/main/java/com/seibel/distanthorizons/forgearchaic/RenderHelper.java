@@ -4,6 +4,8 @@ import java.nio.FloatBuffer;
 
 import com.seibel.distanthorizons.common.commonMixins.MixinVanillaFogCommon;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapper;
+import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IAngelicaAccessor;
 import com.seibel.distanthorizons.coreapi.ModInfo;
 import net.minecraft.client.Minecraft;
 
@@ -25,6 +27,8 @@ import com.seibel.distanthorizons.core.util.math.DhMat4f;
  */
 public class RenderHelper 
 {
+	private static final IAngelicaAccessor ANGELICA_ACCESSOR = ModAccessorInjector.INSTANCE.get(IAngelicaAccessor.class);
+	
 	private static DhMat4f modelViewMatrix;
 	private static DhMat4f projectionMatrix;
 	
@@ -69,7 +73,7 @@ public class RenderHelper
 		
 		// set GL state for DH rendering
 	    // TODO could we use DH's GLState object? or would that be overkill?
-	    if (ForgeMain.angelicaCompat == null) 
+	    if (ANGELICA_ACCESSOR == null) 
 		{
             GL32.glDisable(GL32.GL_ALPHA_TEST);
         }
@@ -86,7 +90,7 @@ public class RenderHelper
 		
 		// restore the GL State
 		GL32.glDepthFunc(GL32.GL_LEQUAL);
-        if (ForgeMain.angelicaCompat == null) 
+        if (ANGELICA_ACCESSOR == null) 
 		{
             GL32.glEnable(GL32.GL_ALPHA_TEST);
         }
@@ -101,8 +105,8 @@ public class RenderHelper
 	
     public static void renderFade(boolean translucent) 
     {
-        if (ForgeMain.angelicaCompat != null
-            && !ForgeMain.angelicaCompat.canDoFadeShader()) 
+        if (ANGELICA_ACCESSOR != null
+            && !ANGELICA_ACCESSOR.canDoFadeShader()) 
 		{
 			return;
         }
@@ -110,7 +114,7 @@ public class RenderHelper
         ClientApi.RENDER_STATE.mcProjectionMatrix = getProjectionMatrix();
         ClientApi.RENDER_STATE.clientLevelWrapper = ClientLevelWrapper.getWrapper(Minecraft.getMinecraft().theWorld);
 	    
-	    if (ForgeMain.angelicaCompat == null)
+	    if (ANGELICA_ACCESSOR == null)
 	    {
 		    GL32.glDisable(GL32.GL_ALPHA_TEST);
 	    }
@@ -123,7 +127,7 @@ public class RenderHelper
 	    {
 		    ClientApi.INSTANCE.renderFadeOpaque();
 	    }
-	    if (ForgeMain.angelicaCompat == null)
+	    if (ANGELICA_ACCESSOR == null)
 	    {
 		    GL32.glEnable(GL32.GL_ALPHA_TEST);
 	    }
@@ -134,7 +138,7 @@ public class RenderHelper
 	
     public static void renderDeferredLods() 
     {
-        if (ForgeMain.angelicaCompat == null) 
+        if (ANGELICA_ACCESSOR == null) 
 		{
             return;
         }
