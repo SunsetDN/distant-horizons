@@ -216,18 +216,25 @@ public abstract class AbstractModInitializer
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	protected <T extends IModAccessor> void tryCreateModCompatAccessor(String modId, Class<? super T> accessorClass, Supplier<T> accessorConstructor)
 	{
 		IModChecker modChecker = SingletonInjector.INSTANCE.get(IModChecker.class);
 		if (modChecker.isModLoaded(modId))
 		{
-			//noinspection unchecked
+			// logging is done internally
 			ModAccessorInjector.INSTANCE.bind((Class<? extends IModAccessor>) accessorClass, accessorConstructor.get());
 		}
 		else
 		{
 			LOGGER.debug("Skipping mod compatibility accessor for: ["+modId+"]");
 		}
+	}
+	@SuppressWarnings("unchecked")
+	protected <T extends IModAccessor> void addModCompatAccessor(Class<? super T> accessorClass, Supplier<T> accessorConstructor)
+	{
+		// logging is done internally
+		ModAccessorInjector.INSTANCE.bind((Class<? extends IModAccessor>) accessorClass, accessorConstructor.get());
 	}
 	
 	private void initConfig()
