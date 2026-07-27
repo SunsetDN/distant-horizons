@@ -140,6 +140,14 @@ public class GlDhFarFadeShader extends GlAbstractShaderRenderer
 		GLMC.disableDepthTest();
 		GLMC.disableBlend();
 		
+		// If we don't restore the textures some mods can break
+		int prevActiveTexture = GL33.glGetInteger(GL33.GL_ACTIVE_TEXTURE);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE0);
+		int prevTexture0 = GL33.glGetInteger(GL33.GL_TEXTURE_BINDING_2D);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE1);
+		int prevTexture1 = GL33.glGetInteger(GL33.GL_TEXTURE_BINDING_2D);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE2);
+		int prevTexture2 = GL33.glGetInteger(GL33.GL_TEXTURE_BINDING_2D);
 		
 		GLMC.glActiveTexture(GL33.GL_TEXTURE0);
 		GLMC.glBindTexture(depthTextureId);
@@ -155,6 +163,14 @@ public class GlDhFarFadeShader extends GlAbstractShaderRenderer
 		
 		
 		GlScreenQuad.INSTANCE.render();
+		
+		GLMC.glActiveTexture(GL33.GL_TEXTURE0);
+		GLMC.glBindTexture(prevTexture0);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE1);
+		GLMC.glBindTexture(prevTexture1);
+		GLMC.glActiveTexture(GL33.GL_TEXTURE2);
+		GLMC.glBindTexture(prevTexture2);
+		GLMC.glActiveTexture(prevActiveTexture);
 	}
 	
 }
