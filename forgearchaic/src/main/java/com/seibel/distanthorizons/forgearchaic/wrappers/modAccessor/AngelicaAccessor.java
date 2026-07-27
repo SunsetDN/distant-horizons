@@ -1,13 +1,11 @@
-package com.seibel.distanthorizons.forgearchaic.wrappers.modCompat;
+package com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor;
 
 import java.awt.Color;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IAngelicaAccessor;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.exceptions.AngelicaVersionGuiException;
-import com.seibel.distanthorizons.forgearchaic.ForgeMain;
 import cpw.mods.fml.common.versioning.VersionParser;
 import cpw.mods.fml.common.versioning.VersionRange;
-import net.coderbot.iris.Iris;
 import net.coderbot.iris.rendertarget.IRenderTargetExt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.shader.Framebuffer;

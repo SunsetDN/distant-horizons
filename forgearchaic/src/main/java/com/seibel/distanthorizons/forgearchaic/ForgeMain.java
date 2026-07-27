@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IAngelicaAccessor;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.*;
-import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.AngelicaAccessor;
+import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.AngelicaAccessor;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.GregTechCompat;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.RPLECompat;
 import net.minecraft.server.MinecraftServer;
@@ -43,8 +43,6 @@ import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkCheckHandler;
-import cpw.mods.fml.common.versioning.VersionParser;
-import cpw.mods.fml.common.versioning.VersionRange;
 import cpw.mods.fml.relauncher.Side;
 import org.jetbrains.annotations.Nullable;
 
