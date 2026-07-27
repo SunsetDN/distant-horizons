@@ -35,6 +35,8 @@ import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.ILightMapWrapper;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 
+import java.nio.ByteBuffer;
+
 #if MC_VER < MC_1_21_3
 #else
 #endif

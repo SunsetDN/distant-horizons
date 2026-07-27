@@ -55,6 +55,7 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 #endif
 
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Function;

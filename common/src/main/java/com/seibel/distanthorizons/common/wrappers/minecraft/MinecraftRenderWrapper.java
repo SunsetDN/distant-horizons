@@ -67,6 +67,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersiveP
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IOptifineAccessor;
 
 #if MC_VER <= MC_1_12_2
+import net.minecraft.client.renderer.entity.RenderManager;
 #if MC_VER <= MC_1_7_10
 import com.seibel.distanthorizons.forgearchaic.ForgeMain;
 import com.seibel.distanthorizons.forgearchaic.interfaces.IMixinMinecraft;
@@ -95,6 +96,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.client.Minecraft;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
 #if MC_VER <= MC_1_12_2
