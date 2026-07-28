@@ -58,15 +58,15 @@ public class FakeBlockState implements IBlockState
 	public int getMeta() { return this.meta; }
 	
 	@Override
-	public int getLightValue() { return getLightEmission(this); }
-	public static int getLightEmission(IBlockState blockState)
+	public int getLightValue() { return getLightEmission(this.block, this.meta); }
+	public static int getLightEmission(Block block, int meta)
 	{
 		if (RPLE_ACCESSOR != null)
 		{
-			return RPLE_ACCESSOR.getColor(blockState);
+			return RPLE_ACCESSOR.getColor(block, meta);
 		}
 		
-		return Math.min(blockState.getBlock().getLightValue(), LodUtil.MAX_MC_LIGHT);
+		return Math.min(block.getLightValue(), LodUtil.MAX_MC_LIGHT);
 	}
 	
 	public int getIdAndMeta() { return this.idAndMeta; }

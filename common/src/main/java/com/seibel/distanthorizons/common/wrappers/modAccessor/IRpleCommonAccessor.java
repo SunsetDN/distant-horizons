@@ -21,6 +21,7 @@ package com.seibel.distanthorizons.common.wrappers.modAccessor;
 
 import com.seibel.distanthorizons.common.backports.IBlockState;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IRpleAccessor;
+import net.minecraft.block.Block;
 
 /**
  * RPLE = Right Proper Lighting Engine <Br>
@@ -32,6 +33,6 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IRpleAccess
  */
 public interface IRpleCommonAccessor extends IRpleAccessor
 {
-	int getColor(IBlockState blockState);
+	int getColor(Block block, int meta);
 	
 }

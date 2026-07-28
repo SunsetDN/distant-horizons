@@ -3,6 +3,7 @@ package com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor;
 import com.seibel.distanthorizons.common.backports.FakeBlockState;
 import com.seibel.distanthorizons.common.backports.IBlockState;
 import com.seibel.distanthorizons.common.wrappers.modAccessor.IRpleCommonAccessor;
+import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 
 import com.falsepattern.rple.api.client.RPLELightMapAPI;
@@ -45,12 +46,10 @@ public class RpleAccessor implements IRpleCommonAccessor
 	//region
 	
 	@Override
-    public int getColor(IBlockState block) 
+    public int getColor(Block block, int meta) 
     {
-	    FakeBlockState blockState = (FakeBlockState) block;
-		
-        short color = RPLEBlock.of(blockState.block)
-            .rple$getBrightnessColor(blockState.meta);
+        short color = RPLEBlock.of(block)
+            .rple$getBrightnessColor(meta);
         return ServerColorHelper.lightValueFromRGB16(color);
     }
 	
