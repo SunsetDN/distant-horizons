@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.seibel.distanthorizons.common.wrappers.block.IBiomeHandler;
 import com.seibel.distanthorizons.common.wrappers.modAccessor.IGregTechCommonAccessor;
 import com.seibel.distanthorizons.common.wrappers.modAccessor.IRpleCommonAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.*;
@@ -212,6 +213,7 @@ public class ForgeMain extends AbstractModInitializer
     {
         SingletonInjector.INSTANCE.bind(IModChecker.class, ModChecker.INSTANCE);
         SingletonInjector.INSTANCE.bind(IPluginPacketSender.class, new ForgePluginPacketSender());
+	    SingletonInjector.INSTANCE.bind(IBiomeHandler.class, BiomeHandler.INSTANCE);
     }
 	
 	@Override
@@ -224,9 +226,7 @@ public class ForgeMain extends AbstractModInitializer
 	
     @Override
     protected void initializeModCompat() 
-    { 
-		this.tryCreateModCompatAccessor("angelica", IIrisAccessor.class, IrisAccessor::new); 
-	}
+    { this.tryCreateModCompatAccessor("angelica", IIrisAccessor.class, IrisAccessor::new); }
 	
     @Override
     protected void subscribeClientStartedEvent(Runnable eventHandler) { eventHandler.run(); }

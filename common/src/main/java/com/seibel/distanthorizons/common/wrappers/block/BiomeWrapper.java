@@ -22,18 +22,14 @@ package com.seibel.distanthorizons.common.wrappers.block;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IBiomeWrapper;
-
-#if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.forgearchaic.BiomeHandler;
-#endif
 
 #if MC_VER > MC_1_12_2
 import net.minecraft.world.level.Level;
@@ -82,6 +78,9 @@ public class BiomeWrapper implements IBiomeWrapper
 	// must be defined before AIR, otherwise a null pointer will be thrown
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
+	#if MC_VER <= MC_1_7_10
+	private static final IBiomeHandler BIOME_HANDLER = SingletonInjector.INSTANCE.get(IBiomeHandler.class);
+	#endif
 	
 	#if MC_VER <= MC_1_7_10
 	public static final ConcurrentMap<BiomeGenBase, BiomeWrapper> WRAPPER_BY_BIOME = new ConcurrentHashMap<>();
@@ -99,6 +98,8 @@ public class BiomeWrapper implements IBiomeWrapper
 	public static final String PLAINS_RESOURCE_LOCATION_STRING = 
 		#if MC_VER <= MC_1_7_10 "biome:Plains"
 		#else "minecraft:plains" #endif;
+	
+	
 	
 	/** keep track of broken biomes so we don't log every time */
 	private static final HashSet<String> brokenResourceLocationStrings = new HashSet<>();
@@ -398,7 +399,7 @@ public class BiomeWrapper implements IBiomeWrapper
 		
 		#if MC_VER <= MC_1_7_10
 		String biomeName = resourceLocationString.substring(separatorIndex + 1);
-		BiomeGenBase biome = BiomeHandler.getBiomeByName(biomeName);
+		BiomeGenBase biome = BIOME_HANDLER.getBiomeByName(biomeName);
 		boolean success = (biome != null);
 		#else
 		#if MC_VER < MC_1_21_11
