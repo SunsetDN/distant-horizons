@@ -279,7 +279,7 @@ public class ClientBlockStateColorCache
 			FakeBlockState blockState = (FakeBlockState)this.blockState; 
 
 			TextureAtlasSprite sprite = TextureAtlasSpriteWrapper.resolveFaceSprite(
-				blockState.block, blockState.meta, ForgeDirection.UP.ordinal());
+				blockState, ForgeDirection.UP.ordinal());
 			if (sprite != null)
 			{
 				this.baseColor = calculateColorFromTexture(

@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.seibel.distanthorizons.common.wrappers.modAccessor.IGregTechCommonAccessor;
 import com.seibel.distanthorizons.common.wrappers.modAccessor.IRpleCommonAccessor;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IAngelicaAccessor;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IRpleAccessor;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.*;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.*;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.AngelicaAccessor;
-import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.GregTechCompat;
+import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.GregTechAccessor;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.RpleAccessor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
@@ -34,8 +34,6 @@ import com.seibel.distanthorizons.common.AbstractModInitializer;
 import com.seibel.distanthorizons.core.api.internal.ServerApi;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IPluginPacketSender;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
@@ -63,10 +61,6 @@ public class ForgeMain extends AbstractModInitializer
     private static final boolean DISABLE_SERVER_FOR_TESTING = false;
 
     public static boolean isHodgePodgeInstalled = false;
-	@Nullable
-    public static GregTechCompat gregTechCompat = null;
-	@Nullable
-    public static GregTechAccessor gregTechCompat = null;
 	
 	private Consumer<MinecraftServer> eventHandlerStartServer;
 	
@@ -90,7 +84,8 @@ public class ForgeMain extends AbstractModInitializer
             if (Loader.isModLoaded("gregtech") 
 	            && this.enableGregTechAccessor())
             {	
-                gregTechCompat = new GregTechCompat();
+	            this.addModCompatAccessor(IGregTechAccessor.class, GregTechAccessor::new);
+	            this.addModCompatAccessor(IGregTechCommonAccessor.class, GregTechAccessor::new);
             }
 			
 			// angelica

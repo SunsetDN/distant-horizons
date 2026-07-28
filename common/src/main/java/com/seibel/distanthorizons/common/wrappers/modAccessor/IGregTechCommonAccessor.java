@@ -19,19 +19,25 @@
 
 package com.seibel.distanthorizons.common.wrappers.modAccessor;
 
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IGregTechAccessor;
+import org.jetbrains.annotations.Nullable;
+
+#if MC_VER <= MC_1_7_10
 import com.seibel.distanthorizons.common.backports.IBlockState;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IRpleAccessor;
+import net.minecraft.util.IIcon;
+#endif
 
 /**
- * RPLE = Right Proper Lighting Engine <Br>
- * adds colored lighting to MC 1.7.10 <br><br>
- * 
  * The common Accessor allows for MC
  * version specific methods, vs the base accessor
  * which is for MC agnostic methods.
  */
-public interface IRpleCommonAccessor extends IRpleAccessor
+public interface IGregTechCommonAccessor extends IGregTechAccessor
 {
-	int getColor(IBlockState blockState);
+	
+	#if MC_VER <= MC_1_7_10
+	@Nullable
+	IIcon resolveIcon(IBlockState blockState);
+	#endif
 	
 }

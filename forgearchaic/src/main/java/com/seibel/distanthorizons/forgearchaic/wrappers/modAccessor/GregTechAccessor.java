@@ -1,7 +1,9 @@
-package com.seibel.distanthorizons.forgearchaic.wrappers.modCompat;
+package com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor;
 
 import java.lang.reflect.Field;
 
+import com.seibel.distanthorizons.common.backports.IBlockState;
+import com.seibel.distanthorizons.common.wrappers.modAccessor.IGregTechCommonAccessor;
 import net.minecraft.block.Block;
 import net.minecraft.util.IIcon;
 
@@ -11,11 +13,21 @@ import gregtech.api.interfaces.ITexture;
 import gregtech.common.render.GTRenderedTexture;
 import org.jetbrains.annotations.Nullable;
 
-public class GregTechCompat 
+public class GregTechAccessor implements IGregTechCommonAccessor
 {
+	
+	@Override 
+	public String getModName() { return "GregTech"; }
+	
+	
+	
+	@Override
 	@Nullable
-    public IIcon resolveIcon(Block block, int meta)
+    public IIcon resolveIcon(IBlockState blockState)
     {
+	    Block block = blockState.getBlock();
+		int meta = blockState.getMeta();
+		
         if (!(block instanceof IBlockWithTextures))
 		{
 			return null;

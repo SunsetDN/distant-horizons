@@ -19,6 +19,9 @@
 
 package com.seibel.distanthorizons.common.wrappers.block;
 
+import com.seibel.distanthorizons.common.backports.IBlockState;
+import com.seibel.distanthorizons.common.wrappers.modAccessor.IGregTechCommonAccessor;
+import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
@@ -45,6 +48,10 @@ import net.minecraft.client.renderer.texture.SpriteContents;
  */
 public class TextureAtlasSpriteWrapper
 {
+	private static final IGregTechCommonAccessor GREG_TECH_ACCESSOR = ModAccessorInjector.INSTANCE.get(IGregTechCommonAccessor.class);
+	
+	
+	
 	public static int getPixelARGB(TextureAtlasSprite sprite, int frameIndex, int x, int y)
 	{
 		#if MC_VER <= MC_1_7_10
@@ -179,19 +186,19 @@ public class TextureAtlasSpriteWrapper
 	 * @return the resolved sprite, or null if none could be found
 	 */
 	@Nullable
-	public static TextureAtlasSprite resolveFaceSprite(Block block, int meta, int sideOrdinal)
+	public static TextureAtlasSprite resolveFaceSprite(IBlockState blockstate, int sideOrdinal)
 	{
 		IIcon icon = null;
 		
 		// GregTech
-		if (ForgeMain.gregTechCompat != null)
+		if (GREG_TECH_ACCESSOR != null)
 		{
 			// GregTech icons are resolved per block/meta, not per face
-			icon = ForgeMain.gregTechCompat.resolveIcon(block, meta);
+			icon = GREG_TECH_ACCESSOR.resolveIcon(blockstate);
 		}
 		if (icon == null)
 		{
-			icon = block.getIcon(sideOrdinal, meta);
+			icon = blockstate.getBlock().getIcon(sideOrdinal, blockstate.getMeta());
 		}
 		
 		if (icon instanceof IconFlipped)
