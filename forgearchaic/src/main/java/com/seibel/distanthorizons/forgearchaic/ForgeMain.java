@@ -19,11 +19,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.seibel.distanthorizons.common.wrappers.modAccessor.IRpleCommonAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IAngelicaAccessor;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IRpleAccessor;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.*;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.AngelicaAccessor;
 import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.GregTechCompat;
-import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.RPLECompat;
+import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.RpleAccessor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
@@ -64,7 +66,7 @@ public class ForgeMain extends AbstractModInitializer
 	@Nullable
     public static GregTechCompat gregTechCompat = null;
 	@Nullable
-    public static RPLECompat rpleCompat = null;
+    public static GregTechAccessor gregTechCompat = null;
 	
 	private Consumer<MinecraftServer> eventHandlerStartServer;
 	
@@ -104,10 +106,8 @@ public class ForgeMain extends AbstractModInitializer
 			}
 			
 			// RPLE
-            if (Loader.isModLoaded("rple")) 
-			{
-                rpleCompat = new RPLECompat();
-            }
+			this.tryCreateModCompatAccessor("rple", IRpleAccessor.class, RpleAccessor::new);
+			this.tryCreateModCompatAccessor("rple", IRpleCommonAccessor.class, RpleAccessor::new);
         } 
 		else if (!DISABLE_SERVER_FOR_TESTING) 
 		{

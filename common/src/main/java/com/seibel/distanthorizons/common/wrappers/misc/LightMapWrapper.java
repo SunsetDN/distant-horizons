@@ -24,6 +24,8 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
 #endif
 #if MC_VER <= MC_1_7_10
+import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IRpleAccessor;
 import com.seibel.distanthorizons.forgearchaic.ForgeMain;
 import com.seibel.distanthorizons.forgearchaic.interfaces.IMixinEntityRenderer;
 import net.minecraft.client.Minecraft;
@@ -34,8 +36,6 @@ import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.ILightMapWrapper;
 import com.seibel.distanthorizons.core.logging.DhLogger;
-
-import java.nio.ByteBuffer;
 
 #if MC_VER < MC_1_21_3
 #else
@@ -51,6 +51,8 @@ public class LightMapWrapper implements ILightMapWrapper
 	private static final MinecraftGLWrapper GLMC = MinecraftGLWrapper.INSTANCE;
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
+	private static final IRpleAccessor RPLE_ACCESSOR = ModAccessorInjector.INSTANCE.get(IRpleAccessor.class);
+	
 	/**
 	 * which texture index IE 0,1,2... the lightmap will be bound to. <Br> 
 	 * Related to but different from {@link GL33#GL_TEXTURE0}.
@@ -65,6 +67,7 @@ public class LightMapWrapper implements ILightMapWrapper
 	#endif
 	
 	private final BlazeTextureViewWrapper lightmapTextureWrapper = new BlazeTextureViewWrapper();
+	
 	
 	
 	//==============//
@@ -154,9 +157,9 @@ public class LightMapWrapper implements ILightMapWrapper
 		// On 1.7.10 nothing wires up setLightmapId(), so query MC directly each time.
 		
 		// RPLE (the colored-lighting mod) replaces the vanilla lightmap, so check that first.
-		if (ForgeMain.rpleCompat != null)
+		if (RPLE_ACCESSOR != null)
 		{
-			return ForgeMain.rpleCompat.getTextureId();
+			return RPLE_ACCESSOR.getLightmapTextureId();
 		}
 		
 		IMixinEntityRenderer entityRenderer = (IMixinEntityRenderer) Minecraft.getMinecraft().entityRenderer;

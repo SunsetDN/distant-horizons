@@ -4,8 +4,10 @@ package com.seibel.distanthorizons.common.backports;
 
 import java.util.Objects;
 
+import com.seibel.distanthorizons.common.wrappers.modAccessor.IRpleCommonAccessor;
+import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
+import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.block.IBlockStateWrapper;
-import com.seibel.distanthorizons.forgearchaic.ForgeMain;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 
@@ -15,6 +17,8 @@ import net.minecraft.block.material.Material;
  */
 public class FakeBlockState implements IBlockState
 {
+	private static final IRpleCommonAccessor RPLE_ACCESSOR = ModAccessorInjector.INSTANCE.get(IRpleCommonAccessor.class);
+	
 	public final Block block;
 	public final int meta;
 	/** also used as the hash code */
@@ -54,15 +58,15 @@ public class FakeBlockState implements IBlockState
 	public int getMeta() { return this.meta; }
 	
 	@Override
-	public int getLightValue() { return getLightEmission(this.block, this.meta); }
-	public static int getLightEmission(Block block, int meta)
+	public int getLightValue() { return getLightEmission(this); }
+	public static int getLightEmission(IBlockState blockState)
 	{
-		if (ForgeMain.rpleCompat != null)
+		if (RPLE_ACCESSOR != null)
 		{
-			return ForgeMain.rpleCompat.getColor(block, meta);
+			return RPLE_ACCESSOR.getColor(blockState);
 		}
 		
-		return Math.min(15, block.getLightValue());
+		return Math.min(blockState.getBlock().getLightValue(), LodUtil.MAX_MC_LIGHT);
 	}
 	
 	public int getIdAndMeta() { return this.idAndMeta; }

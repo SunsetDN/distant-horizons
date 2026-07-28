@@ -1,9 +1,12 @@
 package com.seibel.distanthorizons.forgearchaic.mixin;
 
+import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IRpleAccessor;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,8 +24,10 @@ import cpw.mods.fml.common.eventhandler.EventBus;
 @Mixin(EntityRenderer.class)
 public abstract class MixinEntityRenderer implements IMixinEntityRenderer 
 {
+	@Unique
+	private static final IRpleAccessor RPLE_ACCESSOR = ModAccessorInjector.INSTANCE.get(IRpleAccessor.class);
 	
-    @Override
+	@Override
     @Accessor("lightmapTexture")
     public abstract DynamicTexture getLightmapTexture();
 	
@@ -74,9 +79,9 @@ public abstract class MixinEntityRenderer implements IMixinEntityRenderer
 	@Inject(method = "updateCameraAndRender", at = @At("HEAD"))
 	private void updateLightmap(float partialTicks, CallbackInfo ci)
 	{
-		if (ForgeMain.rpleCompat != null)
+		if (RPLE_ACCESSOR != null)
 		{
-			ForgeMain.rpleCompat.updateLightmap();
+			RPLE_ACCESSOR.updateLightmap();
 		}
 	}
 	
