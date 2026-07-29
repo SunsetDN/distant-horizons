@@ -139,7 +139,7 @@ public class TexturedButtonWidget
 		// We don't pass in the text option since it will render (we normally pass it in for narration)
 		super(x, y, width, height, Component.empty(), pressAction, DEFAULT_NARRATION);
 		#endif
-		
+	    
 		this.u = u;
 		this.v = v;
 		this.hoveredVOffset = hoveredVOffset;
@@ -167,12 +167,12 @@ public class TexturedButtonWidget
 	{
 		if (this.visible)
 		{
-			this.field_146123_n =
+			this.hovered =
 				mouseX >= this.xPosition
 					&& mouseY >= this.yPosition
 					&& mouseX < this.xPosition + this.width
 					&& mouseY < this.yPosition + this.height;
-			int hoverState = this.getHoverState(this.field_146123_n);
+			int hoverState = this.getHoverState(this.hovered);
 			
 			LWJGL.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 			LWJGL.glEnable(GL11.GL_BLEND);
@@ -193,7 +193,7 @@ public class TexturedButtonWidget
 			}
 			
 			mc.getTextureManager().bindTexture(this.textureResourceLocation);
-			func_146110_a(this.xPosition, this.yPosition, this.u, this.v + (this.hoveredVOffset * this.getIconHoverState(this.field_146123_n)), this.width, this.height, this.textureWidth, this.textureHeight);
+			drawModalRectWithCustomSizedTexture(this.xPosition, this.yPosition, this.u, this.v + (this.hoveredVOffset * this.getIconHoverState(this.hovered)), this.width, this.height, this.textureWidth, this.textureHeight);
 		}
 	}
 	private int getIconHoverState(boolean mouseOver)

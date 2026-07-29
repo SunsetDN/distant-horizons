@@ -764,10 +764,7 @@ public class ClientBlockStateTextureCache
 			directionIndex = forgeDirection.ordinal();
 		}
 		
-		return TextureAtlasSpriteWrapper.resolveFaceSprite(
-			blockStateWrapper.blockState.getBlock(),
-			blockStateWrapper.blockState.getMeta(),
-			directionIndex);
+		return TextureAtlasSpriteWrapper.resolveFaceSprite(blockStateWrapper.blockState, directionIndex);
 	}
 	#endif
 	

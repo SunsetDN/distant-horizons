@@ -464,7 +464,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 				if (block instanceof BlockStainedGlass 
 					|| block instanceof BlockStainedGlassPane)
 				{
-					colorInt = ItemDye.field_150922_c[BlockColored.func_150032_b(this.blockState.getMeta())];
+					colorInt = ItemDye.dyeColors[BlockColored.func_150032_b(this.blockState.getMeta())];
 					beaconTintColor = ColorUtil.toColorObjRGB(colorInt);
 				}
 				#elif MC_VER <= MC_1_12_2

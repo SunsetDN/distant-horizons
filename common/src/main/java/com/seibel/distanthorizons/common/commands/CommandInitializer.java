@@ -4,6 +4,7 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
+import org.jetbrains.annotations.NotNull;
 #else
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -112,6 +113,9 @@ public class CommandInitializer
 						AbstractDhCommand.sendMessage(sender, "Unknown subcommand: " + args[0]);
 				}
 			}
+			
+			@Override 
+			public int compareTo(@NotNull Object obj) { return 0; }
 		};
 		
 	}
