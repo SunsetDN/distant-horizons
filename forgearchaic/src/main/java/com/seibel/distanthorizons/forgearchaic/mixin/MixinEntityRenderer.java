@@ -16,20 +16,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.seibel.distanthorizons.forgearchaic.RenderHelper;
 import com.seibel.distanthorizons.forgearchaic.ForgeMain;
-import com.seibel.distanthorizons.forgearchaic.interfaces.IMixinEntityRenderer;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.EventBus;
 
 @Mixin(EntityRenderer.class)
-public abstract class MixinEntityRenderer implements IMixinEntityRenderer 
+public abstract class MixinEntityRenderer 
 {
 	@Unique
 	private static final IRpleAccessor RPLE_ACCESSOR = ModAccessorInjector.INSTANCE.get(IRpleAccessor.class);
-	
-	@Override
-    @Accessor("lightmapTexture")
-    public abstract DynamicTexture getLightmapTexture();
 	
 	
 	

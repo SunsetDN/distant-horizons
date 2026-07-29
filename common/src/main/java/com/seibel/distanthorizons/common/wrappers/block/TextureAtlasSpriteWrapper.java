@@ -26,8 +26,6 @@ import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.forgearchaic.interfaces.IMixinTextureAtlasSprite;
-import com.seibel.distanthorizons.forgearchaic.ForgeMain;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.IconFlipped;
 import net.minecraft.util.IIcon;

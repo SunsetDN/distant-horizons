@@ -26,8 +26,6 @@ import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeText
 #if MC_VER <= MC_1_7_10
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IRpleAccessor;
-import com.seibel.distanthorizons.forgearchaic.ForgeMain;
-import com.seibel.distanthorizons.forgearchaic.interfaces.IMixinEntityRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 #endif
@@ -162,8 +160,7 @@ public class LightMapWrapper implements ILightMapWrapper
 			return RPLE_ACCESSOR.getLightmapTextureId();
 		}
 		
-		IMixinEntityRenderer entityRenderer = (IMixinEntityRenderer) Minecraft.getMinecraft().entityRenderer;
-		DynamicTexture lightmapTexture = entityRenderer.getLightmapTexture();
+		DynamicTexture lightmapTexture = Minecraft.getMinecraft().entityRenderer.lightmapTexture;
 		return lightmapTexture.getGlTextureId();
 	}
 	#else

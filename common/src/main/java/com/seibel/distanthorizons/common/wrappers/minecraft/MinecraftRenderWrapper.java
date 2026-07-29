@@ -70,8 +70,6 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IOptifineAc
 #if MC_VER <= MC_1_12_2
 import net.minecraft.client.renderer.entity.RenderManager;
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.forgearchaic.ForgeMain;
-import com.seibel.distanthorizons.forgearchaic.interfaces.IMixinMinecraft;
 import com.seibel.distanthorizons.common.backports.Camera;
 import net.minecraft.block.Block;
 import net.minecraft.client.shader.Framebuffer;
@@ -261,7 +259,7 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		
 		
 		#if MC_VER <= MC_1_7_10
-			float frameTime = ((IMixinMinecraft) Minecraft.getMinecraft()).getTimer().renderPartialTicks;
+			float frameTime = Minecraft.getMinecraft().timer.renderPartialTicks;
 			Camera.INSTANCE.update(MC.renderViewEntity, frameTime);
 			Vector3d projectedView = Camera.INSTANCE.getPos();
 			return new DhVec3d(projectedView.x, projectedView.y, projectedView.z);
@@ -287,7 +285,7 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	public float getPartialTickTime()
 	{
 		#if MC_VER <= MC_1_7_10
-		return ((IMixinMinecraft) Minecraft.getMinecraft()).getTimer().renderPartialTicks;
+		return Minecraft.getMinecraft().timer.renderPartialTicks;
 		#elif MC_VER <= MC_1_12_2
 		return MC.getRenderPartialTicks();
 		#elif MC_VER < MC_1_21_1
