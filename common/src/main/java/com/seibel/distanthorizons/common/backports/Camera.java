@@ -1,13 +1,12 @@
 package com.seibel.distanthorizons.common.backports;
 
 #if MC_VER <= MC_1_7_10
+import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import net.minecraft.entity.EntityLivingBase;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector4f;
-
-import com.seibel.distanthorizons.forgearchaic.RenderHelper;
 #endif
 
 /**
@@ -25,7 +24,7 @@ public class Camera
 	public void update(EntityLivingBase entity, float partialTicks)
 	{
 		final Vector4f offset = new Vector4f(); // third person offset
-		final Matrix4f inverseModelView = RenderHelper.getModelViewMatrix()
+		final Matrix4f inverseModelView = ClientApi.RENDER_STATE.mcModelViewMatrix
 			.createJomlMatrix()
 			.invert();
 		inverseModelView.transform(offset);
