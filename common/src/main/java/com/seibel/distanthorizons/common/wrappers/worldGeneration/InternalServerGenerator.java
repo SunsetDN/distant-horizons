@@ -444,9 +444,9 @@ public class InternalServerGenerator
 			{
 				#if MC_VER <= MC_1_7_10
 				ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
-				if (ForgeMain.isHodgePodgeInstalled)
+				if (HODGE_PODGE_ACCESSOR != null)
 				{
-					HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x, chunkPos.z);
+					HODGE_PODGE_ACCESSOR.preventChunkSimulation(level, chunkPos.x, chunkPos.z);
 				}
 				ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x, chunkPos.z));
 				#else
