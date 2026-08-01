@@ -611,24 +611,6 @@ public class ChunkWrapper implements IChunkWrapper
 	#endif
 	
 	@Override
-	public int getMaxBlockX() 
-	{ 
-		#if MC_VER <= MC_1_12_2
-		return this.chunk.getPos().getXEnd();
-		#else
-		return this.chunk.getPos().getMaxBlockX();
-		#endif 
-	}
-	@Override
-	public int getMaxBlockZ() 
-	{ 
-		#if MC_VER <= MC_1_12_2
-		return this.chunk.getPos().getZEnd();
-		#else
-		return this.chunk.getPos().getMaxBlockZ();
-		#endif
-	}
-	@Override
 	public int getMinBlockX() 
 	{ 
 		#if MC_VER <= MC_1_12_2

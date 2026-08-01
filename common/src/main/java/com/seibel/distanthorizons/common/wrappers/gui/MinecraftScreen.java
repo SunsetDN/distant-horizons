@@ -78,13 +78,6 @@ public class MinecraftScreen
 		#endif
 		{
 			super(translate(translationName));
-			#if MC_VER <= MC_1_12_2
-			screen.minecraftWindow = Display.getWindow();
-			#elif MC_VER < MC_1_21_9
-			screen.minecraftWindow = Minecraft.getInstance().getWindow().getWindow();
-			#else
-			screen.minecraftWindow = Minecraft.getInstance().getWindow().handle();
-			#endif
 			this.parent = parent;
 			this.screen = screen;
 		}
