@@ -93,7 +93,8 @@ public class ChunkWrapper implements IChunkWrapper
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
 	/** can be used for interactions with the underlying chunk where creating new BlockPos objects could cause issues for the garbage collector. */
-	#if MC_VER > MC_1_7_10
+	#if MC_VER <= MC_1_7_10
+	#else
 	private static final ThreadLocal<BlockPos.MutableBlockPos> MUTABLE_BLOCK_POS_REF = ThreadLocal.withInitial(() -> new BlockPos.MutableBlockPos());
 	#endif
 	private static final ThreadLocal<MutableBlockPosWrapper> MUTABLE_BLOCK_POS_WRAPPER_REF = ThreadLocal.withInitial(() -> new MutableBlockPosWrapper());

@@ -93,7 +93,7 @@ public class ForgeClientProxy implements AbstractModInitializer.IEventProxy
 			
             Minecraft.getMinecraft()
 	            // add to render thread executor
-                .func_152344_a(() -> 
+                .addScheduledTask(() -> 
                 {
 	                World level = event.world;
                     Chunk chunk = level.getChunkFromBlockCoords(event.x, event.z);
