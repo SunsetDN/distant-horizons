@@ -1144,6 +1144,11 @@ public record LWJGL2Service(
 		GL11.glLoadMatrix(m);
 	}
 	
+	// ===================== Fog =========================
+	
+	@Override
+	public void glFogf(int pname, float params) { GL11.glFogf(pname, params); }
+	
 	// ===================== MISC GL =====================
 	
 	@Override

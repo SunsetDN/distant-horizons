@@ -887,8 +887,13 @@ public record LWJGL3Service(
     public void glLoadMatrixf(FloatBuffer m) {
         GL11.glLoadMatrixf(m);
     }
-
-    // ===================== MISC GL =====================
+	
+	// ===================== Fog =========================
+	
+	@Override
+	public void glFogf(int pname, float params) { GL32.glFogf(pname, params); }
+	
+	// ===================== MISC GL =====================
 
     @Override
     public int glGetInteger(int pname) {

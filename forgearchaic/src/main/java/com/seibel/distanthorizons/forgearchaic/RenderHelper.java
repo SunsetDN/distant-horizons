@@ -7,17 +7,17 @@ import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapp
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IAngelicaAccessor;
 import com.seibel.distanthorizons.coreapi.ModInfo;
+import com.seibel.distanthorizons.lwjgl.GL32;
 import net.minecraft.client.Minecraft;
 
 import org.joml.Matrix4f;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL32;
 
 import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.world.ClientLevelWrapper;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
+
+import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 
 /**
  * Since 1.7.10 doesn't natively support modern OpenGL and lwjgl3, we use lwjgl3ify.
@@ -75,12 +75,12 @@ public class RenderHelper
 	    // TODO could we use DH's GLState object? or would that be overkill?
 	    if (ANGELICA_ACCESSOR == null) 
 		{
-            GL32.glDisable(GL32.GL_ALPHA_TEST);
+			LWJGL.glDisable(GL32.GL_ALPHA_TEST);
         }
-        GL11.glClearColor(1, 1, 1, 0.0F);
+	    LWJGL.glClearColor(1, 1, 1, 0.0F);
        
-        int oldActiveTex = GL11.glGetInteger(GL32.GL_ACTIVE_TEXTURE);
-        int oldBoundTex = GL11.glGetInteger(GL32.GL_TEXTURE_BINDING_2D);
+        int oldActiveTex = LWJGL.glGetInteger(GL32.GL_ACTIVE_TEXTURE);
+        int oldBoundTex = LWJGL.glGetInteger(GL32.GL_TEXTURE_BINDING_2D);
        
 		
 		
@@ -89,19 +89,19 @@ public class RenderHelper
 		
 		
 		// restore the GL State
-		GL32.glDepthFunc(GL32.GL_LEQUAL);
+	    LWJGL.glDepthFunc(GL32.GL_LEQUAL);
         if (ANGELICA_ACCESSOR == null) 
 		{
-            GL32.glEnable(GL32.GL_ALPHA_TEST);
+			LWJGL.glEnable(GL32.GL_ALPHA_TEST);
         }
-        GL32.glDisable(GL32.GL_BLEND);
-		
-        GL32.glActiveTexture(oldActiveTex);
-        GL32.glBindTexture(GL32.GL_TEXTURE_2D, oldBoundTex);
+	    LWJGL.glDisable(GL32.GL_BLEND);
+	    
+	    LWJGL.glActiveTexture(oldActiveTex);
+	    LWJGL.glBindTexture(GL32.GL_TEXTURE_2D, oldBoundTex);
     }
 	
 	// TODO why do we need to disable depth here?
-    public static void beforeWater() { GL11.glDepthMask(true); }
+    public static void beforeWater() { LWJGL.glDepthMask(true); }
 	
     public static void renderFade(boolean translucent) 
     {
@@ -116,7 +116,7 @@ public class RenderHelper
 	    
 	    if (ANGELICA_ACCESSOR == null)
 	    {
-		    GL32.glDisable(GL32.GL_ALPHA_TEST);
+		    LWJGL.glDisable(GL32.GL_ALPHA_TEST);
 	    }
 		
 	    if (translucent)
@@ -129,11 +129,11 @@ public class RenderHelper
 	    }
 	    if (ANGELICA_ACCESSOR == null)
 	    {
-		    GL32.glEnable(GL32.GL_ALPHA_TEST);
+		    LWJGL.glEnable(GL32.GL_ALPHA_TEST);
 	    }
-
-        GL32.glDepthFunc(GL32.GL_LEQUAL);
-        GL32.glDisable(GL32.GL_BLEND);
+	    
+	    LWJGL.glDepthFunc(GL32.GL_LEQUAL);
+	    LWJGL.glDisable(GL32.GL_BLEND);
     }
 	
     public static void renderDeferredLods() 
@@ -159,7 +159,7 @@ public class RenderHelper
 	 * Unbinding is necessary to prevent 
 	 * a crash if DH is enabled while MC starts loading into the world 
 	 */
-    public static void UnbindAfterTesselatorDraw() { GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, 0); }
+    public static void UnbindAfterTesselatorDraw() { LWJGL.glBindBuffer(GL32.GL_ARRAY_BUFFER, 0); }
 
 	
 	
@@ -168,7 +168,7 @@ public class RenderHelper
 	//=====//
 	//region
 	
-    public static void enableFog() { GL11.glEnable(GL11.GL_FOG); }
+    public static void enableFog() { LWJGL.glEnable(GL32.GL_FOG); }
 
     public static void disableFogDuringSetup() 
     {
@@ -176,24 +176,24 @@ public class RenderHelper
 		{
             return;
         }
-        GL11.glDisable(GL11.GL_FOG);
+	    LWJGL.glDisable(GL32.GL_FOG);
 		
         // Extremely high values cause issues, but 15 mebi-meters out should be 
 	    // practically infinite For Angelica
-        GL11.glFogf(GL11.GL_FOG_START, 1024 * 1024 * 15);
-        GL11.glFogf(GL11.GL_FOG_END, 1024 * 1024 * 16);
+	    LWJGL.glFogf(GL32.GL_FOG_START, 1024 * 1024 * 15);
+	    LWJGL.glFogf(GL32.GL_FOG_END, 1024 * 1024 * 16);
     }
 	
 	public static void disableFogDuringRender(int cap)
 	{
 		// Cancel enabling fog if needed
 		if (MixinVanillaFogCommon.cancelFog()
-			&& cap == GL11.GL_FOG)
+			&& cap == GL32.GL_FOG)
 		{
 			return;
 		}
 		
-		GL11.glEnable(cap);
+		LWJGL.glEnable(cap);
 	}
 	
 	//endregion

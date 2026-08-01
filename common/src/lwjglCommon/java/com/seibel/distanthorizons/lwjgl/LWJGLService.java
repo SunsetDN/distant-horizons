@@ -192,6 +192,10 @@ public interface LWJGLService {
 	void glMatrixMode(int mode);
 	void glLoadMatrixf(FloatBuffer m);
 	
+	// ===================== Fog =========================
+	
+	void glFogf(int	pname, float params);
+	
 	// ===================== MISC GL =====================
 	
 	int glGetInteger(int pname);
