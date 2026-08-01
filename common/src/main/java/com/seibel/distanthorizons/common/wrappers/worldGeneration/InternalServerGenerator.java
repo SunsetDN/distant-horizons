@@ -3,6 +3,7 @@ package com.seibel.distanthorizons.common.wrappers.worldGeneration;
 import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
+import com.seibel.distanthorizons.common.wrappers.modAccessor.IHodgePodgeCommonAccessor;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.params.GlobalWorldGenParams;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
@@ -25,7 +26,6 @@ import com.seibel.distanthorizons.coreapi.ModInfo;
 
 import org.jetbrains.annotations.Nullable;
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.HodgePodgeCompat;
 import com.seibel.distanthorizons.forgearchaic.ForgeMain;
 import com.seibel.distanthorizons.forgearchaic.ForgeServerProxy;
 import com.seibel.distanthorizons.common.backports.ChunkPos;
@@ -77,6 +77,7 @@ public class InternalServerGenerator
 			.build();
 	
 	private static final IC2meAccessor C2ME_ACCESSOR = ModAccessorInjector.INSTANCE.get(IC2meAccessor.class);
+	private static final IHodgePodgeCommonAccessor HODGE_PODGE_ACCESSOR = ModAccessorInjector.INSTANCE.get(IHodgePodgeCommonAccessor.class);
 	
 	/**
 	 * Used to revert the ignore logic in {@link SharedApi} so
@@ -464,9 +465,9 @@ public class InternalServerGenerator
 						}
 
 						#if MC_VER <= MC_1_7_10
-						if (ForgeMain.isHodgePodgeInstalled)
+						if (HODGE_PODGE_ACCESSOR != null)
 						{
-							HodgePodgeCompat.preventChunkSimulation(level, chunkPos.x + dx, chunkPos.z + dz);
+							HODGE_PODGE_ACCESSOR.preventChunkSimulation(level, chunkPos.x + dx, chunkPos.z + dz);
 						}
 						ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x + dx, chunkPos.z + dz));
 						if (!provider.chunkExists(chunkPos.x + dx, chunkPos.z + dz))
@@ -562,9 +563,9 @@ public class InternalServerGenerator
 					int x = chunkPos.x + dx;
 					int z = chunkPos.z + dz;
 					ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(x, z));
-					if (ForgeMain.isHodgePodgeInstalled)
+					if (HODGE_PODGE_ACCESSOR != null)
 					{
-						HodgePodgeCompat.allowChunkSimulation(level, x, z);
+						HODGE_PODGE_ACCESSOR.allowChunkSimulation(level, x, z);
 					}
 					if (!level.getPlayerManager().func_152621_a(x, z))
 					{

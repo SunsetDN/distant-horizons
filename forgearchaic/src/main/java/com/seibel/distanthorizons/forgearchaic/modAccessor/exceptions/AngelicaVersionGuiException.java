@@ -1,4 +1,4 @@
-package com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.exceptions;
+package com.seibel.distanthorizons.forgearchaic.modAccessor.exceptions;
 
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiErrorScreen;

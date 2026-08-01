@@ -20,6 +20,7 @@
 package com.seibel.distanthorizons.common.wrappers.block;
 
 import com.seibel.distanthorizons.common.backports.IBlockState;
+import com.seibel.distanthorizons.common.wrappers.interfaces.IMixinTextureAtlasSprite;
 import com.seibel.distanthorizons.common.wrappers.modAccessor.IGregTechCommonAccessor;
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;

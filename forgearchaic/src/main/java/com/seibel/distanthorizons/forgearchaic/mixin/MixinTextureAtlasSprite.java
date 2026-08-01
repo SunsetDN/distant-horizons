@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.seibel.distanthorizons.forgearchaic.interfaces.IMixinTextureAtlasSprite;
+import com.seibel.distanthorizons.common.wrappers.interfaces.IMixinTextureAtlasSprite;
 
 @Mixin(TextureAtlasSprite.class)
 public class MixinTextureAtlasSprite implements IMixinTextureAtlasSprite 

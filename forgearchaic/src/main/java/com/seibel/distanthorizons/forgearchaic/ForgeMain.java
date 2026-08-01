@@ -21,12 +21,10 @@ import java.util.function.Consumer;
 
 import com.seibel.distanthorizons.common.wrappers.block.IBiomeHandler;
 import com.seibel.distanthorizons.common.wrappers.modAccessor.IGregTechCommonAccessor;
+import com.seibel.distanthorizons.common.wrappers.modAccessor.IHodgePodgeCommonAccessor;
 import com.seibel.distanthorizons.common.wrappers.modAccessor.IRpleCommonAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.*;
-import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.*;
-import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.AngelicaAccessor;
-import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.GregTechAccessor;
-import com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor.RpleAccessor;
+import com.seibel.distanthorizons.forgearchaic.modAccessor.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
@@ -45,7 +43,6 @@ import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkCheckHandler;
 import cpw.mods.fml.relauncher.Side;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Initialize and setup the Mod. <br>
@@ -102,8 +99,21 @@ public class ForgeMain extends AbstractModInitializer
 			}
 			
 			// RPLE
-			this.tryCreateModCompatAccessor("rple", IRpleAccessor.class, RpleAccessor::new);
-			this.tryCreateModCompatAccessor("rple", IRpleCommonAccessor.class, RpleAccessor::new);
+			if (Loader.isModLoaded("rple"))
+			{
+				RpleAccessor rpleAccessor = new RpleAccessor();
+				this.addModCompatAccessor(IRpleAccessor.class, () -> rpleAccessor);
+				this.addModCompatAccessor(IRpleCommonAccessor.class, () -> rpleAccessor);
+			}
+			
+			// Hodge Podge
+			if (Loader.isModLoaded("hodgepodge")
+				&& event.getSide() == Side.SERVER)
+			{
+				HodgePodgeAccessor hodgePodgeAccessor = new HodgePodgeAccessor();
+				this.addModCompatAccessor(IHodgePodgeAccessor.class, () -> hodgePodgeAccessor);
+				this.addModCompatAccessor(IHodgePodgeCommonAccessor.class, () -> hodgePodgeAccessor);
+			}
         } 
 		else if (!DISABLE_SERVER_FOR_TESTING) 
 		{
@@ -127,17 +137,6 @@ public class ForgeMain extends AbstractModInitializer
 		}
 	}
 	private void chunkLoadedCallback() { }
-	
-	@NetworkCheckHandler
-	public boolean checkNetwork(Map<String, String> map, Side side)
-	{
-		if (side == Side.SERVER)
-		{
-			isHodgePodgeInstalled = map.containsKey("hodgepodge");
-		}
-		
-		return true;
-	}
 	
 	//endregion
 	

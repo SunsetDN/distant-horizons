@@ -1,9 +1,9 @@
-package com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor;
+package com.seibel.distanthorizons.forgearchaic.modAccessor;
 
 import java.awt.Color;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IAngelicaAccessor;
-import com.seibel.distanthorizons.forgearchaic.wrappers.modCompat.exceptions.AngelicaVersionGuiException;
+import com.seibel.distanthorizons.forgearchaic.modAccessor.exceptions.AngelicaVersionGuiException;
 import cpw.mods.fml.common.versioning.VersionParser;
 import cpw.mods.fml.common.versioning.VersionRange;
 import net.coderbot.iris.rendertarget.IRenderTargetExt;

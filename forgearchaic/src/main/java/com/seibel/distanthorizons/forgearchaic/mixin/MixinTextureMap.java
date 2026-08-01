@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.seibel.distanthorizons.forgearchaic.interfaces.IMixinTextureAtlasSprite;
+import com.seibel.distanthorizons.common.wrappers.interfaces.IMixinTextureAtlasSprite;
 
 @Mixin(TextureMap.class)
 public class MixinTextureMap 

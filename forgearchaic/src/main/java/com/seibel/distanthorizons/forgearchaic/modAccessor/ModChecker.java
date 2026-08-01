@@ -13,7 +13,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor;
+package com.seibel.distanthorizons.forgearchaic.modAccessor;
 
 import java.io.File;
 import java.util.Optional;

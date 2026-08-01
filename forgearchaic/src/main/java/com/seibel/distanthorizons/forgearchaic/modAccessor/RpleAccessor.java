@@ -1,4 +1,4 @@
-package com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor;
+package com.seibel.distanthorizons.forgearchaic.modAccessor;
 
 import com.seibel.distanthorizons.common.backports.FakeBlockState;
 import com.seibel.distanthorizons.common.backports.IBlockState;

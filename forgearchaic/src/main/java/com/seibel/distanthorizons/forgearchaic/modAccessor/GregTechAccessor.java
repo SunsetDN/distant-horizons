@@ -1,4 +1,4 @@
-package com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor;
+package com.seibel.distanthorizons.forgearchaic.modAccessor;
 
 import java.lang.reflect.Field;
 

@@ -1,4 +1,4 @@
-package com.seibel.distanthorizons.forgearchaic.wrappers.modAccessor;
+package com.seibel.distanthorizons.forgearchaic.modAccessor;
 
 import net.coderbot.iris.Iris;
 import net.irisshaders.iris.api.v0.IrisApi;
