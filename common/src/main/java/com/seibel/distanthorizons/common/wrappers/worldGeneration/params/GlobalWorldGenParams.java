@@ -23,6 +23,7 @@ import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
 import com.seibel.distanthorizons.core.level.IDhServerLevel;
 
 
+// TODO these preprocessors are a mess
 #if MC_VER <= MC_1_12_2
 
 #if MC_VER <= MC_1_7_10

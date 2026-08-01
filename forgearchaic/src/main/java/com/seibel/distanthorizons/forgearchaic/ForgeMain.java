@@ -221,7 +221,7 @@ public class ForgeMain extends AbstractModInitializer
     protected IEventProxy createClientProxy() { return new ForgeClientProxy(); }
 	
     @Override
-    protected IEventProxy createServerProxy(boolean isDedicated) {  return new ForgeServerProxy(isDedicated); }
+    protected IEventProxy createServerProxy(boolean isDedicated) { return new ForgeServerProxy(isDedicated); }
 	
     @Override
     protected void initializeModCompat() 

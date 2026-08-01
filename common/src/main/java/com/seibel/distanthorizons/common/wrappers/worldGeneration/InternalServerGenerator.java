@@ -11,6 +11,7 @@ import com.seibel.distanthorizons.core.api.internal.chunkUpdating.ChunkUpdateQue
 import com.seibel.distanthorizons.core.api.internal.chunkUpdating.WorldChunkUpdateManager;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
+import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.enums.MinecraftTextFormat;
 import com.seibel.distanthorizons.core.generation.DhLightingEngine;
 import com.seibel.distanthorizons.core.level.IDhServerLevel;
@@ -22,12 +23,11 @@ import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.TimerUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.chunk.IChunkWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IC2meAccessor;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modLoader.IForgeServerProxy;
 import com.seibel.distanthorizons.coreapi.ModInfo;
 
 import org.jetbrains.annotations.Nullable;
 #if MC_VER <= MC_1_7_10
-import com.seibel.distanthorizons.forgearchaic.ForgeMain;
-import com.seibel.distanthorizons.forgearchaic.ForgeServerProxy;
 import com.seibel.distanthorizons.common.backports.ChunkPos;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.WorldServer;
@@ -75,6 +75,11 @@ public class InternalServerGenerator
 			.name("LOD Chunk Loading")
 			.fileLevelConfig(Config.Common.Logging.logWorldGenChunkLoadEventToFile)
 			.build();
+	
+	#if MC_VER <= MC_1_7_10
+	private static final IForgeServerProxy FORGE_SERVER_PROXY = SingletonInjector.INSTANCE.get(IForgeServerProxy.class);
+	#else
+	#endif
 	
 	private static final IC2meAccessor C2ME_ACCESSOR = ModAccessorInjector.INSTANCE.get(IC2meAccessor.class);
 	private static final IHodgePodgeCommonAccessor HODGE_PODGE_ACCESSOR = ModAccessorInjector.INSTANCE.get(IHodgePodgeCommonAccessor.class);
@@ -124,7 +129,7 @@ public class InternalServerGenerator
 		this.updateManager = WorldChunkUpdateManager.INSTANCE.getByLevelWrapper(this.dhServerLevel.getServerLevelWrapper());
 
 		#if MC_VER <= MC_1_7_10
-		this.dhServerGenTicket = ForgeChunkManager.requestTicket(ForgeMain.instance, params.mcServerLevel, ForgeChunkManager.Type.NORMAL);
+		this.dhServerGenTicket = ForgeChunkManager.requestTicket(FORGE_SERVER_PROXY, params.mcServerLevel, ForgeChunkManager.Type.NORMAL);
 		increaseChunkLimit(this.dhServerGenTicket, 1000);
 		#endif
 	}
@@ -436,7 +441,7 @@ public class InternalServerGenerator
 			}
 			
 			#if MC_VER <= MC_1_7_10
-			CompletableFuture<Chunk> future = ForgeServerProxy.scheduleTickTask(true, () ->
+			CompletableFuture<Chunk> future = FORGE_SERVER_PROXY.scheduleTickTask(true, () ->
 			#else
 			CompletableFuture<Chunk> future = new CompletableFuture<>();
 			level.getMinecraftServer().addScheduledTask(() ->
@@ -553,7 +558,7 @@ public class InternalServerGenerator
 	#endif
 	{
 		#if MC_VER <= MC_1_7_10
-		return ForgeServerProxy.scheduleTickTask(false, () ->
+		return FORGE_SERVER_PROXY.scheduleTickTask(false, () ->
 		{
 			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
 			for (int dx = -1; dx <= 1; dx++)
@@ -569,7 +574,9 @@ public class InternalServerGenerator
 					}
 					if (!level.getPlayerManager().func_152621_a(x, z))
 					{
-						provider.unloadChunksIfNotNearSpawn(x, z);
+						// TODO should unloadChunksIfNotNearSpawn be implemented for MC 1.7.10?
+						throw new UnsupportedOperationException("should unloadChunksIfNotNearSpawn be implemented for MC 1.7.10?");
+						//provider.unloadChunksIfNotNearSpawn(x, z);
 					}
 					this.scheduleRemovePosToIgnore(new DhChunkPos(x, z));
 				}

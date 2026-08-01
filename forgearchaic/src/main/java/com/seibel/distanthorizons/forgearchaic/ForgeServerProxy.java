@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import com.seibel.distanthorizons.common.commonMixins.MixinChunkMapCommon;
+import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modLoader.IForgeServerProxy;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -32,9 +34,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 
-public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
-
-	
+public class ForgeServerProxy implements AbstractModInitializer.IEventProxy, IForgeServerProxy 
+{
 	private static final ConcurrentLinkedQueue<ScheduledTask<?>> TASK_QUEUE = new ConcurrentLinkedQueue<>();
 	
 	
@@ -47,7 +48,18 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
     //=============//
 	//region
 
-    public ForgeServerProxy(boolean isDedicated) { this.isDedicated = isDedicated; }
+    public ForgeServerProxy(boolean isDedicated) 
+    { 
+		this.isDedicated = isDedicated;
+	    
+		// this throw may not be necessary, although binding a singleton twice
+	    // is problematic
+		if (SingletonInjector.INSTANCE.get(IForgeServerProxy.class) != null)
+		{
+			throw new UnsupportedOperationException("Multiple ["+IForgeServerProxy.class.getName()+"] have been created.");
+		}
+	    SingletonInjector.INSTANCE.bind(IForgeServerProxy.class, this);
+    }
 	
 	@Override
 	public void registerEvents()
@@ -217,8 +229,8 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy {
     //================//
 	//region
 	
-	// Schedule a task that runs on the main thread and returns a CompletableFuture result
-	public static <T> CompletableFuture<T> scheduleTickTask(boolean limited, Supplier<T> task)
+	@Override
+	public <T> CompletableFuture<T> scheduleTickTask(boolean limited, Supplier<T> task)
 	{
 		CompletableFuture<T> future = new CompletableFuture<>();
 		TASK_QUEUE.add(new ScheduledTask<>(task, future, limited));
