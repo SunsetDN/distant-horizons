@@ -637,8 +637,14 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 			isBlind |= fluidState.is(FluidTags.LAVA);
 		return isBlind;
 		#elif MC_VER <= MC_26_1_2
+		boolean cameraNotInFluid=MC.gameRenderer.getMainCamera().getFluidInCamera() == FogType.NONE;
+		if(cameraNotInFluid){
+			String fluidAtCamera=MC.level.getFluidState(MC.gameRenderer.getMainCamera().getBlockPosition()).holder().getRegisteredName();
+			boolean isNotAtVanillaFluid=!(fluidAtCamera.equals("minecraft:water")||fluidAtCamera.equals("minecraft:lava"))&&!fluidAtCamera.equals("minecraft:empty");
+			cameraNotInFluid=!(cameraNotInFluid&&isNotAtVanillaFluid);
+		}
 		boolean isBlind = this.playerHasBlindingEffect();
-		return MC.gameRenderer.getMainCamera().getFluidInCamera() != FogType.NONE || isBlind;
+		return !cameraNotInFluid || isBlind;
 		#else
 		boolean isBlind = this.playerHasBlindingEffect();
 		return MC.gameRenderer.mainCamera().getFluidInCamera() != FogType.NONE || isBlind;
