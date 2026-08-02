@@ -90,6 +90,12 @@ public abstract class AbstractMinecraftSharedWrapper implements IMinecraftShared
 	}
 	private long @Nullable [] getServerTickTimesNano()
 	{
+		// currently this logic is only implemented for singleplayer servers
+		if (this.isDedicatedServer())
+		{
+			return null;
+		}
+		
 		#if MC_VER <= MC_1_20_2
 		if (Minecraft.getInstance().getSingleplayerServer() == null)
 		{
