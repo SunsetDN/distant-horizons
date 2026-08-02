@@ -715,7 +715,8 @@ public class ChunkWrapper implements IChunkWrapper
 			
 			//1.12.2 doesn't store lights we must bruteforce it
 			#if MC_VER <= MC_1_12_2
-			for (ExtendedBlockStorage section : this.chunk.getBlockStorageArray()) {
+			for (ExtendedBlockStorage section : this.chunk.getBlockStorageArray())
+			{
 				if (section == null || section.isEmpty())
 				{
 					continue;
