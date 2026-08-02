@@ -134,20 +134,6 @@ public class InternalServerGenerator
 			#endif
 			
 			{
-				#if MC_VER <= MC_1_12_2
-				while (!isServerHealthy())
-				{
-					try
-					{
-						// Don't submit request until server tps is healthy
-						Thread.sleep(50);
-					}
-					catch (InterruptedException e)
-					{
-						throw new CancellationException("Interrupted while waiting for server");
-					}
-				}
-				#endif
 				Iterator<ChunkPos> chunkPosIterator = ChunkPosGenStream.getIterator(genEvent.minPos.getX(), genEvent.minPos.getZ(), genEvent.widthInChunks, 0);
 				while (chunkPosIterator.hasNext())
 				{
@@ -527,26 +513,5 @@ public class InternalServerGenerator
 	}
 	
 	
-	
-	//======//
-	// misc //
-	//======//
-	
-	#if MC_VER <= MC_1_12_2
-	private boolean isServerHealthy()
-	{
-		if(this.params.mcServerLevel.getMinecraftServer() == null) { return false; }
-		
-		long[] ticks = this.params.mcServerLevel.getMinecraftServer().tickTimeArray;
-		long[] sorted = ticks.clone();
-		Arrays.sort(sorted);
-		
-		int p99Index = (int)Math.ceil(0.99 * sorted.length) - 1;
-		double p99Ms  = sorted[Math.max(0, p99Index)] * 1e-6;
-		double avgMs  = Arrays.stream(sorted).average().orElse(0) * 1e-6;
-		
-		return avgMs < 20.0 && p99Ms < 50.0;
-	}
-	#endif
 	
 }
