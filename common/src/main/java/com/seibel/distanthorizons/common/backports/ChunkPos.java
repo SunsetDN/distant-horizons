@@ -1,8 +1,7 @@
 package com.seibel.distanthorizons.common.backports;
 
 #if MC_VER <= MC_1_7_10
-import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
-#endif
+import com.seibel.distanthorizons.common.backports.BlockPos;
 
 /**
  * Recreation of MC's 1.12+ ChunkPos object
@@ -97,3 +96,4 @@ public class ChunkPos
 	
     #endif
 }
+#endif

@@ -29,7 +29,7 @@ import com.seibel.distanthorizons.core.util.math.DhMat4f;
 import org.jetbrains.annotations.Nullable;
 
 #if MC_VER <= MC_1_7_10
-import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
+import com.seibel.distanthorizons.common.backports.BlockPos;
 import com.seibel.distanthorizons.common.backports.ChunkPos;
 import net.minecraftforge.common.util.ForgeDirection;
 #elif MC_VER <= MC_1_12_2

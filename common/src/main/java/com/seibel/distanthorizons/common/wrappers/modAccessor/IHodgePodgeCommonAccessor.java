@@ -20,9 +20,6 @@
 package com.seibel.distanthorizons.common.wrappers.modAccessor;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IHodgePodgeAccessor;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IRpleAccessor;
-import net.minecraft.block.Block;
-import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 
 public interface IHodgePodgeCommonAccessor extends IHodgePodgeAccessor

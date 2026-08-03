@@ -2,7 +2,7 @@ package com.seibel.distanthorizons.common.wrappers.misc;
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IMutableBlockPosWrapper;
 #if MC_VER <= MC_1_7_10
-import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
+import com.seibel.distanthorizons.common.backports.BlockPos;
 #elif MC_VER <= MC_1_12_2
 import net.minecraft.util.math.BlockPos;
 #else
