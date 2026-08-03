@@ -244,11 +244,6 @@ public class BlazeDebugWireframeRenderer extends AbstractDebugWireframeRenderer
 			return;
 		}
 		
-		// delayed getters since this class may be initialized before
-		// the GPU device has been set
-		GpuDevice gpuDevice = RenderSystem.getDevice();
-		CommandEncoder commandEncoder = gpuDevice.createCommandEncoder();
-		
 		
 		
 		// uniforms
