@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(ThreadedFileIOBase.class)
 public class MixinThreadedFileIOBase 
 {
-    @Redirect(method = "processQueue", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;sleep(J)V"))
+    @Redirect(method = "processQueue", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;sleep(J)V", remap = false))
     private void distanthorizons$reduceSleep(long millis) throws InterruptedException 
     {
 		// reduce the timeout so we can generate chunks faster
