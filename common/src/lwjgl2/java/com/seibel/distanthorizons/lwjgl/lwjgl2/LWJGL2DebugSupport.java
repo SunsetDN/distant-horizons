@@ -3,8 +3,8 @@ package com.seibel.distanthorizons.lwjgl.lwjgl2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.*;
-import com.seibel.distanthorizons.lwjgl.DebugExtension;
-import com.seibel.distanthorizons.lwjgl.DebugMessageHandler;
+import com.seibel.distanthorizons.lwjgl.EDebugExtension;
+import com.seibel.distanthorizons.lwjgl.IDebugMessageHandler;
 
 /**
  * LWJGL2 debug callback setup helper.
@@ -19,7 +19,7 @@ final class LWJGL2DebugSupport
 
 	
 	
-    int setupDebugCallback(DebugMessageHandler handler) 
+    int setupDebugCallback(IDebugMessageHandler handler) 
     {
         ContextCapabilities caps = GLContext.getCapabilities();
 
@@ -30,7 +30,7 @@ final class LWJGL2DebugSupport
             {
                 @Override
                 public void handleMessage(int source, int type, int id, int severity, String message) {
-                    handler.handle(source, type, id, severity, message, DebugExtension.GL43);
+                    handler.handle(source, type, id, severity, message, EDebugExtension.GL43);
                 }
             });
             KHRDebug.glDebugMessageControl(GL11.GL_DONT_CARE, GL11.GL_DONT_CARE, KHRDebug.GL_DEBUG_SEVERITY_HIGH, null, true);
@@ -56,7 +56,7 @@ final class LWJGL2DebugSupport
                 @Override
                 public void handleMessage(int source, int type, int id, int severity, String message) 
                 {
-                    handler.handle(source, type, id, severity, message, DebugExtension.KHR_DEBUG);
+                    handler.handle(source, type, id, severity, message, EDebugExtension.KHR_DEBUG);
                 }
             });
             KHRDebug.glDebugMessageControl(GL11.GL_DONT_CARE, GL11.GL_DONT_CARE, KHRDebug.GL_DEBUG_SEVERITY_HIGH, null, true);
@@ -83,7 +83,7 @@ final class LWJGL2DebugSupport
                 @Override
                 public void handleMessage(int source, int type, int id, int severity, String message) 
                 {
-                    handler.handle(source, type, id, severity, message, DebugExtension.ARB_DEBUG_OUTPUT);
+                    handler.handle(source, type, id, severity, message, EDebugExtension.ARB_DEBUG_OUTPUT);
                 }
             });
             ARBDebugOutput.glDebugMessageControlARB(GL11.GL_DONT_CARE, GL11.GL_DONT_CARE, ARBDebugOutput.GL_DEBUG_SEVERITY_HIGH_ARB, null, true);
@@ -102,7 +102,7 @@ final class LWJGL2DebugSupport
                 public void handleMessage(int id, int category, int severity, String message) 
                 {
                     // AMD callback has different signature - category instead of source/type
-                    handler.handle(category, 0, id, severity, message, DebugExtension.AMD_DEBUG_OUTPUT);
+                    handler.handle(category, 0, id, severity, message, EDebugExtension.AMD_DEBUG_OUTPUT);
                 }
             });
             AMDDebugOutput.glDebugMessageEnableAMD(0, AMDDebugOutput.GL_DEBUG_SEVERITY_HIGH_AMD, null, true);

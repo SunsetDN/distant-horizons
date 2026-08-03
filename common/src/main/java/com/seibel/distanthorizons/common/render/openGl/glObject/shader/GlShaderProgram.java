@@ -26,7 +26,7 @@ import com.seibel.distanthorizons.api.objects.math.DhApiMat4f;
 import com.seibel.distanthorizons.api.objects.math.DhApiVec3i;
 import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 
-import com.seibel.distanthorizons.lwjgl.MemoryStack;
+import com.seibel.distanthorizons.lwjgl.AbstractMemoryStack;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
@@ -197,7 +197,7 @@ public class GlShaderProgram
 	/** Requires a bound ShaderProgram. */
 	public void setUniform(int location, DhApiMat4f value)
 	{
-		try (MemoryStack stack = MemoryStack.stackPush())
+		try (AbstractMemoryStack stack = AbstractMemoryStack.stackPush())
 		{
 			FloatBuffer buffer = stack.mallocFloat(16);
 			storeMatrixInBuffer(value, buffer);

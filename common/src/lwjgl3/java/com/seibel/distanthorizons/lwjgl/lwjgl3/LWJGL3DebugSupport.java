@@ -3,8 +3,8 @@ package com.seibel.distanthorizons.lwjgl.lwjgl3;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.*;
-import com.seibel.distanthorizons.lwjgl.DebugExtension;
-import com.seibel.distanthorizons.lwjgl.DebugMessageHandler;
+import com.seibel.distanthorizons.lwjgl.EDebugExtension;
+import com.seibel.distanthorizons.lwjgl.IDebugMessageHandler;
 
 /**
  * LWJGL3 debug callback setup helper.
@@ -16,13 +16,13 @@ final class LWJGL3DebugSupport {
     private GLDebugMessageARBCallback debugCallbackARB;
     private GLDebugMessageAMDCallback debugCallbackAMD;
 
-    int setupDebugCallback(DebugMessageHandler handler) {
+    int setupDebugCallback(IDebugMessageHandler handler) {
         GLCapabilities caps = GL.getCapabilities();
 
         if (caps.OpenGL43) {
             LOGGER.info("Using OpenGL 4.3 for debug output");
             debugCallback = GLDebugMessageCallback.create((source, type, id, severity, length, message, userParam) -> {
-                handler.handle(source, type, id, severity, GLDebugMessageCallback.getMessage(length, message), DebugExtension.GL43);
+                handler.handle(source, type, id, severity, GLDebugMessageCallback.getMessage(length, message), EDebugExtension.GL43);
             });
             GL43C.glDebugMessageControl(GL11C.GL_DONT_CARE, GL11C.GL_DONT_CARE, GL43C.GL_DEBUG_SEVERITY_HIGH, (int[]) null, true);
             GL43C.glDebugMessageControl(GL11C.GL_DONT_CARE, GL11C.GL_DONT_CARE, GL43C.GL_DEBUG_SEVERITY_MEDIUM, (int[]) null, false);
@@ -40,7 +40,7 @@ final class LWJGL3DebugSupport {
         } else if (caps.GL_KHR_debug) {
             LOGGER.info("Using KHR_debug for debug output");
             debugCallback = GLDebugMessageCallback.create((source, type, id, severity, length, message, userParam) -> {
-                handler.handle(source, type, id, severity, GLDebugMessageCallback.getMessage(length, message), DebugExtension.KHR_DEBUG);
+                handler.handle(source, type, id, severity, GLDebugMessageCallback.getMessage(length, message), EDebugExtension.KHR_DEBUG);
             });
             KHRDebug.glDebugMessageControl(GL11C.GL_DONT_CARE, GL11C.GL_DONT_CARE, GL43C.GL_DEBUG_SEVERITY_HIGH, (int[]) null, true);
             KHRDebug.glDebugMessageControl(GL11C.GL_DONT_CARE, GL11C.GL_DONT_CARE, GL43C.GL_DEBUG_SEVERITY_MEDIUM, (int[]) null, false);
@@ -58,7 +58,7 @@ final class LWJGL3DebugSupport {
         } else if (caps.GL_ARB_debug_output) {
             LOGGER.info("Using ARB_debug_output for debug output");
             debugCallbackARB = GLDebugMessageARBCallback.create((source, type, id, severity, length, message, userParam) -> {
-                handler.handle(source, type, id, severity, GLDebugMessageARBCallback.getMessage(length, message), DebugExtension.ARB_DEBUG_OUTPUT);
+                handler.handle(source, type, id, severity, GLDebugMessageARBCallback.getMessage(length, message), EDebugExtension.ARB_DEBUG_OUTPUT);
             });
             ARBDebugOutput.glDebugMessageControlARB(GL11C.GL_DONT_CARE, GL11C.GL_DONT_CARE, ARBDebugOutput.GL_DEBUG_SEVERITY_HIGH_ARB, (int[]) null, true);
             ARBDebugOutput.glDebugMessageControlARB(GL11C.GL_DONT_CARE, GL11C.GL_DONT_CARE, ARBDebugOutput.GL_DEBUG_SEVERITY_MEDIUM_ARB, (int[]) null, false);
@@ -71,7 +71,7 @@ final class LWJGL3DebugSupport {
             LOGGER.info("Using AMD_debug_output for debug output");
             debugCallbackAMD = GLDebugMessageAMDCallback.create((id, category, severity, length, message, userParam) -> {
                 // AMD callback has different signature - category instead of source/type
-                handler.handle(category, 0, id, severity, GLDebugMessageAMDCallback.getMessage(length, message), DebugExtension.AMD_DEBUG_OUTPUT);
+                handler.handle(category, 0, id, severity, GLDebugMessageAMDCallback.getMessage(length, message), EDebugExtension.AMD_DEBUG_OUTPUT);
             });
             AMDDebugOutput.glDebugMessageEnableAMD(0, AMDDebugOutput.GL_DEBUG_SEVERITY_HIGH_AMD, (int[]) null, true);
             AMDDebugOutput.glDebugMessageEnableAMD(0, AMDDebugOutput.GL_DEBUG_SEVERITY_MEDIUM_AMD, (int[]) null, false);

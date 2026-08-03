@@ -22,7 +22,6 @@ package com.seibel.distanthorizons.common.render.openGl.glObject;
 import com.seibel.distanthorizons.api.enums.config.EDhApiGLErrorHandlingMode;
 import com.seibel.distanthorizons.api.enums.config.EDhApiGpuUploadMethod;
 import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingApi;
-import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingEngine;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
@@ -34,11 +33,10 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftCli
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import com.seibel.distanthorizons.coreapi.ModInfo;
-import com.seibel.distanthorizons.lwjgl.GLExtension;
+import com.seibel.distanthorizons.lwjgl.EGLExtension;
 import org.lwjgl.opengl.GL11;
 import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 
-import java.io.PrintStream;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -207,7 +205,7 @@ public class GLProxy
 		this.vertexAttribDivisorSupported = LWJGL.isOpenGLVersionSupported(3,3);
 		// denotes if ARBInstancedArrays.glVertexAttribDivisorARB() is available or not
 		// can be used as a backup if MC didn't create a GL 3.3+ context
-		this.instancedArraysSupported = LWJGL.isExtensionSupported(GLExtension.ARB_instanced_arrays);
+		this.instancedArraysSupported = LWJGL.isExtensionSupported(EGLExtension.ARB_instanced_arrays);
 		
 		// get the best automatic upload method
 		String vendor = LWJGL.glGetString(GL11.GL_VENDOR).toUpperCase(); // example return: "NVIDIA CORPORATION"
@@ -380,7 +378,7 @@ public class GLProxy
 		return "Your OpenGL support:\n" +
 				"openGL version 3.3+: [" + LWJGL.isOpenGLVersionSupported(3,3) + "] <- REQUIRED\n" +
 				"Vertex Attribute Buffer Binding: [" + LWJGL.isOpenGLVersionSupported(4,3) + "] <- optional improvement\n" +
-				"Buffer Storage: [" + LWJGL.isExtensionSupported(GLExtension.ARB_buffer_storage) + "] <- optional improvement\n" +
+				"Buffer Storage: [" + LWJGL.isExtensionSupported(EGLExtension.ARB_buffer_storage) + "] <- optional improvement\n" +
 				"If you noticed that your computer supports higher OpenGL versions"
 				+ " but not the required version, try running the game in compatibility mode."
 				+ " (How you turn that on, I have no clue~)";
@@ -391,7 +389,7 @@ public class GLProxy
 		return "Your OpenGL support:\n" +
 				"openGL version 3.3+: [" + LWJGL.isOpenGLVersionSupported(3,3) + "] <- REQUIRED\n" +
 				"Vertex Attribute Buffer Binding: [" + LWJGL.isOpenGLVersionSupported(4,3) + "] <- optional improvement\n" +
-				"Buffer Storage: [" + LWJGL.isExtensionSupported(GLExtension.ARB_buffer_storage) + "] <- optional improvement\n";
+				"Buffer Storage: [" + LWJGL.isExtensionSupported(EGLExtension.ARB_buffer_storage) + "] <- optional improvement\n";
 	}
 	
 	//endregion

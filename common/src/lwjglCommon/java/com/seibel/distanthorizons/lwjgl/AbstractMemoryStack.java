@@ -15,9 +15,9 @@ import java.nio.ShortBuffer;
  * } // automatically freed here
  * }</pre>
  */
-public abstract class MemoryStack implements AutoCloseable {
+public abstract class AbstractMemoryStack implements AutoCloseable {
 
-    public static MemoryStack stackPush() {
+    public static AbstractMemoryStack stackPush() {
         return LWJGLServiceProvider.LWJGL.stackPush();
     }
 

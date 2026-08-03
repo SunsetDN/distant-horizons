@@ -5,7 +5,7 @@ package com.seibel.distanthorizons.lwjgl;
  */
 public final class LWJGLServiceProvider 
 {
-    public static final LWJGLService LWJGL = createInstance();
+    public static final ILWJGLService LWJGL = createInstance();
     public static final int POINTER_SIZE = LWJGL.getPointerSize();
     public static final long NULL = 0L;
 
@@ -15,13 +15,13 @@ public final class LWJGLServiceProvider
 	
 	
 	
-	static LWJGLService constructInstance(String className)
+	static ILWJGLService constructInstance(String className)
 	{
 		try
 		{
 			var clz = Class.forName(className);
 			var method = clz.getDeclaredMethod("create");
-			return (LWJGLService) method.invoke(null);
+			return (ILWJGLService) method.invoke(null);
 		}
 		catch (ReflectiveOperationException e)
 		{
@@ -29,7 +29,7 @@ public final class LWJGLServiceProvider
 		}
 	}
 
-    static LWJGLService createInstance() 
+    static ILWJGLService createInstance() 
     {
         try 
         {

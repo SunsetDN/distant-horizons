@@ -1,12 +1,13 @@
 package com.seibel.distanthorizons.lwjgl.lwjgl2;
 
+import com.seibel.distanthorizons.lwjgl.AbstractMemoryStack;
 import org.lwjgl.BufferUtils;
-import com.seibel.distanthorizons.lwjgl.DebugMessageHandler;
-import com.seibel.distanthorizons.lwjgl.LWJGLService;
+import com.seibel.distanthorizons.lwjgl.IDebugMessageHandler;
+import com.seibel.distanthorizons.lwjgl.ILWJGLService;
 import com.seibel.distanthorizons.lwjgl.lwjgl2.memory.MemoryStack;
 import com.seibel.distanthorizons.lwjgl.lwjgl2.memory.MemoryUtilities;
 import com.seibel.distanthorizons.lwjgl.lwjgl2.memory.Pointer;
-import com.seibel.distanthorizons.lwjgl.GLExtension;
+import com.seibel.distanthorizons.lwjgl.EGLExtension;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,14 +38,14 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 /**
- * LWJGL2 implementation of {@link LWJGLService}.
+ * LWJGL2 implementation of {@link ILWJGLService}.
  */
 public record LWJGL2Service(
 	VAOMode vaoMode,
 	TimerQueryMode timerQueryMode,
 	DebugMode debugMode,
 	VertexAttribIMode vertexAttribIMode,
-	Long2ObjectOpenHashMap<GLSync> syncObjects) implements LWJGLService
+	Long2ObjectOpenHashMap<GLSync> syncObjects) implements ILWJGLService
 {
 	private static final Logger LOGGER = LogManager.getLogger("Celeritas/LWJGL2Service");
 	private static final LWJGL2DebugSupport debugSupport = new LWJGL2DebugSupport();
@@ -260,7 +261,7 @@ public record LWJGL2Service(
 	}
 	
 	@Override
-	public boolean isExtensionSupported(GLExtension extension)
+	public boolean isExtensionSupported(EGLExtension extension)
 	{
 		ContextCapabilities caps = GLContext.getCapabilities();
 		return switch (extension)
@@ -854,7 +855,7 @@ public record LWJGL2Service(
 	public PrintStream getDebugStream() { return System.err; }
 	
 	@Override
-	public int setupDebugCallback(DebugMessageHandler handler)
+	public int setupDebugCallback(IDebugMessageHandler handler)
 	{
 		return debugSupport.setupDebugCallback(handler);
 	}
@@ -1193,7 +1194,7 @@ public record LWJGL2Service(
 	// ===================== MEMORY STACK OPERATIONS =====================
 	
 	@Override
-	public com.seibel.distanthorizons.lwjgl.MemoryStack stackPush()
+	public AbstractMemoryStack stackPush()
 	{
 		return new LWJGL2MemoryStack(MemoryStack.stackPush());
 	}

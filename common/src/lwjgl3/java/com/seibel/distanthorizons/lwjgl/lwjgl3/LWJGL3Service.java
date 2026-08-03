@@ -8,22 +8,23 @@ import org.lwjgl.system.APIUtil;
 import org.lwjgl.system.JNI;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.system.Pointer;
-import com.seibel.distanthorizons.lwjgl.DebugMessageHandler;
-import com.seibel.distanthorizons.lwjgl.GLExtension;
-import com.seibel.distanthorizons.lwjgl.LWJGLService;
-import com.seibel.distanthorizons.lwjgl.MemoryStack;
+import com.seibel.distanthorizons.lwjgl.IDebugMessageHandler;
+import com.seibel.distanthorizons.lwjgl.EGLExtension;
+import com.seibel.distanthorizons.lwjgl.ILWJGLService;
+import com.seibel.distanthorizons.lwjgl.AbstractMemoryStack;
 
 import java.io.PrintStream;
 import java.nio.*;
 
 /**
- * LWJGL3 implementation of {@link LWJGLService}.
+ * LWJGL3 implementation of {@link ILWJGLService}.
  */
 public record LWJGL3Service(
         VAOMode vaoMode,
         TimerQueryMode timerQueryMode,
         DebugMode debugMode,
-        VertexAttribIMode vertexAttribIMode) implements LWJGLService {
+        VertexAttribIMode vertexAttribIMode) implements ILWJGLService
+{
     private static final Logger LOGGER = LogManager.getLogger("DistantHorizons/LWJGL3Service");
     private static final LWJGL3DebugSupport debugSupport = new LWJGL3DebugSupport();
 
@@ -57,7 +58,7 @@ public record LWJGL3Service(
     }
 
     @Override
-    public boolean isExtensionSupported(GLExtension extension) {
+    public boolean isExtensionSupported(EGLExtension extension) {
         GLCapabilities caps = GL.getCapabilities();
         return switch (extension) {
             case ARB_buffer_storage -> caps.GL_ARB_buffer_storage;
@@ -629,7 +630,7 @@ public record LWJGL3Service(
     public PrintStream getDebugStream() { return APIUtil.DEBUG_STREAM; }
 
     @Override
-    public int setupDebugCallback(DebugMessageHandler handler) {
+    public int setupDebugCallback(IDebugMessageHandler handler) {
         return debugSupport.setupDebugCallback(handler);
     }
 
@@ -928,7 +929,7 @@ public record LWJGL3Service(
     // ===================== MEMORY STACK OPERATIONS =====================
 
     @Override
-    public MemoryStack stackPush() {
+    public AbstractMemoryStack stackPush() {
         return new LWJGL3MemoryStack(org.lwjgl.system.MemoryStack.stackPush());
     }
 

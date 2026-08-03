@@ -1,9 +1,9 @@
 package com.seibel.distanthorizons.lwjgl;
 
 /**
- * Debug output extension in use for {@link DebugMessageHandler} callbacks.
+ * Debug output extension in use for {@link IDebugMessageHandler} callbacks.
  */
-public enum DebugExtension {
+public enum EDebugExtension {
     GL43,
     KHR_DEBUG,
     ARB_DEBUG_OUTPUT,

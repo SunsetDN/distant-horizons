@@ -1,6 +1,6 @@
 package com.seibel.distanthorizons.lwjgl.lwjgl2;
 
-import com.seibel.distanthorizons.lwjgl.MemoryStack;
+import com.seibel.distanthorizons.lwjgl.AbstractMemoryStack;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -8,7 +8,8 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
-public class LWJGL2MemoryStack extends MemoryStack {
+public class LWJGL2MemoryStack extends AbstractMemoryStack
+{
     private final com.seibel.distanthorizons.lwjgl.lwjgl2.memory.MemoryStack delegate;
 
     public LWJGL2MemoryStack(com.seibel.distanthorizons.lwjgl.lwjgl2.memory.MemoryStack delegate) {

@@ -1,6 +1,6 @@
 package com.seibel.distanthorizons.lwjgl.lwjgl3;
 
-import com.seibel.distanthorizons.lwjgl.MemoryStack;
+import com.seibel.distanthorizons.lwjgl.AbstractMemoryStack;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -12,7 +12,8 @@ import java.nio.ShortBuffer;
  * LWJGL3 implementation of MemoryStack.
  * Wraps {@code org.lwjgl.system.MemoryStack}.
  */
-public class LWJGL3MemoryStack extends MemoryStack {
+public class LWJGL3MemoryStack extends AbstractMemoryStack
+{
     private final org.lwjgl.system.MemoryStack delegate;
 
     public LWJGL3MemoryStack(org.lwjgl.system.MemoryStack delegate) {

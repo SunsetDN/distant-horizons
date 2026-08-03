@@ -9,12 +9,12 @@ import java.nio.IntBuffer;
 /**
  * LWJGL2/LWJGL3 abstraction.
  */
-public interface LWJGLService {
+public interface ILWJGLService {
 	
 	// ===================== CAPABILITIES =====================
 	
 	boolean isOpenGLVersionSupported(int major, int minor);
-	boolean isExtensionSupported(GLExtension extension);
+	boolean isExtensionSupported(EGLExtension extension);
 	int getPointerSize();
 	
 	// ===================== BUFFER OPERATIONS =====================
@@ -133,7 +133,7 @@ public interface LWJGLService {
 	// ===================== DEBUG OPERATIONS =====================
 	
 	default PrintStream getDebugStream() { return System.err; }
-	int setupDebugCallback(DebugMessageHandler handler); // returns 0=unsupported, 1=success, 2=restart needed
+	int setupDebugCallback(IDebugMessageHandler handler); // returns 0=unsupported, 1=success, 2=restart needed
 	void disableDebugCallback();
 	void glObjectLabel(int identifier, int name, CharSequence label);
 	void glPushDebugGroup(int source, int id, CharSequence message);
@@ -207,7 +207,7 @@ public interface LWJGLService {
 	
 	// ===================== MEMORY STACK =====================
 	
-	MemoryStack stackPush();
+	AbstractMemoryStack stackPush();
 	
 	// ===================== NATIVE MEMORY =====================
 	
