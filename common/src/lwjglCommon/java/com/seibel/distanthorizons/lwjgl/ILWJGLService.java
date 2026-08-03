@@ -154,6 +154,7 @@ public interface ILWJGLService {
 	void glTexImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, ByteBuffer pixels);
 	void glTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, int type, ByteBuffer pixels);
 	void glGenerateMipmap(int target);
+	boolean glIsTexture(int texture);
 	
 	// ===================== FRAMEBUFFER OPERATIONS =====================
 	

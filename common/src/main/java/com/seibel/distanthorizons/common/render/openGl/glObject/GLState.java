@@ -166,34 +166,34 @@ public class GLState implements AutoCloseable
 		}
 		
 		GLMC.glActiveTexture(GL13.GL_TEXTURE0);
-		GLMC.glBindTexture(GL11.glIsTexture(this.texture0) ? this.texture0 : 0);
+		GLMC.glBindTexture(LWJGL.glIsTexture(this.texture0) ? this.texture0 : 0);
 		
 		GLMC.glActiveTexture(GL13.GL_TEXTURE1);
-		GLMC.glBindTexture(GL11.glIsTexture(this.texture1) ? this.texture1 : 0);
+		GLMC.glBindTexture(LWJGL.glIsTexture(this.texture1) ? this.texture1 : 0);
 		
 		GLMC.glActiveTexture(GL13.GL_TEXTURE2);
-		GLMC.glBindTexture(GL11.glIsTexture(this.texture2) ? this.texture2 : 0);
+		GLMC.glBindTexture(LWJGL.glIsTexture(this.texture2) ? this.texture2 : 0);
 		
 		GLMC.glActiveTexture(GL13.GL_TEXTURE3);
-		GLMC.glBindTexture(GL11.glIsTexture(this.texture3) ? this.texture3 : 0);
+		GLMC.glBindTexture(LWJGL.glIsTexture(this.texture3) ? this.texture3 : 0);
 		
 		GLMC.glActiveTexture(this.activeTextureNumber);
-		GLMC.glBindTexture(GL11.glIsTexture(this.texture2D) ? this.texture2D : 0);
+		GLMC.glBindTexture(LWJGL.glIsTexture(this.texture2D) ? this.texture2D : 0);
 		
 		// attempting to set textures on the default frame buffer (ID 0) will throw errors
 		if (frameBufferSet)
 		{
-			if (GL11.glIsTexture(this.frameBufferTexture0))
+			if (LWJGL.glIsTexture(this.frameBufferTexture0))
 			{
 				LWJGL.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL11.GL_TEXTURE_2D, this.frameBufferTexture0, 0);
 			}
 			
-			if (this.frameBufferTexture1 != 0 && GL11.glIsTexture(this.frameBufferTexture1))
+			if (this.frameBufferTexture1 != 0 && LWJGL.glIsTexture(this.frameBufferTexture1))
 			{
 				LWJGL.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT1, GL11.GL_TEXTURE_2D, this.frameBufferTexture1, 0);
 			}
 			
-			if (GL11.glIsTexture(this.frameBufferDepthTexture))
+			if (LWJGL.glIsTexture(this.frameBufferDepthTexture))
 			{
 				LWJGL.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL11.GL_TEXTURE_2D, this.frameBufferDepthTexture, 0);
 			}

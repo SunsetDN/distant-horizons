@@ -265,7 +265,6 @@ public class GLProxy
 	
 	public static boolean runningOnRenderThread()
 	{
-		#if MC_VER <= MC_1_12_2
 		// GL.getCapabilities() reads the per-thread GLCapabilities slot LWJGL sets when a context is
 		// made current, and throws RuntimeException if no OpenGL context on that thread
 		try
@@ -276,10 +275,6 @@ public class GLProxy
 		{
 			return false;
 		}
-		#else
-		long currentContext = GLFW.glfwGetCurrentContext();
-		return currentContext != 0L; // if the context isn't null, it's the MC context
-		#endif
 	}
 	
 	//endregion

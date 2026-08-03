@@ -18,10 +18,10 @@
  */
 
 package com.seibel.distanthorizons.common.wrappers.modAccessor;
-
-import com.seibel.distanthorizons.common.backports.IBlockState;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IRpleAccessor;
+#if MC_VER == MC_1_7_10
 import net.minecraft.block.Block;
+#endif
 
 /**
  * RPLE = Right Proper Lighting Engine <Br>
@@ -33,6 +33,7 @@ import net.minecraft.block.Block;
  */
 public interface IRpleCommonAccessor extends IRpleAccessor
 {
+	#if MC_VER == MC_1_7_10
 	int getColor(Block block, int meta);
-	
+	#endif
 }

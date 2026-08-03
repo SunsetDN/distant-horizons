@@ -968,6 +968,12 @@ public record LWJGL2Service(
 		GL30.glGenerateMipmap(target);
 	}
 	
+	@Override
+	public boolean glIsTexture(int texture)
+	{
+		return GL11.glIsTexture(texture);
+	}
+	
 	// ===================== FRAMEBUFFER OPERATIONS =====================
 	
 	@Override
