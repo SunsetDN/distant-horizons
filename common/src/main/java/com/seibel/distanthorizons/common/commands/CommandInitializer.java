@@ -114,8 +114,10 @@ public class CommandInitializer
 				}
 			}
 			
+			#if MC_VER <= MC_1_7_10
 			@Override 
 			public int compareTo(@NotNull Object obj) { return 0; }
+			#endif
 		};
 		
 	}

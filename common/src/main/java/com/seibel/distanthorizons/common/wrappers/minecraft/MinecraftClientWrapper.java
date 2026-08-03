@@ -708,6 +708,12 @@ public class MinecraftClientWrapper extends AbstractMinecraftSharedWrapper imple
 		return ServerLevelWrapper.getWrapper(mcLevel);
 	}
 	
+	@Override
+	public boolean isServerThreadHealthy()
+	{
+		return false;
+	}
+	
 	//endregion
 	
 	

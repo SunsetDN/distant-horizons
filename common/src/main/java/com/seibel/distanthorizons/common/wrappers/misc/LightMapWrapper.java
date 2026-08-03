@@ -31,9 +31,11 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 #endif
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
+import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.ILightMapWrapper;
 import com.seibel.distanthorizons.core.logging.DhLogger;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IRpleAccessor;
 
 #if MC_VER < MC_1_21_3
 #else
