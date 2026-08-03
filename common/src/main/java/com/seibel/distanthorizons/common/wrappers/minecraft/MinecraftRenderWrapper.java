@@ -636,55 +636,96 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		#if MC_VER <= MC_1_12_2
 		BlockPos blockPos = new BlockPos(MC.getRenderViewEntity().getPositionEyes(MC.getRenderPartialTicks()));
 		IBlockState fluidState = MC.getRenderViewEntity().world.getBlockState(blockPos);
-		return this.playerHasBlindingEffect() || fluidState.getMaterial().isLiquid() || fluidState.getBlock() instanceof IFluidBlock;
+		return this.playerHasBlindingEffect() 
+			|| fluidState.getMaterial().isLiquid() 
+			|| fluidState.getBlock() instanceof IFluidBlock;
+		
 		#elif MC_VER < MC_1_17_1
-		Camera camera=MC.gameRenderer.getMainCamera();
+		Camera camera = MC.gameRenderer.getMainCamera();
 		FluidState fluidState=camera.getFluidInCamera();
-		boolean cameraNotInFluid=!(fluidState.is(FluidTags.WATER)||fluidState.is(FluidTags.LAVA));
-	    if(cameraNotInFluid){	
+		boolean cameraNotInFluid =! (fluidState.is(FluidTags.WATER) || fluidState.is(FluidTags.LAVA));
+	    if(cameraNotInFluid)
+	    {	
 			String fluidAtCamera= Registry.FLUID.getKey(MC.level.getFluidState(MC.gameRenderer.getMainCamera().getBlockPosition()).getType()).toString();	
-			boolean isNotAtVanillaFluid=!(fluidAtCamera.equals("minecraft:water")||fluidAtCamera.equals("minecraft:lava"))&&!fluidAtCamera.equals("minecraft:empty");
-			cameraNotInFluid=!(cameraNotInFluid&&isNotAtVanillaFluid);
+			boolean isNotAtVanillaFluid =! 
+				(
+					fluidAtCamera.equals("minecraft:water") 
+					|| fluidAtCamera.equals("minecraft:lava")
+				) 
+				&& !fluidAtCamera.equals("minecraft:empty");
+			cameraNotInFluid =! (cameraNotInFluid && isNotAtVanillaFluid);
 		}
 		boolean isBlind = this.playerHasBlindingEffect();
 		return !cameraNotInFluid || isBlind;
+		
 		#elif MC_VER <= MC_1_19_2
 		boolean cameraNotInFluid=MC.gameRenderer.getMainCamera().getFluidInCamera() == FogType.NONE;	
-	    if(cameraNotInFluid){	
+	    if(cameraNotInFluid)
+	    {	
 			String fluidAtCamera= Registry.FLUID.getKey(MC.level.getFluidState(MC.gameRenderer.getMainCamera().getBlockPosition()).getType()).toString();	
-			boolean isNotAtVanillaFluid=!(fluidAtCamera.equals("minecraft:water")||fluidAtCamera.equals("minecraft:lava"))&&!fluidAtCamera.equals("minecraft:empty");
-			cameraNotInFluid=!(cameraNotInFluid&&isNotAtVanillaFluid);
+			boolean isNotAtVanillaFluid =! 
+				(
+					fluidAtCamera.equals("minecraft:water")
+					|| fluidAtCamera.equals("minecraft:lava")
+				)
+				&& !fluidAtCamera.equals("minecraft:empty");
+			cameraNotInFluid =! (cameraNotInFluid && isNotAtVanillaFluid);
 		}
 		boolean isBlind = this.playerHasBlindingEffect();
 		return !cameraNotInFluid || isBlind;
 
 		#elif MC_VER <= MC_1_21_10
-		boolean cameraNotInFluid=MC.gameRenderer.getMainCamera().getFluidInCamera() == FogType.NONE;
-		if(cameraNotInFluid){
-			String fluidAtCamera= BuiltInRegistries.FLUID.getKey(MC.level.getFluidState(MC.gameRenderer.getMainCamera().getBlockPosition()).getType()).toString();
-			boolean isNotAtVanillaFluid=!(fluidAtCamera.equals("minecraft:water")||fluidAtCamera.equals("minecraft:lava"))&&!fluidAtCamera.equals("minecraft:empty");
-			cameraNotInFluid=!(cameraNotInFluid&&isNotAtVanillaFluid);
+		boolean cameraNotInFluid = MC.gameRenderer.getMainCamera().getFluidInCamera() == FogType.NONE;
+		if(cameraNotInFluid)
+		{
+			String fluidAtCamera = BuiltInRegistries.FLUID.getKey(MC.level.getFluidState(MC.gameRenderer.getMainCamera().getBlockPosition()).getType()).toString();
+			boolean isNotAtVanillaFluid =! 
+				(
+					fluidAtCamera.equals("minecraft:water")
+					|| fluidAtCamera.equals("minecraft:lava")
+				)
+				&& !fluidAtCamera.equals("minecraft:empty");
+			cameraNotInFluid =! (cameraNotInFluid && isNotAtVanillaFluid);
 		}
 		boolean isBlind = this.playerHasBlindingEffect();
 		return !cameraNotInFluid || isBlind;
+		
 		#elif MC_VER <= MC_26_1_2
 		boolean cameraNotInFluid=MC.gameRenderer.getMainCamera().getFluidInCamera() == FogType.NONE;	
-		if(cameraNotInFluid){	
+		if(cameraNotInFluid)
+		{	
 			String fluidAtCamera=BuiltInRegistries.FLUID.getKey(MC.level.getFluidState(MC.gameRenderer.getMainCamera().blockPosition()).getType()).toString();
-			boolean isNotAtVanillaFluid=!(fluidAtCamera.equals("minecraft:water")||fluidAtCamera.equals("minecraft:lava"))&&!fluidAtCamera.equals("minecraft:empty");
-			cameraNotInFluid=!(cameraNotInFluid&&isNotAtVanillaFluid);
+			boolean isNotAtVanillaFluid = 
+				!(
+					fluidAtCamera.equals("minecraft:water")
+					|| fluidAtCamera.equals("minecraft:lava")
+				)
+				&& !fluidAtCamera.equals("minecraft:empty");
+			cameraNotInFluid =! (cameraNotInFluid && isNotAtVanillaFluid);
 		}
 		boolean isBlind = this.playerHasBlindingEffect();
 		return !cameraNotInFluid || isBlind;
-		#else //26.2.0
-		boolean cameraNotInFluid=MC.gameRenderer.mainCamera().getFluidInCamera() == FogType.NONE;
-		if(cameraNotInFluid){
-			String fluidAtCamera= BuiltInRegistries.FLUID.getKey(MC.level.getFluidState(MC.gameRenderer.mainCamera().blockPosition()).getType()).toString();
-			boolean isNotAtVanillaFluid=!(fluidAtCamera.equals("minecraft:water")||fluidAtCamera.equals("minecraft:lava"))&&!fluidAtCamera.equals("minecraft:empty");
-			cameraNotInFluid=!(cameraNotInFluid&&isNotAtVanillaFluid);
+		
+		#else
+		boolean cameraNotInFluid = MC.gameRenderer.mainCamera().getFluidInCamera() == FogType.NONE;
+		if(cameraNotInFluid)
+		{
+			String fluidAtCamera = BuiltInRegistries.FLUID.getKey(
+				MC.level.getFluidState(
+					MC.gameRenderer.mainCamera().blockPosition()
+				).getType())
+				.toString();
+			boolean isNotAtVanillaFluid =! 
+				(
+					fluidAtCamera.equals("minecraft:water")
+					|| fluidAtCamera.equals("minecraft:lava")
+				)
+				&& !fluidAtCamera.equals("minecraft:empty");
+			cameraNotInFluid =! (cameraNotInFluid && isNotAtVanillaFluid);
 		}
 		boolean isBlind = this.playerHasBlindingEffect();
 		return !cameraNotInFluid || isBlind;
+		
 		#endif
 	}
 	
