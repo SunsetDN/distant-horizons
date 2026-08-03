@@ -55,6 +55,15 @@ import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.client.renderer.fog.FogRenderer;
 #endif
 
+#if MC_VER <= MC_1_12_2
+#elif MC_VER <= MC_1_19_2
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.core.Registry;
+#else
+import net.minecraft.core.registries.BuiltInRegistries;
+#endif
+
 #if MC_VER < MC_1_19_4
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -131,18 +140,18 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	#endif
 	
 	/** Delayed accessing is necessary since this object will be created before the mod accessors are bound. */
-	private static class DelayedAccessors 
+	private static class DelayedAccessors
 	{
 		public static final IImmersivePortalsAccessor IMMERSIVE_PORTALS = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
 	}
 	
-	/** 
+	/**
 	 * In the case of immersive portals multiple levels may be active at once, causing conflicting lightmaps. <br> 
 	 * Requiring the use of multiple {@link LightMapWrapper}.
 	 */
 	public ConcurrentHashMap<IDimensionTypeWrapper, LightMapWrapper> lightmapByDimensionType = new ConcurrentHashMap<>();
 	
-	/** 
+	/**
 	 * Holds the render buffer that should be used when displaying levels to the screen.
 	 * This is used for Optifine shader support so we can render directly to Optifine's level frame buffer.
 	 */
@@ -180,7 +189,7 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		#endif
 	}
 	
-	/** 
+	/**
 	 * Unless you really need to know if the player is blind, 
 	 * use {@link MinecraftRenderWrapper#isFogStateSpecial()} or {@link IMinecraftRenderWrapper#isFogStateSpecial()} instead 
 	 */
@@ -207,9 +216,9 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		
 		return MC.player.getActiveEffectsMap().get(MobEffects.BLINDNESS) != null
 			#if MC_VER >= MC_1_19_2
-				|| MC.player.getActiveEffectsMap().get(MobEffects.DARKNESS) != null // Deep dark effect
+			|| MC.player.getActiveEffectsMap().get(MobEffects.DARKNESS) != null // Deep dark effect
 			#endif
-				;
+			;
 		#endif
 		
 	}
@@ -285,10 +294,10 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		FogRenderer.setupColor(MC.gameRenderer.getMainCamera(), partialTicks, MC.level, 1, MC.gameRenderer.getDarkenWorldAmount(partialTicks));
 		float[] colorValues = RenderSystem.getShaderFogColor();
 		return new Color(
-				Math.max(0f, Math.min(colorValues[0], 1f)), // r
-				Math.max(0f, Math.min(colorValues[1], 1f)), // g
-				Math.max(0f, Math.min(colorValues[2], 1f)), // b
-				Math.max(0f, Math.min(colorValues[3], 1f))  // a
+			Math.max(0f, Math.min(colorValues[0], 1f)), // r
+			Math.max(0f, Math.min(colorValues[1], 1f)), // g
+			Math.max(0f, Math.min(colorValues[2], 1f)), // b
+			Math.max(0f, Math.min(colorValues[3], 1f))  // a
 		);
 		#elif MC_VER < MC_1_21_6
 		Vector4f colorValues = FogRenderer.computeFogColor(MC.gameRenderer.getMainCamera(), partialTicks, MC.level, 1, MC.gameRenderer.getDarkenWorldAmount(partialTicks));
@@ -382,7 +391,7 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	{
 		#if MC_VER <= MC_1_12_2
 		if (MC.world.provider.hasSkyLight())
-		#else	
+		#else
 		if (MC.level.dimensionType().hasSkyLight())
 		#endif
 		{
@@ -455,7 +464,7 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	}
 	
 	#if MC_VER > MC_1_12_2
-	public RenderTarget getRenderTarget() 
+	public RenderTarget getRenderTarget()
 	{
 		#if MC_VER <= MC_26_1_2
 		return MC.getMainRenderTarget();
@@ -566,7 +575,7 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		#endif
 	}
 	@Override
-	public int getGlColorTextureId() 
+	public int getGlColorTextureId()
 	{
 		#if MC_VER <= MC_1_12_2
 		return MC.getFramebuffer().framebufferTexture;
@@ -629,25 +638,53 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		IBlockState fluidState = MC.getRenderViewEntity().world.getBlockState(blockPos);
 		return this.playerHasBlindingEffect() || fluidState.getMaterial().isLiquid() || fluidState.getBlock() instanceof IFluidBlock;
 		#elif MC_VER < MC_1_17_1
-		Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
-		FluidState fluidState = camera.getFluidInCamera();
-		Entity entity = camera.getEntity();
-		boolean isBlind = this.playerHasBlindingEffect();
-			isBlind |= fluidState.is(FluidTags.WATER);
-			isBlind |= fluidState.is(FluidTags.LAVA);
-		return isBlind;
-		#elif MC_VER <= MC_26_1_2
-		boolean cameraNotInFluid=MC.gameRenderer.getMainCamera().getFluidInCamera() == FogType.NONE;
-		if(cameraNotInFluid){
-			String fluidAtCamera=MC.level.getFluidState(MC.gameRenderer.getMainCamera().getBlockPosition()).holder().getRegisteredName();
+		Camera camera=MC.gameRenderer.getMainCamera();
+		FluidState fluidState=camera.getFluidInCamera();
+		boolean cameraNotInFluid=!(fluidState.is(FluidTags.WATER)||fluidState.is(FluidTags.LAVA));
+	    if(cameraNotInFluid){	
+			String fluidAtCamera= Registry.FLUID.getKey(MC.level.getFluidState(MC.gameRenderer.getMainCamera().getBlockPosition()).getType()).toString();	
 			boolean isNotAtVanillaFluid=!(fluidAtCamera.equals("minecraft:water")||fluidAtCamera.equals("minecraft:lava"))&&!fluidAtCamera.equals("minecraft:empty");
 			cameraNotInFluid=!(cameraNotInFluid&&isNotAtVanillaFluid);
 		}
 		boolean isBlind = this.playerHasBlindingEffect();
 		return !cameraNotInFluid || isBlind;
-		#else
+		#elif MC_VER <= MC_1_19_2
+		boolean cameraNotInFluid=MC.gameRenderer.getMainCamera().getFluidInCamera() == FogType.NONE;	
+	    if(cameraNotInFluid){	
+			String fluidAtCamera= Registry.FLUID.getKey(MC.level.getFluidState(MC.gameRenderer.getMainCamera().getBlockPosition()).getType()).toString();	
+			boolean isNotAtVanillaFluid=!(fluidAtCamera.equals("minecraft:water")||fluidAtCamera.equals("minecraft:lava"))&&!fluidAtCamera.equals("minecraft:empty");
+			cameraNotInFluid=!(cameraNotInFluid&&isNotAtVanillaFluid);
+		}
 		boolean isBlind = this.playerHasBlindingEffect();
-		return MC.gameRenderer.mainCamera().getFluidInCamera() != FogType.NONE || isBlind;
+		return !cameraNotInFluid || isBlind;
+
+		#elif MC_VER <= MC_1_21_10
+		boolean cameraNotInFluid=MC.gameRenderer.getMainCamera().getFluidInCamera() == FogType.NONE;
+		if(cameraNotInFluid){
+			String fluidAtCamera= BuiltInRegistries.FLUID.getKey(MC.level.getFluidState(MC.gameRenderer.getMainCamera().getBlockPosition()).getType()).toString();
+			boolean isNotAtVanillaFluid=!(fluidAtCamera.equals("minecraft:water")||fluidAtCamera.equals("minecraft:lava"))&&!fluidAtCamera.equals("minecraft:empty");
+			cameraNotInFluid=!(cameraNotInFluid&&isNotAtVanillaFluid);
+		}
+		boolean isBlind = this.playerHasBlindingEffect();
+		return !cameraNotInFluid || isBlind;
+		#elif MC_VER <= MC_26_1_2
+		boolean cameraNotInFluid=MC.gameRenderer.getMainCamera().getFluidInCamera() == FogType.NONE;	
+		if(cameraNotInFluid){	
+			String fluidAtCamera=BuiltInRegistries.FLUID.getKey(MC.level.getFluidState(MC.gameRenderer.getMainCamera().blockPosition()).getType()).toString();
+			boolean isNotAtVanillaFluid=!(fluidAtCamera.equals("minecraft:water")||fluidAtCamera.equals("minecraft:lava"))&&!fluidAtCamera.equals("minecraft:empty");
+			cameraNotInFluid=!(cameraNotInFluid&&isNotAtVanillaFluid);
+		}
+		boolean isBlind = this.playerHasBlindingEffect();
+		return !cameraNotInFluid || isBlind;
+		#else //26.2.0
+		boolean cameraNotInFluid=MC.gameRenderer.mainCamera().getFluidInCamera() == FogType.NONE;
+		if(cameraNotInFluid){
+			String fluidAtCamera= BuiltInRegistries.FLUID.getKey(MC.level.getFluidState(MC.gameRenderer.mainCamera().blockPosition()).getType()).toString();
+			boolean isNotAtVanillaFluid=!(fluidAtCamera.equals("minecraft:water")||fluidAtCamera.equals("minecraft:lava"))&&!fluidAtCamera.equals("minecraft:empty");
+			cameraNotInFluid=!(cameraNotInFluid&&isNotAtVanillaFluid);
+		}
+		boolean isBlind = this.playerHasBlindingEffect();
+		return !cameraNotInFluid || isBlind;
 		#endif
 	}
 	
@@ -661,7 +698,7 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 	@Override
 	public ILightMapWrapper getLightmapWrapper(@NotNull ILevelWrapper level) { return this.lightmapByDimensionType.get(level.getDimensionType()); }
 	
-	/** 
+	/**
 	 * It's better to use {@link MinecraftRenderWrapper#setLightmapId(int)} if possible,
 	 * however old MC versions don't support it.
 	 */
@@ -696,7 +733,7 @@ public class MinecraftRenderWrapper implements IMinecraftRenderWrapper
 		// object for the same MC level and/or the same hash,
 		// so this will have to do for now
 		IDimensionTypeWrapper dimensionType = clientLevel.getDimensionType();
-
+		
 		LightMapWrapper wrapper = this.lightmapByDimensionType.computeIfAbsent(dimensionType, (dimType) -> new LightMapWrapper());
 		wrapper.setLightmapId(textureId);
 	}
