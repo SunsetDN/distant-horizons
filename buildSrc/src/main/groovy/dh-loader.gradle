@@ -611,7 +611,6 @@ if (isNotCommonProject) {
         // Quilt contributors
         def quilt_contributors = []
         def mod_author_list = rootProject.mod_authors.replaceAll("\"", "").replace("[", "").replace("]", "").split(",")
-        def cleanroom_author_list = rootProject.mod_authors.replace('[', '').replace(']', '').split(',').collect({ it.trim().replace('"', '') }).join('", "')
         for (dev in mod_author_list) {
             quilt_contributors.push("\"${dev.strip()}\": \"Developer\"")
         }
@@ -633,7 +632,6 @@ if (isNotCommonProject) {
             mod_name                     : rootProject.mod_readable_name,
             group                        : rootProject.maven_group,
             authors                      : rootProject.mod_authors,
-            cleanroom_authors            : cleanroom_author_list,
             description                  : rootProject.mod_description,
             homepage                     : rootProject.mod_homepage,
             source                       : rootProject.mod_source,

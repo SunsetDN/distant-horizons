@@ -4,7 +4,7 @@
     "version": "${version}",
     "mcversion": "1.12.2",
     "description": "${description}",
-    "authorList": ["${cleanroom_authors}"],
+    "authorList": ${authors},
     "credits": "",
     "url": "",
     "updateJSON": "",
