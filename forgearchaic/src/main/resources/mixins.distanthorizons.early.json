@@ -1,8 +1,0 @@
-{
-  "required": true,
-  "minVersion": "0.8.3-GTNH",
-  "package": "com.seibel.distanthorizons.forgearchaic.mixin",
-  "refmap": "mixins.distanthorizons.refmap.json",
-  "target": "@env(DEFAULT)",
-  "compatibilityLevel": "JAVA_8"
-}

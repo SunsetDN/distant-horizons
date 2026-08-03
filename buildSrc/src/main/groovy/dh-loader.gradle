@@ -97,8 +97,8 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 java {
-    sourceCompatibility = 17
-    targetCompatibility = 17
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
     withSourcesJar()
 }
 
@@ -146,7 +146,6 @@ if (isNotCommonProject) {
                     'FMLCorePluginContainsFMLMod': true,
                     'FMLAT': "${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg",
                     'ForceLoadAsMod': true,
-                    "Lwjgl3ify-Aware": "true"
                 )
             }
         }
@@ -280,7 +279,7 @@ if (!isNotCommonProject) {
         lwjgl3CompileOnly(platform("org.lwjgl:lwjgl-bom:3.3.1"))
         lwjgl3CompileOnly "org.lwjgl:lwjgl"
         lwjgl3CompileOnly "org.lwjgl:lwjgl-opengl"
-        lwjgl2CompileOnly("org.lwjgl.lwjgl:lwjgl:2.9.3")
+        lwjgl2CompileOnly("org.lwjgl.lwjgl:lwjgl:${rootProject.lwjgl_version}")
     }
 
     def extraSourceSets = [sourceSets.lwjglCommon, sourceSets.lwjgl2]
@@ -304,11 +303,6 @@ if (!isNotCommonProject) {
         from(sourceSets.lwjglCommon.output)
         from(sourceSets.lwjgl2.output)
         from(sourceSets.lwjgl3.output)
-        manifest {
-            attributes([
-                "Lwjgl3ify-Aware": "true"
-            ])
-        }
     }
 }
 
@@ -354,6 +348,10 @@ dependencies {
     // JOML: shadow for old MC versions that don't bundle it (core has it compileOnly already)
     if (project.hasProperty("embed_joml") && embed_joml == "true")
         shadowMe("org.joml:joml:${rootProject.joml_version}")
+
+    // fastutil: shadow for old MC versions that don't bundle it (core has it compileOnly already)
+    if (project.hasProperty("embed_fastutil") && embed_fastutil == "true")
+        shadowMe("it.unimi.dsi:fastutil:${rootProject.fastutil_version}")
 
     // Common project dependency
     if (isNotCommonProject)
@@ -490,7 +488,7 @@ if (isNotCommonProject) {
         def loaderPaths = configurations.minecraftLibraries.resolve().collect { it.path }.toSet()
         tasks.withType(JavaExec).configureEach { runTask ->
             dependsOn(shadowJar)
-            if (project.name != "forgevintage" || project.name != "forgearchaic") {
+            if (project.name != "forgevintage" && project.name != "forgearchaic") {
                 classpath = files(shadowJar.archiveFile) + classpath.filter { file ->
                     file != shadowJar.archiveFile.get().asFile &&
                         !file.path.contains(project.buildDir.path) &&
@@ -713,7 +711,7 @@ if (isNotCommonProject) {
 
     if (project.name == "forgevintage" || project.name == "forgearchaic") {
         gradle.taskGraph.whenReady { graph ->
-            if (graph.hasTask(":forgevintage:runClient")) {
+            if (graph.hasTask("${project.path}:runClient")) {
                 downgradeJar.inputFile.set(shadowJar.archiveFile)
                 downgradeJar.archiveClassifier.set("dev")
                 shadeDowngradedApi.archiveClassifier.set("dev")

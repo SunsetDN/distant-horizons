@@ -49,7 +49,8 @@ public class MixinRenderGlobal
 		}
 	}
 
-    @Inject(
+	//TODO Fix
+/*    @Inject(
         method = "sortAndRender",
         at = @At(
             value = "INVOKE",
@@ -64,7 +65,7 @@ public class MixinRenderGlobal
 	    {
 		    RenderHelper.renderDeferredLods();
 	    }
-    }
+    }*/
 	
 	
 	

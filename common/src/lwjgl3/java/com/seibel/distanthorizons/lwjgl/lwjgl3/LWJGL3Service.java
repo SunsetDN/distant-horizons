@@ -63,7 +63,6 @@ public record LWJGL3Service(
             case ARB_buffer_storage -> caps.GL_ARB_buffer_storage;
             case ARB_multi_draw_indirect -> caps.GL_ARB_multi_draw_indirect;
             case ARB_draw_elements_base_vertex -> caps.GL_ARB_draw_elements_base_vertex;
-            case ARB_direct_state_access -> caps.GL_ARB_direct_state_access;
             case ARB_shader_storage_buffer_object -> caps.GL_ARB_shader_storage_buffer_object;
             case ARB_sync -> caps.GL_ARB_sync;
             case ARB_timer_query -> caps.GL_ARB_timer_query;

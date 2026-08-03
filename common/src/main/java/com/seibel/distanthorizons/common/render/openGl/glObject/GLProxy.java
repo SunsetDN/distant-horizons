@@ -268,9 +268,8 @@ public class GLProxy
 	public static boolean runningOnRenderThread()
 	{
 		#if MC_VER <= MC_1_12_2
-		// lwjgl3ify on 1.7.10 provides LWJGL 3 but strips out GLFW (windowing still goes through Display).
-		// GL.getCapabilities() reads the per-thread GLCapabilities slot LWJGL 3 sets when a context is
-		// made current, and throws IllegalStateException if none is set — same semantic as the GLFW check.
+		// GL.getCapabilities() reads the per-thread GLCapabilities slot LWJGL sets when a context is
+		// made current, and throws RuntimeException if no OpenGL context on that thread
 		try
 		{
 			return LWJGL.isOpenGLVersionSupported(3,3);

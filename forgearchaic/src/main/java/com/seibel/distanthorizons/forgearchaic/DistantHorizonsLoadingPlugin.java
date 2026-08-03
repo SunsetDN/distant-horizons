@@ -12,10 +12,10 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 /**
  * Defines our mixins
  */
-public class DistantHorizonsTweaker implements IEarlyMixinLoader, IFMLLoadingPlugin 
+public class DistantHorizonsLoadingPlugin implements IEarlyMixinLoader, IFMLLoadingPlugin 
 {
     @Override
-    public String getMixinConfig() { return "mixins.distanthorizons.early.json"; }
+    public String getMixinConfig() { return "DistantHorizons.forgearchaic.mixins.json"; }
 
     @Override
     public List<String> getMixins(Set<String> loadedCoreMods) { return IMixins.getEarlyMixins(Mixins.class, loadedCoreMods); }

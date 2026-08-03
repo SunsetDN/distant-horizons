@@ -28,7 +28,7 @@ final class LWJGL2DebugSupport
             LOGGER.info("Using OpenGL 4.3 for debug output");
             this.debugCallbackKHR = new KHRDebugCallback(new KHRDebugCallback.Handler() 
             {
-                //@Override
+                @Override
                 public void handleMessage(int source, int type, int id, int severity, String message) {
                     handler.handle(source, type, id, severity, message, DebugExtension.GL43);
                 }
@@ -53,7 +53,7 @@ final class LWJGL2DebugSupport
             LOGGER.info("Using KHR_debug for debug output");
 			this.debugCallbackKHR = new KHRDebugCallback(new KHRDebugCallback.Handler() 
             {
-                //@Override
+                @Override
                 public void handleMessage(int source, int type, int id, int severity, String message) 
                 {
                     handler.handle(source, type, id, severity, message, DebugExtension.KHR_DEBUG);
@@ -80,7 +80,7 @@ final class LWJGL2DebugSupport
             LOGGER.info("Using ARB_debug_output for debug output");
 			this.debugCallbackARB = new ARBDebugOutputCallback(new ARBDebugOutputCallback.Handler() 
             {
-                //@Override
+                @Override
                 public void handleMessage(int source, int type, int id, int severity, String message) 
                 {
                     handler.handle(source, type, id, severity, message, DebugExtension.ARB_DEBUG_OUTPUT);
@@ -98,7 +98,7 @@ final class LWJGL2DebugSupport
             LOGGER.info("Using AMD_debug_output for debug output");
 			this.debugCallbackAMD = new AMDDebugOutputCallback(new AMDDebugOutputCallback.Handler() 
             {
-                //@Override
+                @Override
                 public void handleMessage(int id, int category, int severity, String message) 
                 {
                     // AMD callback has different signature - category instead of source/type

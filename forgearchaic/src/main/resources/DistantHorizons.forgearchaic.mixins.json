@@ -1,0 +1,27 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "plugin": "com.seibel.distanthorizons.forgearchaic.DistantHorizonsMixinConfigPlugin",
+    "package": "com.seibel.distanthorizons.forgearchaic.mixin",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+        "MixinBiomeGenBase",
+        "MixinChunk",
+        "MixinThreadedFileIOBase"
+    ],
+    "server": [
+    ],
+    "client": [
+        "MixinActiveRenderInfo",
+        "MixinBlock_SideFacingUnloadedChunk",
+        "IMixinChunkCache_SideFacingUnloaded",
+        "MixinEntityRenderer",
+        "MixinFramebuffer",
+        "MixinNetHandlerPlayClient",
+        "MixinOptionsScreen",
+        "MixinRenderGlobal",
+        "MixinTesselator",
+        "MixinTextureAtlasSprite",
+        "MixinTextureMap"
+    ]
+}

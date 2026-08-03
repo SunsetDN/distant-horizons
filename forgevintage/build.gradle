@@ -33,10 +33,6 @@ dependencies {
     implementation("zone.rong:mixinbooter:10.7")
 }
 
-configurations.compileClasspath {
-    exclude group: 'org.lwjgl', module: 'lwjgl'
-}
-
 // ==================== Tasks ====================
 
 task deleteResources(type: Delete) {

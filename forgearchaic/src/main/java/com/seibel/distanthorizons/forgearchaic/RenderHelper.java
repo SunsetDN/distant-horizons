@@ -19,6 +19,7 @@ import com.seibel.distanthorizons.core.util.math.DhMat4f;
 
 import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 
+//TODO Remove since we don't use lwjgl3ify now
 /**
  * Since 1.7.10 doesn't natively support modern OpenGL and lwjgl3, we use lwjgl3ify.
  * lwjgl3ify uses class transformers to rewrite lwjgl2 calls to lwjgl3.
