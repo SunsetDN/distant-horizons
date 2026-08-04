@@ -1064,7 +1064,8 @@ class DhConfigScreen extends DhScreen
 			List<Component> list = new ArrayList<>();
 			#endif
 			
-			String lang = LANG_WRAPPER.getLang(key);
+			// 1.7.10 doesn't convert \n to new lines so we must do it manually
+			String lang = LANG_WRAPPER.getLang(key).replace("\\n", "\n");
 			for (String langLine : lang.split("\n"))
 			{
 				list.add(TextOrTranslatable(langLine));
