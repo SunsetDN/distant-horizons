@@ -94,6 +94,8 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_WRAP_T, GL32.GL_REPEAT);
 	}
 	
+	public int getTextureId() { return this.textureId; }
+	
 	//endregion
 	
 	
@@ -129,7 +131,7 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 	@Override 
 	protected void beforeWriteToTexture()
 	{
-		uploadGlState.saveState();
+		this.uploadGlState.saveState();
 		
 		GL32.glBindTexture(GL32.GL_TEXTURE_2D, this.textureId);
 		
@@ -154,7 +156,7 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 	protected void afterWriteToTexture()
 	{
 		GL32.glGenerateMipmap(GL32.GL_TEXTURE_2D);
-		uploadGlState.close();
+		this.uploadGlState.close();
 	}
 	
 	//endregion

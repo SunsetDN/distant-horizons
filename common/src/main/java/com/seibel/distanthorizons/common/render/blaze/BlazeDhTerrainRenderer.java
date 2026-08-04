@@ -20,6 +20,8 @@ import com.seibel.distanthorizons.common.render.blaze.wrappers.RenderPassWrapper
 import com.seibel.distanthorizons.common.render.blaze.wrappers.RenderPipelineBuilderWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeBlockTextureAtlas;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
+import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureWrapper;
+import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.IDhBlazeTexture;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.uniform.BlazeLodUniformBufferWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.buffer.BlazeVertexBufferWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.uniform.BlazeUniformBufferWrapper;
@@ -30,6 +32,7 @@ import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.pos.DhSectionPos;
+import com.seibel.distanthorizons.core.render.DhApiRenderProxy;
 import com.seibel.distanthorizons.core.render.EDhRenderDepth;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.RenderUtil;
@@ -259,7 +262,9 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 					BlazeTextureViewWrapper lightmapTextureViewWrapper = lightMapWrapper.getTextureViewWrapper();
 					renderPassWrapper.bindTexture("uLightMap", lightmapTextureViewWrapper);
 					
-					renderPassWrapper.bindTexture("uBlockAtlas", BlazeBlockTextureAtlas.INSTANCE.getTextureWrapper());
+					BlazeTextureWrapper blockTextureAtlas = BlazeBlockTextureAtlas.INSTANCE.getTextureWrapper();
+					renderPassWrapper.bindTexture("uBlockAtlas", blockTextureAtlas);
+					DhApiRenderProxy.activeBlazeDhBlockRatioAtlasTextureWrapper = blockTextureAtlas;
 					
 					// set pipeline
 					renderPassWrapper.setPipeline(opaquePass ? this.opaquePipeline : this.transparentPipeline);

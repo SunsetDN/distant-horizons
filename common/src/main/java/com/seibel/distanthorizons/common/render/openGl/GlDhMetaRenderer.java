@@ -123,6 +123,7 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		{
 			GlBlockTextureAtlas.INSTANCE.uploadPendingTiles();
 			GlBlockTextureAtlas.INSTANCE.bind();
+			DhApiRenderProxy.getDhBlockRatioAtlasTextureGlId = GlBlockTextureAtlas.INSTANCE.getTextureId();
 		}
 	}
 	private void setGLState(

@@ -75,7 +75,7 @@ public class BlazeBlockTextureAtlas extends AbstractBlockTextureAtlas
 	@Override 
 	protected void tryCreateOrResize(int width, int height) { textureWrapper.tryCreateOrResize(width, height); }
 	
-	public IDhBlazeTexture getTextureWrapper() { return this.textureWrapper; }
+	public BlazeTextureWrapper getTextureWrapper() { return this.textureWrapper; }
 	
 	//endregion
 	
