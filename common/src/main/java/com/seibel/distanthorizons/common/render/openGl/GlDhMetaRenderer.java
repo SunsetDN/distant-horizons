@@ -339,15 +339,21 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		IDhApiFramebuffer framebufferOverride = OverrideInjector.INSTANCE.get(IDhApiFramebuffer.class);
 		
 		
-		if (this.depthTexture != null)
-		{
-			this.depthTexture.destroy();
-		}
+		GlDhDepthTexture oldDepthTexture = this.depthTexture;
 		this.depthTexture = new GlDhDepthTexture(this.textureWidth, this.textureHeight, EGlDhDepthBufferFormat.DEPTH32F);
 		this.framebuffer.addDepthAttachment(this.depthTexture.getTextureId(), EGlDhDepthBufferFormat.DEPTH32F.isCombinedStencil());
 		if (framebufferOverride != null)
 		{
 			framebufferOverride.addDepthAttachment(this.depthTexture.getTextureId(), EGlDhDepthBufferFormat.DEPTH32F.isCombinedStencil());
+		}
+		
+		// The old texture needs to be deleted after the new one is created to ensure
+		// GL creates a new depth texture ID.
+		// This is necessary to fix an Iris bug where it caches on the texture ID,
+		// but GL may return the same texture ID, preventing the new texture from being bound properly.
+		if (oldDepthTexture != null)
+		{
+			oldDepthTexture.destroy();
 		}
 		
 		
