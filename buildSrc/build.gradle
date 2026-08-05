@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.gradleup.shadow:shadow-gradle-plugin:9.0.0'
+    implementation 'com.gradleup.shadow:shadow-gradle-plugin:9.6.1'
     implementation 'xyz.wagyourtail.unimined:xyz.wagyourtail.unimined.gradle.plugin:1.4.18-kappa'
     implementation 'xyz.wagyourtail:manifold-gradle:1.0.0-SNAPSHOT'
 }
