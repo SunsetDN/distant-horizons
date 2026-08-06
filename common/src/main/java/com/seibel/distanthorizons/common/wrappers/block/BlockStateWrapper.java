@@ -206,16 +206,47 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		final int blockId = Block.getIdFromBlock(block);
 		final Integer packedIdMeta = FakeBlockState.packIdAndMeta(blockId, meta);
-		BlockStateWrapper existingBlockWrapper = WRAPPER_BY_BLOCK_ID_AND_META.get(packedIdMeta);
-		if (existingBlockWrapper != null)
+		
+		// pooling wrappers significantly improves chunk->LOD processing speed
+		// and also reduces GC pressure
+		BlockStateWrapper existingWrapper = WRAPPER_BY_BLOCK_ID_AND_META.get(packedIdMeta);
+		if (existingWrapper != null)
 		{
-			return existingBlockWrapper;
+			return existingWrapper;
 		}
 		
-		FakeBlockState fakeBlockState = new FakeBlockState(block, meta, blockId);
-		BlockStateWrapper wrapper = new BlockStateWrapper(fakeBlockState, levelWrapper, null);
-		WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(packedIdMeta, wrapper);
-		return wrapper;
+		
+		
+		// synchronized so the API event only fires once per block
+		synchronized (WRAPPER_BY_BLOCK_ID_AND_META)
+		{
+			// if another thread already finished this block, use that wrapper
+			existingWrapper = WRAPPER_BY_BLOCK_ID_AND_META.get(packedIdMeta);
+			if (existingWrapper != null)
+			{
+				return existingWrapper;
+			}
+			
+			
+			// create a wrapper specifically for the API event to use
+			FakeBlockState fakeBlockState = new FakeBlockState(block, meta, blockId);
+			BlockStateWrapper apiWrapper = new BlockStateWrapper(fakeBlockState, levelWrapper, null);
+			DhApiBlockStateWrapperCreatedEvent.EventParam eventParam = new DhApiBlockStateWrapperCreatedEvent.EventParam(apiWrapper);
+			ApiEventInjector.INSTANCE.fireAllEvents(DhApiBlockStateWrapperCreatedEvent.class, eventParam);
+			
+			if (!eventParam.getOverridesSet())
+			{
+				// no API changes needed, use the existing object
+				WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(packedIdMeta, apiWrapper);
+				return apiWrapper;
+			}
+			else
+			{
+				BlockStateWrapper returnWrapper = new BlockStateWrapper(fakeBlockState, levelWrapper, eventParam);
+				WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(packedIdMeta, returnWrapper);
+				return returnWrapper;
+			}
+		}
 	}
 	public static BlockStateWrapper fromBlockState(IBlockState blockState, ILevelWrapper levelWrapper)
 	{ return fromBlockAndMeta(blockState.getBlock(), blockState.getMeta(), levelWrapper); }
