@@ -399,7 +399,10 @@ public class MinecraftClientWrapper extends AbstractMinecraftSharedWrapper imple
 		}
 		
 		#if MC_VER <= MC_1_7_10
-		player.addChatMessage(new ChatComponentText(string));
+		String[] lines = string.split("\n");
+		for (String line : lines) {
+			player.addChatMessage(new ChatComponentText(line));
+		}
 		#elif MC_VER <= MC_1_12_2
 		player.sendMessage(new TextComponentString(string));
         #elif MC_VER < MC_1_19_2
