@@ -96,13 +96,22 @@ public abstract class AbstractMinecraftSharedWrapper implements IMinecraftShared
 			return null;
 		}
 		
-		#if MC_VER <= MC_1_20_2
+		
+		#if MC_VER <= MC_1_12_2
+		if (Minecraft.getMinecraft().getIntegratedServer() == null)
+		{
+			return null;
+		}
+		return Minecraft.getMinecraft().getIntegratedServer().tickTimeArray;
+		#elif MC_VER <= MC_1_20_2
+
 		if (Minecraft.getInstance().getSingleplayerServer() == null)
 		{
 			return null;
 		}
 		return Minecraft.getInstance().getSingleplayerServer().tickTimes;
 		#else
+		
 		if (Minecraft.getInstance().getSingleplayerServer() == null)
 		{
 			return null;
