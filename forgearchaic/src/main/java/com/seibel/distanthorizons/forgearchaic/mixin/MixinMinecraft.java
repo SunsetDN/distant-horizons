@@ -1,4 +1,4 @@
-package com.seibel.distanthorizons.forgevintage.mixins.client;
+package com.seibel.distanthorizons.forgearchaic.mixin;
 
 import com.seibel.distanthorizons.common.commonMixins.DhUpdateScreenBase;
 import com.seibel.distanthorizons.core.config.Config;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MixinMinecraft
 {
 	
-	@Inject(method = "init", at = @At("TAIL"))
+	@Inject(method = "startGame", at = @At("TAIL"))
 	private void onInit(CallbackInfo ci)
 	{
 		// Singletons will be null if FML errored (for example other mod missing dependency)
@@ -40,3 +40,4 @@ public class MixinMinecraft
 		}
 	}
 }
+
