@@ -513,7 +513,7 @@ public class ChunkWrapper implements IChunkWrapper
 		{
 			final Block block = this.chunk.getBlock(relX, relY, relZ);
 			final int meta = this.chunk.getBlockMetadata(relX, relY, relZ);
-			return BlockStateWrapper.fromBlockAndMeta(block, meta, this.wrappedLevel);
+			return BlockStateWrapper.fromBlockState(block, meta, this.wrappedLevel);
 		}
 		catch (Exception e)
 		{
@@ -561,7 +561,7 @@ public class ChunkWrapper implements IChunkWrapper
 		{
 			final Block block = this.chunk.getBlock(relX, relY, relZ);
 			final int meta = this.chunk.getBlockMetadata(relX, relY, relZ);
-			return BlockStateWrapper.fromBlockAndMeta(block, meta, this.wrappedLevel, guess);
+			return BlockStateWrapper.fromBlockState(block, meta, this.wrappedLevel, guess);
 		}
 		catch (Exception e)
 		{

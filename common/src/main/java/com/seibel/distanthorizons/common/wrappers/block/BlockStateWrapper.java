@@ -177,87 +177,17 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	
 	
 	#if MC_VER <= MC_1_7_10
-	
-	/**
-	 * Can be faster than BlockStateWrapper#fromBlockState(Block, int, ILevelWrapper)
-	 * in cases where the same block state is expected to be referenced multiple times.
-	 */
-	public static BlockStateWrapper fromBlockAndMeta(Block block, int meta, ILevelWrapper levelWrapper, IBlockStateWrapper guess)
-	{
-		FakeBlockState guessBlockState = (guess == null || guess.isAir()) ? null : (FakeBlockState) guess.getWrappedMcObject();
-		if (guess instanceof BlockStateWrapper
-			&& guessBlockState != null
-			&& guessBlockState.block == block
-			&& guessBlockState.meta == meta)
-		{
-			return (BlockStateWrapper) guess;
-		}
-		
-		return fromBlockAndMeta(block, meta, levelWrapper);
-	}
-	
-	public static BlockStateWrapper fromBlockAndMeta(Block block, int meta, ILevelWrapper levelWrapper)
-	{
-		if (block == null 
-			|| block == Blocks.air)
-		{
-			return AIR;
-		}
-		
-		final int blockId = Block.getIdFromBlock(block);
-		final Integer packedIdMeta = FakeBlockState.packIdAndMeta(blockId, meta);
-		
-		// pooling wrappers significantly improves chunk->LOD processing speed
-		// and also reduces GC pressure
-		BlockStateWrapper existingWrapper = WRAPPER_BY_BLOCK_ID_AND_META.get(packedIdMeta);
-		if (existingWrapper != null)
-		{
-			return existingWrapper;
-		}
-		
-		
-		
-		// synchronized so the API event only fires once per block
-		synchronized (WRAPPER_BY_BLOCK_ID_AND_META)
-		{
-			// if another thread already finished this block, use that wrapper
-			existingWrapper = WRAPPER_BY_BLOCK_ID_AND_META.get(packedIdMeta);
-			if (existingWrapper != null)
-			{
-				return existingWrapper;
-			}
-			
-			
-			// create a wrapper specifically for the API event to use
-			FakeBlockState fakeBlockState = new FakeBlockState(block, meta, blockId);
-			BlockStateWrapper apiWrapper = new BlockStateWrapper(fakeBlockState, levelWrapper, null);
-			DhApiBlockStateWrapperCreatedEvent.EventParam eventParam = new DhApiBlockStateWrapperCreatedEvent.EventParam(apiWrapper);
-			ApiEventInjector.INSTANCE.fireAllEvents(DhApiBlockStateWrapperCreatedEvent.class, eventParam);
-			
-			if (!eventParam.getOverridesSet())
-			{
-				// no API changes needed, use the existing object
-				WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(packedIdMeta, apiWrapper);
-				return apiWrapper;
-			}
-			else
-			{
-				BlockStateWrapper returnWrapper = new BlockStateWrapper(fakeBlockState, levelWrapper, eventParam);
-				WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(packedIdMeta, returnWrapper);
-				return returnWrapper;
-			}
-		}
-	}
 	public static BlockStateWrapper fromBlockState(IBlockState blockState, ILevelWrapper levelWrapper)
-	{ return fromBlockAndMeta(blockState.getBlock(), blockState.getMeta(), levelWrapper); }
-	
-	#else
+	{ return fromBlockState(blockState.getBlock(), blockState.getMeta(), levelWrapper); }
 	
 	/**
 	 * Can be faster than BlockStateWrapper#fromBlockState(BlockState, ILevelWrapper)
 	 * in cases where the same block state is expected to be referenced multiple times.
 	 */
-	#if MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_7_10
+	// For 1.7.10 more accurate name is fromBlockAndMeta
+	public static BlockStateWrapper fromBlockState(Block block, int meta, ILevelWrapper levelWrapper, IBlockStateWrapper guess)
+	#elif MC_VER <= MC_1_12_2
 	public static BlockStateWrapper fromBlockState(IBlockState blockState, ILevelWrapper levelWrapper, IBlockStateWrapper guess)
 	#else
 	public static BlockStateWrapper fromBlockState(BlockState blockState, ILevelWrapper levelWrapper, IBlockStateWrapper guess)
@@ -265,7 +195,11 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	{
 		if (guess == null)
 		{
+			#if MC_VER <= MC_1_7_10
+			return fromBlockState(block, meta, levelWrapper);
+			#else
 			return fromBlockState(blockState, levelWrapper);
+			#endif
 		}
 		
 		
@@ -295,6 +229,11 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		#else
 		BlockState inputBlockState;
 		#endif
+		
+		#if MC_VER <= MC_1_7_10
+		FakeBlockState blockState = new FakeBlockState(block, meta);
+		#endif
+
 		if (isAir(blockState))
 		{
 			inputBlockState = null;
@@ -305,31 +244,48 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		}
 		
 		
-		if (guessBlockState == inputBlockState)
+		if (Objects.equals(guessBlockState, inputBlockState))
 		{
 			return (BlockStateWrapper) guess;
 		}
 		
+		#if MC_VER <= MC_1_7_10
+		return fromBlockState(block, meta, levelWrapper);
+	    #else 
 		return fromBlockState(blockState, levelWrapper);
+		#endif
 	}
 	#endif
 
-	#if MC_VER > MC_1_7_10
-	#if MC_VER <= MC_1_12_2
+	#if MC_VER <= MC_1_7_10
+	// For 1.7.10 more accurate name is fromBlockAndMeta
+	public static BlockStateWrapper fromBlockState(Block block, int meta, ILevelWrapper levelWrapper)
+	#elif MC_VER <= MC_1_12_2
 	public static BlockStateWrapper fromBlockState(@Nullable IBlockState blockState, ILevelWrapper levelWrapper)
 	#else
 	public static BlockStateWrapper fromBlockState(@Nullable BlockState blockState, ILevelWrapper levelWrapper)
 	#endif
 	{
 		// air is a special case
+		#if MC_VER <= MC_1_7_10
+		if (block == null
+			|| block == Blocks.air)
+		#else
 		if (isAir(blockState))
+		#endif
 		{
 			return AIR;
 		}
 		
 		// pooling wrappers significantly improves chunk->LOD processing speed
 		// and also reduces GC pressure
+		#if MC_VER <= MC_1_7_10
+		final int blockId = Block.getIdFromBlock(block);
+		final Integer packedIdMeta = FakeBlockState.packIdAndMeta(blockId, meta);
+		BlockStateWrapper existingWrapper = WRAPPER_BY_BLOCK_ID_AND_META.get(packedIdMeta);
+		#else
 		BlockStateWrapper existingWrapper = WRAPPER_BY_BLOCK_STATE.get(blockState);
+		#endif
 		if (existingWrapper != null)
 		{
 			return existingWrapper;
@@ -338,10 +294,18 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		
 		// synchronized so the API event only fires once per block
+		#if MC_VER <= MC_1_7_10
+		synchronized (WRAPPER_BY_BLOCK_ID_AND_META)
+		#else
 		synchronized (WRAPPER_BY_BLOCK_STATE)
+		#endif
 		{
 			// if another thread already finished this block, use that wrapper
+			#if MC_VER <= MC_1_7_10
+			existingWrapper = WRAPPER_BY_BLOCK_ID_AND_META.get(packedIdMeta);
+			#else
 			existingWrapper = WRAPPER_BY_BLOCK_STATE.get(blockState);
+			#endif
 			if (existingWrapper != null)
 			{
 				return existingWrapper;
@@ -349,6 +313,9 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			
 			
 			// create a wrapper specifically for the API event to use
+			#if MC_VER <= MC_1_7_10
+			FakeBlockState blockState = new FakeBlockState(block, meta, blockId);
+			#endif
 			BlockStateWrapper apiWrapper = new BlockStateWrapper(blockState, levelWrapper, null);
 			DhApiBlockStateWrapperCreatedEvent.EventParam eventParam = new DhApiBlockStateWrapperCreatedEvent.EventParam(apiWrapper);
 			ApiEventInjector.INSTANCE.fireAllEvents(DhApiBlockStateWrapperCreatedEvent.class, eventParam);
@@ -356,19 +323,26 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			if (!eventParam.getOverridesSet())
 			{
 				// no API changes needed, use the existing object
+				#if MC_VER <= MC_1_7_10
+				WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(packedIdMeta, apiWrapper);
+				#else
 				WRAPPER_BY_BLOCK_STATE.putIfAbsent(blockState, apiWrapper);
+				#endif
 				return apiWrapper;
 			}
 			else
 			{
 				// create a new wrapper using whatever overrides the API user set
 				BlockStateWrapper returnWrapper = new BlockStateWrapper(blockState, levelWrapper, eventParam);
+				#if MC_VER <= MC_1_7_10
+				WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(packedIdMeta, apiWrapper);
+				#else
 				WRAPPER_BY_BLOCK_STATE.putIfAbsent(blockState, returnWrapper);
+				#endif
 				return returnWrapper;
 			}
 		}
 	}
-	#endif
 
 	#if MC_VER <= MC_1_12_2
 	private BlockStateWrapper(@Nullable IBlockState blockState, ILevelWrapper levelWrapper, @Nullable DhApiBlockStateWrapperCreatedEvent.EventParam overrideEventParam)
@@ -1470,7 +1444,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 					meta = Integer.parseInt(metaString);
 				}
 				
-				foundWrapper = fromBlockAndMeta(block, meta, levelWrapper);
+				foundWrapper = fromBlockState(block, meta, levelWrapper);
 				return foundWrapper;
 			}
 			catch (Exception e)
