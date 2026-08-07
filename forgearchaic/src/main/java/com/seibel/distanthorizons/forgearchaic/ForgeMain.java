@@ -24,6 +24,7 @@ import com.seibel.distanthorizons.common.wrappers.modAccessor.IGregTechCommonAcc
 import com.seibel.distanthorizons.common.wrappers.modAccessor.IHodgePodgeCommonAccessor;
 import com.seibel.distanthorizons.common.wrappers.modAccessor.IRpleCommonAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.*;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modLoader.IForgeMain;
 import com.seibel.distanthorizons.forgearchaic.modAccessor.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
@@ -50,7 +51,7 @@ import cpw.mods.fml.relauncher.Side;
  * check out the ClientProxy.
  */
 @Mod(modid = "distanthorizons", name = "DistantHorizons", dependencies = "after:angelica;")
-public class ForgeMain extends AbstractModInitializer
+public class ForgeMain extends AbstractModInitializer implements IForgeMain
 {
 
     @Mod.Instance
@@ -61,6 +62,18 @@ public class ForgeMain extends AbstractModInitializer
     public static boolean isHodgePodgeInstalled = false;
 	
 	private Consumer<MinecraftServer> eventHandlerStartServer;
+	
+	//=============//
+	// constructor //
+	//=============//
+	//region
+	
+	public ForgeMain()
+	{
+		SingletonInjector.INSTANCE.bind(IForgeMain.class, this);
+	}
+	
+	//endregion
 	
 	
 	

@@ -23,6 +23,7 @@ import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.TimerUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.chunk.IChunkWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IC2meAccessor;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modLoader.IForgeMain;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modLoader.IForgeServerProxy;
 import com.seibel.distanthorizons.coreapi.ModInfo;
 
@@ -78,6 +79,7 @@ public class InternalServerGenerator
 	
 	#if MC_VER <= MC_1_7_10
 	private static final IForgeServerProxy FORGE_SERVER_PROXY = SingletonInjector.INSTANCE.get(IForgeServerProxy.class);
+	private static final IForgeMain FORGE_MAIN = SingletonInjector.INSTANCE.get(IForgeMain.class);
 	#else
 	#endif
 	
@@ -129,7 +131,7 @@ public class InternalServerGenerator
 		this.updateManager = WorldChunkUpdateManager.INSTANCE.getByLevelWrapper(this.dhServerLevel.getServerLevelWrapper());
 
 		#if MC_VER <= MC_1_7_10
-		this.dhServerGenTicket = ForgeChunkManager.requestTicket(FORGE_SERVER_PROXY, params.mcServerLevel, ForgeChunkManager.Type.NORMAL);
+		this.dhServerGenTicket = ForgeChunkManager.requestTicket(FORGE_MAIN, params.mcServerLevel, ForgeChunkManager.Type.NORMAL);
 		increaseChunkLimit(this.dhServerGenTicket, 1000);
 		#endif
 	}

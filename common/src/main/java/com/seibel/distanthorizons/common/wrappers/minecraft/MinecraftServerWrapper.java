@@ -123,10 +123,4 @@ public class MinecraftServerWrapper extends AbstractMinecraftSharedWrapper
 		return ServerLevelWrapper.getWrapper(mcLevel);
 	}
 	
-	@Override
-	public boolean isServerThreadHealthy()
-	{
-		return false;
-	}
-	
 }
