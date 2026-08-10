@@ -144,6 +144,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	
 	private final boolean isBeaconBlock; 
 	private final boolean isBeaconBaseBlock;
+	private final boolean isIceBlock;
 	private final boolean allowsBeaconBeamPassage;
 	private final boolean renderTexture;
 	private final boolean useBottomTextureForSides;
@@ -531,6 +532,13 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			}
 		}
 		
+		
+		// ice //
+		{
+			// ice block
+			this.isIceBlock = lowerCaseSerial.contains("minecraft:ice");
+			
+		}
 		
 	}
 	
@@ -1199,6 +1207,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	@Override public boolean isLiquid() { return this.isLiquid; }
 	@Override public boolean isBeaconBlock() { return this.isBeaconBlock; }
 	@Override public boolean isBeaconBaseBlock() { return this.isBeaconBaseBlock; }
+	@Override public boolean isIceBlock() { return this.isIceBlock; }
 	@Override public boolean isBeaconTintBlock() { return this.beaconTintColor != null; }
 	@Override public boolean allowsBeaconBeamPassage() { return this.allowsBeaconBeamPassage; }
 	@Override public boolean allowApiColorOverride() { return this.allowApiColorOverride; }
