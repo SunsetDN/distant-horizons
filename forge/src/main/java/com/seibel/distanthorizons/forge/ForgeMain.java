@@ -106,17 +106,7 @@ public class ForgeMain extends AbstractModInitializer
 		this.tryCreateModCompatAccessor("optifine", IOptifineAccessor.class, OptifineAccessor::new);
 		this.tryCreateModCompatAccessor("oculus", IIrisAccessor.class, OculusAccessor::new);
 		IModChecker modChecker = SingletonInjector.INSTANCE.get(IModChecker.class);
-		
-		// We ideally want to detect imm_ptl_core, but 1.16.5 doesn't provide that mod id.
-		if (modChecker.isModLoaded(IImmersivePortalsAccessor.CORE_MOD_ID)
-			|| modChecker.isModLoaded(IImmersivePortalsAccessor.MOD_ID))
-		{
-			ModAccessorInjector.INSTANCE.bind(IImmersivePortalsAccessor.class, new ImmersivePortalsAccessorForge());
-		}
-		else
-		{
-			LOGGER.debug("Skipping mod compatibility accessor for: Immersive Portals");
-		}
+		this.tryCreateModCompatAccessor(IImmersivePortalsAccessor.MOD_ID_ARRAY, IImmersivePortalsAccessor.class, ImmersivePortalsAccessorForge::new);
 		
 		#if MC_VER < MC_1_17_1
 		ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
