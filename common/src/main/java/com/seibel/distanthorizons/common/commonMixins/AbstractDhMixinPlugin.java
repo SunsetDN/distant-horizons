@@ -1,5 +1,7 @@
 package com.seibel.distanthorizons.common.commonMixins;
 
+import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
+import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersivePortalsAccessor;
@@ -22,37 +24,21 @@ public abstract class AbstractDhMixinPlugin
 	{
 		if (!this.shouldApplyDhMixinInnerLogic(targetClassName, mixinClassName))
 		{
-			LOGGER.debug("Skipping DH mixin ["+mixinClassName+"] -> ["+targetClassName+"] due to DH logic.");
+			LOGGER.debug("Skip DH mixin ["+mixinClassName+"] -> ["+targetClassName+"] due to DH logic.");
 			return false;
 		}
 		
-		LOGGER.debug("Applying DH mixin ["+mixinClassName+"] -> ["+targetClassName+"]...");
+		LOGGER.debug("Apply DH mixin ["+mixinClassName+"] -> ["+targetClassName+"]...");
 		return true;
 	}
 	private boolean shouldApplyDhMixinInnerLogic(String targetClassName, String mixinClassName)
 	{
 		if (mixinClassName.endsWith("MixinImmersivePortalsRenderStates"))
 		{
-			boolean immersivePortalsPresent = false;
-			try
-			{
-				Thread.currentThread()
-					.getContextClassLoader()
-					.loadClass(IImmersivePortalsAccessor.INJECTION_CLASS);
-				immersivePortalsPresent = true;
-			}
-			catch (ClassNotFoundException ignore) { }
-			
+			boolean immersivePortalsPresent = isClassPresent(IImmersivePortalsAccessor.INJECTION_CLASS, Thread.currentThread().getContextClassLoader());
 			if (!immersivePortalsPresent)
 			{
-				try
-				{
-					Thread.currentThread()
-						.getContextClassLoader()
-						.loadClass(IImmersivePortalsAccessor.INJECTION_CLASS_1_16);
-					immersivePortalsPresent = true;
-				}
-				catch (ClassNotFoundException ignore) { }
+				immersivePortalsPresent = isClassPresent(IImmersivePortalsAccessor.INJECTION_CLASS_1_16, Thread.currentThread().getContextClassLoader());
 			}
 			
 			return immersivePortalsPresent;
@@ -60,6 +46,16 @@ public abstract class AbstractDhMixinPlugin
 		
 		return true;
 	}
+	/** 
+	 * this is used instead of class loading 
+	 * since class loading causes mixins to silently fail. 
+	 */
+	private static boolean isClassPresent(String className, ClassLoader loader) 
+	{
+		String path = className.replace('.', '/') + ".class";
+		return loader.getResource(path) != null;
+	}
+	
 	
 	
 	public boolean isNeoforge()
