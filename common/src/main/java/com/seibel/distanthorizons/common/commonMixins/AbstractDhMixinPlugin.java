@@ -9,7 +9,27 @@ public abstract class AbstractDhMixinPlugin
 {
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
+	private boolean firstRun = false;
+	private boolean isNeoforgeMixinFile;
+	
+	
+	
+	/**
+	 * @param targetClassName example: "net.minecraft.world.level.chunk.ChunkGenerator"
+	 * @param mixinClassName example: "com.seibel.distanthorizons.neoforge.mixins.server.MixinChunkGenerator"
+	 */
 	public boolean shouldApplyDhMixin(String targetClassName, String mixinClassName)
+	{
+		if (!this.shouldApplyDhMixinInnerLogic(targetClassName, mixinClassName))
+		{
+			LOGGER.debug("Skipping DH mixin ["+mixinClassName+"] -> ["+targetClassName+"] due to DH logic.");
+			return false;
+		}
+		
+		LOGGER.debug("Applying DH mixin ["+mixinClassName+"] -> ["+targetClassName+"]...");
+		return true;
+	}
+	private boolean shouldApplyDhMixinInnerLogic(String targetClassName, String mixinClassName)
 	{
 		if (mixinClassName.endsWith("MixinImmersivePortalsRenderStates"))
 		{
@@ -35,15 +55,32 @@ public abstract class AbstractDhMixinPlugin
 				catch (ClassNotFoundException ignore) { }
 			}
 			
-			if (!immersivePortalsPresent)
-			{
-				LOGGER.info("Immersive Portals not present, skipping DH compatibility mixin.");
-			}
-			
 			return immersivePortalsPresent;
 		}
 		
 		return true;
 	}
+	
+	
+	public boolean isNeoforge()
+	{
+		if (!this.firstRun)
+		{
+			// this check is necessary to prevent neoforge mixins
+			// from running on forge and vice versa
+			try
+			{
+				Class<?> cls = Class.forName("net.neoforged.fml.common.Mod"); // Check if a NeoForge exclusive class exists
+				this.isNeoforgeMixinFile = true;
+			}
+			catch (ClassNotFoundException e)
+			{
+				this.isNeoforgeMixinFile = false;
+			}
+		}
+		
+		return this.isNeoforgeMixinFile;
+	}
+	
 	
 }
