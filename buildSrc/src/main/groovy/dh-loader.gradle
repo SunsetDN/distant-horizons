@@ -442,6 +442,11 @@ if (isNotCommonProject) {
                 // TODO don't use for even more modern-er java versions
                 //"-XX:+ZGenerational",
                 rootProject.minecraftMemoryJavaArg,
+
+                // can be un-commented to confirm mixins are being applied
+                // https://github.com/SpongePowered/Mixin/wiki/Mixin-Java-System-Properties
+                //"-Dmixin.debug.export=true",
+                //"-Dmixin.debug.verbose=true",
             )
             if (isClient) 
             {
