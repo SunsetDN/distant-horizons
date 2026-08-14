@@ -108,7 +108,7 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 	public void bind()
 	{
 		GL33.glActiveTexture(GL33.GL_TEXTURE0 + GL_BOUND_INDEX);
-		GL46.glBindSampler(GL_BOUND_INDEX, 0); // MC's sampler is probably LINEAR instead of NEAREST, which causes the textures to render blurry
+		GL33.glBindSampler(GL_BOUND_INDEX, 0); // MC's sampler is probably LINEAR instead of NEAREST, which causes the textures to render blurry
 		GL33.glBindTexture(GL33.GL_TEXTURE_2D, this.textureId);
 		GL33.glActiveTexture(GL33.GL_TEXTURE0);
 	}
