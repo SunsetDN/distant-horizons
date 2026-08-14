@@ -22,7 +22,7 @@ package com.seibel.distanthorizons.common.render.openGl.terrain;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.core.dataObjects.render.textures.BlockTextureRegistry;
 import com.seibel.distanthorizons.core.render.AbstractBlockTextureAtlas;
-import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33;
 
 import java.nio.ByteBuffer;
 
@@ -67,31 +67,31 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 	//==================//
 	//region
 	
-	@Override 
+	@Override
 	protected void tryCreateOrResize(int width, int height)
 	{
 		if (this.textureId != 0)
 		{
-			GL32.glDeleteTextures(this.textureId);
+			GL33.glDeleteTextures(this.textureId);
 		}
 		
-		this.textureId = GL32.glGenTextures();
-		GL32.glBindTexture(GL32.GL_TEXTURE_2D, this.textureId);
-		GL32.glTexImage2D(
-			GL32.GL_TEXTURE_2D, 0,
-			GL32.GL_RGBA8,
-			width, height, 
+		this.textureId = GL33.glGenTextures();
+		GL33.glBindTexture(GL33.GL_TEXTURE_2D, this.textureId);
+		GL33.glTexImage2D(
+			GL33.GL_TEXTURE_2D, 0,
+			GL33.GL_RGBA8,
+			width, height,
 			0,
-			GL32.GL_RGBA, GL32.GL_UNSIGNED_BYTE, 
+			GL33.GL_RGBA, GL33.GL_UNSIGNED_BYTE,
 			(ByteBuffer) null
 		);
 		
 		// nearest filtering keeps the blocky look and prevents
 		// texels bleeding between unrelated tiles on adjacent layers
-		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MIN_FILTER, GL32.GL_NEAREST_MIPMAP_LINEAR);
-		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MAG_FILTER, GL32.GL_NEAREST);
-		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_WRAP_S, GL32.GL_REPEAT);
-		GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_WRAP_T, GL32.GL_REPEAT);
+		GL33.glTexParameteri(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MIN_FILTER, GL33.GL_NEAREST_MIPMAP_LINEAR);
+		GL33.glTexParameteri(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_MAG_FILTER, GL33.GL_NEAREST);
+		GL33.glTexParameteri(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_WRAP_S, GL33.GL_REPEAT);
+		GL33.glTexParameteri(GL33.GL_TEXTURE_2D, GL33.GL_TEXTURE_WRAP_T, GL33.GL_REPEAT);
 	}
 	
 	public int getTextureId() { return this.textureId; }
@@ -107,16 +107,17 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 	
 	public void bind()
 	{
-		GL32.glActiveTexture(GL32.GL_TEXTURE0 + GL_BOUND_INDEX);
-		GL32.glBindTexture(GL32.GL_TEXTURE_2D, this.textureId);
-		GL32.glActiveTexture(GL32.GL_TEXTURE0);
+		GL33.glActiveTexture(GL33.GL_TEXTURE0 + GL_BOUND_INDEX);
+		GL46.glBindSampler(GL_BOUND_INDEX, 0); // MC's sampler is probably LINEAR instead of NEAREST, which causes the textures to render blurry
+		GL33.glBindTexture(GL33.GL_TEXTURE_2D, this.textureId);
+		GL33.glActiveTexture(GL33.GL_TEXTURE0);
 	}
 	
 	public void unbind()
 	{
-		GL32.glActiveTexture(GL32.GL_TEXTURE0 + GL_BOUND_INDEX);
-		GL32.glBindTexture(GL32.GL_TEXTURE_2D, 0);
-		GL32.glActiveTexture(GL32.GL_TEXTURE0);
+		GL33.glActiveTexture(GL33.GL_TEXTURE0 + GL_BOUND_INDEX);
+		GL33.glBindTexture(GL33.GL_TEXTURE_2D, 0);
+		GL33.glActiveTexture(GL33.GL_TEXTURE0);
 	}
 	
 	//endregion
@@ -128,34 +129,34 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 	//===========//
 	//region
 	
-	@Override 
+	@Override
 	protected void beforeWriteToTexture()
 	{
 		this.uploadGlState.saveState();
 		
-		GL32.glBindTexture(GL32.GL_TEXTURE_2D, this.textureId);
+		GL33.glBindTexture(GL33.GL_TEXTURE_2D, this.textureId);
 		
-		GL32.glPixelStorei(GL32.GL_UNPACK_ROW_LENGTH, BlockTextureRegistry.TILE_HEIGHT_AND_WIDTH);
-		GL32.glPixelStorei(GL32.GL_UNPACK_SKIP_PIXELS, 0);
-		GL32.glPixelStorei(GL32.GL_UNPACK_SKIP_ROWS, 0);
-		GL32.glPixelStorei(GL32.GL_UNPACK_ALIGNMENT, 1);
+		GL33.glPixelStorei(GL33.GL_UNPACK_ROW_LENGTH, BlockTextureRegistry.TILE_HEIGHT_AND_WIDTH);
+		GL33.glPixelStorei(GL33.GL_UNPACK_SKIP_PIXELS, 0);
+		GL33.glPixelStorei(GL33.GL_UNPACK_SKIP_ROWS, 0);
+		GL33.glPixelStorei(GL33.GL_UNPACK_ALIGNMENT, 1);
 	}
 	
-	@Override 
+	@Override
 	protected void writeToTexture(ByteBuffer pixelBuffer, int destinationX, int destinationY, int tileWidth, int tileHeight)
 	{
-		GL32.glTexSubImage2D(
-			GL32.GL_TEXTURE_2D, 0,
+		GL33.glTexSubImage2D(
+			GL33.GL_TEXTURE_2D, 0,
 			destinationX, destinationY,
 			tileWidth, tileHeight,
-			GL32.GL_RGBA, GL32.GL_UNSIGNED_BYTE, pixelBuffer
+			GL33.GL_RGBA, GL33.GL_UNSIGNED_BYTE, pixelBuffer
 		);
 	}
 	
 	@Override
 	protected void afterWriteToTexture()
 	{
-		GL32.glGenerateMipmap(GL32.GL_TEXTURE_2D);
+		GL33.glGenerateMipmap(GL33.GL_TEXTURE_2D);
 		this.uploadGlState.close();
 	}
 	
@@ -181,24 +182,24 @@ public class GlBlockTextureAtlas extends AbstractBlockTextureAtlas
 		
 		public void saveState()
 		{
-			this.unpackRowLength = GL32.glGetInteger(GL32.GL_UNPACK_ROW_LENGTH);
-			this.unpackSkipPixels = GL32.glGetInteger(GL32.GL_UNPACK_SKIP_PIXELS);
-			this.unpackSkipRows = GL32.glGetInteger(GL32.GL_UNPACK_SKIP_ROWS);
-			this.unpackAlignment = GL32.glGetInteger(GL32.GL_UNPACK_ALIGNMENT);
+			this.unpackRowLength = GL33.glGetInteger(GL33.GL_UNPACK_ROW_LENGTH);
+			this.unpackSkipPixels = GL33.glGetInteger(GL33.GL_UNPACK_SKIP_PIXELS);
+			this.unpackSkipRows = GL33.glGetInteger(GL33.GL_UNPACK_SKIP_ROWS);
+			this.unpackAlignment = GL33.glGetInteger(GL33.GL_UNPACK_ALIGNMENT);
 			
-			GLMC.glActiveTexture(GL32.GL_TEXTURE0);
-			this.textureBinding = GL32.glGetInteger(GL32.GL_TEXTURE_BINDING_2D);
+			GLMC.glActiveTexture(GL33.GL_TEXTURE0);
+			this.textureBinding = GL33.glGetInteger(GL33.GL_TEXTURE_BINDING_2D);
 		}
 		
-		@Override 
+		@Override
 		public void close()
 		{
-			GL32.glBindTexture(GL32.GL_TEXTURE_2D, this.textureBinding);
+			GL33.glBindTexture(GL33.GL_TEXTURE_2D, this.textureBinding);
 			
-			GL32.glPixelStorei(GL32.GL_UNPACK_ROW_LENGTH, this.unpackRowLength);
-			GL32.glPixelStorei(GL32.GL_UNPACK_SKIP_PIXELS, this.unpackSkipPixels);
-			GL32.glPixelStorei(GL32.GL_UNPACK_SKIP_ROWS, this.unpackSkipRows);
-			GL32.glPixelStorei(GL32.GL_UNPACK_ALIGNMENT, this.unpackAlignment);
+			GL33.glPixelStorei(GL33.GL_UNPACK_ROW_LENGTH, this.unpackRowLength);
+			GL33.glPixelStorei(GL33.GL_UNPACK_SKIP_PIXELS, this.unpackSkipPixels);
+			GL33.glPixelStorei(GL33.GL_UNPACK_SKIP_ROWS, this.unpackSkipRows);
+			GL33.glPixelStorei(GL33.GL_UNPACK_ALIGNMENT, this.unpackAlignment);
 		}
 		
 	}
