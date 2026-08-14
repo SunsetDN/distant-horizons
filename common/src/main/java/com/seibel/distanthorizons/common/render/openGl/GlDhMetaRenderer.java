@@ -19,11 +19,13 @@ import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.render.DhApiRenderProxy;
+import com.seibel.distanthorizons.core.render.EDhRenderDepth;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.ILightMapWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IOptifineAccessor;
+import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhMetaRenderer;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.OverrideInjector;
@@ -46,6 +48,7 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 	
 	private static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
 	private static final MinecraftGLWrapper GLMC = MinecraftGLWrapper.INSTANCE;
+	private static final AbstractDhRenderApiDefinition RENDER_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 	
 	private static final IOptifineAccessor OPTIFINE_ACCESSOR = ModAccessorInjector.INSTANCE.get(IOptifineAccessor.class);
 	private static final IIrisAccessor IRIS_ACCESSOR = ModAccessorInjector.INSTANCE.get(IIrisAccessor.class);
@@ -178,7 +181,14 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		
 		// Enable depth test and depth mask
 		GLMC.enableDepthTest();
-		GLMC.glDepthFunc(GL33.GL_LESS);
+		if (RENDER_DEF.getRenderDepth() == EDhRenderDepth.FORWARD_Z)
+		{
+			GLMC.glDepthFunc(GL33.GL_LESS);
+		}
+		else
+		{
+			GLMC.glDepthFunc(GL33.GL_GREATER);
+		}
 		GLMC.enableDepthMask();
 		
 		// don't change the viewport size when Iris is rendering the shadow pass
@@ -246,7 +256,8 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		boolean clearTextures = !ApiEventInjector.INSTANCE.fireAllEvents(DhApiBeforeTextureClearEvent.class, renderEventParam);
 		if (clearTextures)
 		{
-			GL33.glClearDepth(1.0);
+			float clearDepth = RENDER_DEF.getRenderDepth().farDepth;
+			GL33.glClearDepth(clearDepth);
 			
 			float[] clearColorValues = new float[4];
 			GL33.glGetFloatv(GL33.GL_COLOR_CLEAR_VALUE, clearColorValues);
@@ -451,7 +462,8 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		
 		
 		
-		GL33.glClearDepth(1.0);
+		float clearDepth = RENDER_DEF.getRenderDepth().farDepth;
+		GL33.glClearDepth(clearDepth);
 		
 		float[] clearColorValues = new float[4];
 		GL33.glGetFloatv(GL33.GL_COLOR_CLEAR_VALUE, clearColorValues);
