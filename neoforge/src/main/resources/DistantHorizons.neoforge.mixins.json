@@ -18,6 +18,7 @@
     "client.MixinChunkSectionsToRender",
     "client.MixinGameRenderer",
     "client.MixinImmersivePortalsRenderStates",
+    "client.MixinIrisFrameBuffer",
     "client.MixinLevelRenderer",
     "client.MixinLightTexture",
     "client.MixinMinecraft",

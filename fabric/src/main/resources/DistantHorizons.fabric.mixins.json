@@ -18,6 +18,7 @@
     "client.MixinFogRenderer",
     "client.MixinGameRenderer",
     "client.MixinImmersivePortalsRenderStates",
+    "client.MixinIrisFrameBuffer",
     "client.MixinLevelRenderer",
     "client.MixinChunkSectionsToRender",
     "client.MixinLightTexture",

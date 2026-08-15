@@ -19,7 +19,8 @@
 
 package com.seibel.distanthorizons.fabric.wrappers.modAccessor;
 
-#if MC_VER >= MC_1_19_4
+#if MC_VER <= MC_1_18_2
+#else // MC_1_19_4 and newer
 
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 

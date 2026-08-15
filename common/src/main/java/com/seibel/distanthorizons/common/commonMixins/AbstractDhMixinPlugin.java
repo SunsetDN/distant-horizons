@@ -5,6 +5,7 @@ import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersivePortalsAccessor;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker;
 
 public abstract class AbstractDhMixinPlugin
@@ -33,6 +34,7 @@ public abstract class AbstractDhMixinPlugin
 	}
 	private boolean shouldApplyDhMixinInnerLogic(String targetClassName, String mixinClassName)
 	{
+		// immersive portals
 		if (mixinClassName.endsWith("MixinImmersivePortalsRenderStates"))
 		{
 			boolean immersivePortalsPresent = isClassPresent(IImmersivePortalsAccessor.INJECTION_CLASS, Thread.currentThread().getContextClassLoader());
@@ -42,6 +44,13 @@ public abstract class AbstractDhMixinPlugin
 			}
 			
 			return immersivePortalsPresent;
+		}
+		
+		// iris
+		if (mixinClassName.endsWith("MixinIrisFrameBuffer"))
+		{
+			boolean irisPresent = isClassPresent(IIrisAccessor.FRAMEBUFFER_MIXIN_CLASS, Thread.currentThread().getContextClassLoader());
+			return irisPresent;
 		}
 		
 		return true;
