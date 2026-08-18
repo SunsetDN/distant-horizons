@@ -101,7 +101,7 @@ public abstract class AbstractImmersivePortalsAccessorCommon extends AbstractImm
 					"Distant Horizons' mixin into Immersive Portals\n" +
 					"hasn't run, Disant Horizons rendering may\n" +
 					"fail or look corrupted.\n";
-			ClientApi.INSTANCE.queueChatMessage(message);
+			ClientApi.INSTANCE.queueSlowChatMessage(message);
 			
 			LOGGER.warn("Immersive Portals mixin run within the expected time period, rendering may fail or look corrupted.");
 		}
