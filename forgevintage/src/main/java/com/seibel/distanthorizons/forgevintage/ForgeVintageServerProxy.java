@@ -25,6 +25,7 @@ import com.seibel.distanthorizons.common.commonMixins.MixinChunkMapCommon;
 import com.seibel.distanthorizons.common.util.ProxyUtil;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import com.seibel.distanthorizons.common.wrappers.misc.ServerPlayerWrapper;
+import com.seibel.distanthorizons.common.util.threading.ServerThreadTaskHandler;
 import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.InternalServerGenerator;
 import com.seibel.distanthorizons.core.api.internal.ServerApi;
@@ -45,6 +46,9 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+
+import java.util.concurrent.TimeUnit;
 
 public class ForgeVintageServerProxy implements AbstractModInitializer.IEventProxy
 {
@@ -85,6 +89,15 @@ public class ForgeVintageServerProxy implements AbstractModInitializer.IEventPro
 	// events //
 	//========//
 	//region
+
+	@SubscribeEvent
+	public void serverTickEvent(TickEvent.ServerTickEvent event)
+	{
+		if (event.phase == TickEvent.Phase.END)
+		{
+			ServerThreadTaskHandler.INSTANCE.runTasks(TimeUnit.MILLISECONDS.toNanos(15));
+		}
+	}
 	
 	// ServerLevelLoadEvent
 	@SubscribeEvent

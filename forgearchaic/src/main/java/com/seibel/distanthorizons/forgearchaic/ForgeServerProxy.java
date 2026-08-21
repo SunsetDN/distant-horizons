@@ -1,13 +1,9 @@
 package com.seibel.distanthorizons.forgearchaic;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 import com.seibel.distanthorizons.common.commonMixins.MixinChunkMapCommon;
-import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modLoader.IForgeServerProxy;
+import com.seibel.distanthorizons.common.util.threading.ServerThreadTaskHandler;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -34,11 +30,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 
-public class ForgeServerProxy implements AbstractModInitializer.IEventProxy, IForgeServerProxy 
+public class ForgeServerProxy implements AbstractModInitializer.IEventProxy
 {
-	private static final ConcurrentLinkedQueue<ScheduledTask<?>> TASK_QUEUE = new ConcurrentLinkedQueue<>();
-	
-	
     private final boolean isDedicated;
 	
 	
@@ -52,13 +45,6 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy, IFo
     { 
 		this.isDedicated = isDedicated;
 	    
-		// this throw may not be necessary, although binding a singleton twice
-	    // is problematic
-		if (SingletonInjector.INSTANCE.get(IForgeServerProxy.class) != null)
-		{
-			throw new UnsupportedOperationException("Multiple ["+IForgeServerProxy.class.getName()+"] have been created.");
-		}
-	    SingletonInjector.INSTANCE.bind(IForgeServerProxy.class, this);
     }
 	
 	@Override
@@ -86,17 +72,7 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy, IFo
 	
 	public static void serverStopping()
 	{
-		// clear the task queue
-		while (!TASK_QUEUE.isEmpty())
-		{
-			ScheduledTask<?> scheduledTask = TASK_QUEUE.poll();
-			if (scheduledTask == null)
-			{
-				continue;
-			}
-			
-			scheduledTask.future.complete(null);
-		}
+		ServerThreadTaskHandler.INSTANCE.cancelPendingTasks();
 	}
 
     // ServerTickEvent (at end)
@@ -105,33 +81,7 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy, IFo
     {
 		if (event.phase == TickEvent.Phase.END)
 	    {
-		    // limit how many tasks we can run at a time
-		    // to prevent lagging the server thread
-		    long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(15);
-		    boolean processedAtLeastOne = false;
-		    while (!TASK_QUEUE.isEmpty())
-		    {
-			    ScheduledTask<?> scheduledTask = TASK_QUEUE.poll();
-			    if (scheduledTask == null)
-			    {
-				    continue;
-			    }
-			    
-			    scheduledTask.run();
-			    
-				// TODO why do we ignore the timeout if the current task is "limited"?
-			    if (scheduledTask.limited)
-			    {
-				    if (!processedAtLeastOne)
-				    {
-					    processedAtLeastOne = true;
-				    }
-				    else if (System.nanoTime() >= deadline)
-				    {
-					    break;
-				    }
-			    }
-		    }
+		    ServerThreadTaskHandler.INSTANCE.runTasks(TimeUnit.MILLISECONDS.toNanos(15));
 		}
 	}
 
@@ -211,7 +161,7 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy, IFo
 			return;
 		}
 		
-		scheduleTickTask(false, () ->
+		ServerThreadTaskHandler.INSTANCE.queueTask(false, () ->
 		{
 			Chunk chunk = event.world.getChunkFromBlockCoords(event.x, event.z);
 			ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, wrappedLevel);
@@ -228,14 +178,6 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy, IFo
     // helper methods //
     //================//
 	//region
-	
-	@Override
-	public <T> CompletableFuture<T> scheduleTickTask(boolean limited, Supplier<T> task)
-	{
-		CompletableFuture<T> future = new CompletableFuture<>();
-		TASK_QUEUE.add(new ScheduledTask<>(task, future, limited));
-		return future;
-	}
 	
 	private static World GetEventLevel(WorldEvent e) { return e.world; }
 	
@@ -281,39 +223,5 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy, IFo
 			this.level = level;
 		}
 	}
-	
-	private static class ScheduledTask<T>
-	{
-		private final Supplier<T> task;
-		private final CompletableFuture<T> future;
-		
-		// TODO what does this mean?
-		public final boolean limited;
-		
-		
-		public ScheduledTask(Supplier<T> task, CompletableFuture<T> future, boolean limited)
-		{
-			this.task = task;
-			this.future = future;
-			this.limited = limited;
-		}
-		
-		
-		public void run()
-		{
-			try
-			{
-				this.future.complete(this.task.get());
-			}
-			catch (Throwable e)
-			{
-				this.future.completeExceptionally(e);
-			}
-		}
-	}
-	
-	//endregion
-	
-	
 	
 }

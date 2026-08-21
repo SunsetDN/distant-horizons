@@ -1,6 +1,7 @@
 package com.seibel.distanthorizons.common.wrappers.worldGeneration;
 
 import com.seibel.distanthorizons.api.DhApi;
+import com.seibel.distanthorizons.common.util.threading.ServerThreadTaskHandler;
 import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import com.seibel.distanthorizons.common.wrappers.modAccessor.IHodgePodgeCommonAccessor;
@@ -24,7 +25,6 @@ import com.seibel.distanthorizons.core.util.TimerUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.chunk.IChunkWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IC2meAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modLoader.IForgeMain;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modLoader.IForgeServerProxy;
 import com.seibel.distanthorizons.coreapi.ModInfo;
 
 import org.jetbrains.annotations.Nullable;
@@ -56,12 +56,10 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 #endif
 
 import java.util.*;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 #if MC_VER <= MC_1_7_10
 import java.lang.reflect.Field;
@@ -80,7 +78,6 @@ public class InternalServerGenerator
 			.build();
 	
 	#if MC_VER <= MC_1_7_10
-	private static final IForgeServerProxy FORGE_SERVER_PROXY = SingletonInjector.INSTANCE.get(IForgeServerProxy.class);
 	private static final IForgeMain FORGE_MAIN = SingletonInjector.INSTANCE.get(IForgeMain.class);
 	#else
 	#endif
@@ -125,8 +122,6 @@ public class InternalServerGenerator
 	private final Timer chunkSaveIgnoreTimer = TimerUtil.CreateTimer("ChunkSaveIgnoreTimer");
 	#if MC_VER <= MC_1_7_10
 	private final ForgeChunkManager.Ticket dhServerGenTicket;
-	#elif MC_VER <= MC_1_12_2
-	private static final java.util.concurrent.Semaphore chunkRequestSemaphore = new java.util.concurrent.Semaphore(20);
 	#endif
 
 	#if MC_VER <= MC_1_12_2
@@ -221,30 +216,6 @@ public class InternalServerGenerator
 	/** @return true if no generation event currently needs the given pos loaded. */
 	private boolean chunkRefCountIsZero(DhChunkPos chunkPos) { return !this.generationChunkRefCountMap.containsKey(chunkPos); }
 
-	/**
-	 * Runs the given task on the server thread. <br>
-	 * Every version has its own way of queuing up server thread tasks, this hides that difference. <br><br>
-	 */
-	private <T> CompletableFuture<T> supplyOnServerThreadAsync(boolean limited, Supplier<T> task)
-	{
-		#if MC_VER <= MC_1_7_10
-		return FORGE_SERVER_PROXY.scheduleTickTask(limited, task);
-		#else
-		CompletableFuture<T> future = new CompletableFuture<>();
-		this.params.mcServerLevel.getMinecraftServer().addScheduledTask(() ->
-		{
-			try
-			{
-				future.complete(task.get());
-			}
-			catch (Throwable e)
-			{
-				future.completeExceptionally(e);
-			}
-		});
-		return future;
-		#endif
-	}
 	#endif
 	
 	
@@ -270,29 +241,10 @@ public class InternalServerGenerator
 			#endif
 			
 			{
-				#if MC_VER == MC_1_12_2
-				while (!isServerHealthy())
-				{
-					try
-					{
-						// Don't submit request until server tps is healthy
-						Thread.sleep(50);
-					}
-					catch (InterruptedException e)
-					{
-						throw new CancellationException("Interrupted while waiting for server");
-					}
-				}
-				#endif
-				
 				Iterator<ChunkPos> chunkPosIterator = ChunkPosGenStream.getIterator(genEvent.minPos.getX(), genEvent.minPos.getZ(), genEvent.widthInChunks, 0);
 				while (chunkPosIterator.hasNext())
 				{
 					ChunkPos chunkPos = chunkPosIterator.next();
-					
-					#if MC_VER == MC_1_12_2
-					chunkRequestSemaphore.acquireUninterruptibly();
-					#endif
 					
 					#if MC_VER <= MC_1_12_2
 					CompletableFuture<Chunk> requestChunkFuture;
@@ -306,9 +258,6 @@ public class InternalServerGenerator
 							.whenCompleteAsync(
 								(chunk, throwable) ->
 								{
-									#if MC_VER == MC_1_12_2
-									chunkRequestSemaphore.release();
-									#endif
 									// unwrap the CompletionException if necessary
 									Throwable actualThrowable = throwable;
 									while (actualThrowable instanceof CompletionException)
@@ -414,7 +363,7 @@ public class InternalServerGenerator
 			
 			// tick after all unloads are queued so MC actually frees the chunks
 			#if MC_VER <= MC_1_12_2
-			CompletableFuture<Void> tickFuture = this.supplyOnServerThreadAsync(false, () ->
+			CompletableFuture<Void> tickFuture = ServerThreadTaskHandler.INSTANCE.queueTask(false, () ->
 			{
 				ChunkProviderServer provider = (ChunkProviderServer) this.params.mcServerLevel.getChunkProvider();
 				// Each pump frees a limited number of chunks so several are generally needed,
@@ -515,7 +464,7 @@ public class InternalServerGenerator
 			
 			// limited, since loading a chunk is slow enough that the server thread
 			// may need to push the remaining requests to a later tick
-			return this.supplyOnServerThreadAsync(true, () ->
+			return ServerThreadTaskHandler.INSTANCE.queueTask(true, () ->
 			{
 				ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
 				
@@ -636,7 +585,7 @@ public class InternalServerGenerator
 	#endif
 	{
 		#if MC_VER <= MC_1_12_2
-		return this.supplyOnServerThreadAsync(false, () ->
+		return ServerThreadTaskHandler.INSTANCE.queueTask(false, () ->
 		{
 			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
 			
@@ -732,31 +681,5 @@ public class InternalServerGenerator
 		return removeTicketFuture;
 		#endif
 	}
-	
-	
-	
-	//======//
-	// misc //
-	//======//
-	
-	#if MC_VER == MC_1_12_2
-	private boolean isServerHealthy()
-	{
-		if(this.params.mcServerLevel.getMinecraftServer() == null) 
-		{
-	        return false; 
-	    }
-		
-		long[] ticks = this.params.mcServerLevel.getMinecraftServer().tickTimeArray;
-		long[] sorted = ticks.clone();
-		Arrays.sort(sorted);
-		
-		int p99Index = (int)Math.ceil(0.99 * sorted.length) - 1;
-		double p99Ms  = sorted[Math.max(0, p99Index)] * 1e-6;
-		double avgMs  = Arrays.stream(sorted).average().orElse(0) * 1e-6;
-		
-		return avgMs < 20.0 && p99Ms < 50.0;
-	}
-	#endif
 	
 }

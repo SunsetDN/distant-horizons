@@ -31,6 +31,7 @@ import com.seibel.distanthorizons.forgevintage.modCompat.thermaldynamics.Thermal
 import com.seibel.distanthorizons.common.AbstractModInitializer;
 import com.seibel.distanthorizons.common.commands.CommandInitializer;
 import com.seibel.distanthorizons.core.api.internal.ServerApi;
+import com.seibel.distanthorizons.common.util.threading.ServerThreadTaskHandler;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IPluginPacketSender;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker;
@@ -164,6 +165,7 @@ public class ForgeVintageMain extends AbstractModInitializer
 	@Mod.EventHandler
 	public void serverWorldUnloadEvent(FMLServerStoppingEvent event)
 	{
+		ServerThreadTaskHandler.INSTANCE.cancelPendingTasks();
 		ServerApi.INSTANCE.serverUnloadEvent();
 	}
 	
