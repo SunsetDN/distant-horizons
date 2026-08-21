@@ -96,6 +96,15 @@ public class InternalServerGenerator
 	 */
 	private static final int MS_TO_IGNORE_CHUNK_AFTER_COMPLETION = 5_000;
 	
+	#if MC_VER <= MC_1_7_10
+	/**
+	 * How many times the chunk unload queue is pumped after a generation event finishes.
+	 * Each pump frees a limited number of chunks so several are generally needed,
+	 * but we want to avoid an endless loop.
+	 */
+	private static final int MAX_UNLOAD_DRAIN_ATTEMPT_COUNT = 100;
+	#endif
+	
 	#if MC_VER <= MC_1_12_2
 	#elif MC_VER < MC_1_21_5
 	private static final TicketType<ChunkPos> DH_SERVER_GEN_TICKET = TicketType.create("dh_server_gen_ticket", Comparator.comparingLong(ChunkPos::toLong));
@@ -398,7 +407,22 @@ public class InternalServerGenerator
 			}
 			
 			// tick after all unloads are queued
-            #if MC_VER == MC_1_12_2
+			#if MC_VER <= MC_1_7_10
+			CompletableFuture<Void> tickFuture = FORGE_SERVER_PROXY.scheduleTickTask(false, () ->
+			{
+				ChunkProviderServer provider = (ChunkProviderServer) this.params.mcServerLevel.getChunkProvider();
+				// Each pump frees a limited number of chunks so several are generally needed,
+				//but we want to avoid an endless loop.
+				int remainingDrainAttemptCount = MAX_UNLOAD_DRAIN_ATTEMPT_COUNT;
+				while (!provider.droppedChunksSet.isEmpty() && remainingDrainAttemptCount-- > 0)
+				{
+					provider.unloadQueuedChunks();
+				}
+				
+				return null;
+			});
+			tickFuture.join();
+			#elif MC_VER == MC_1_12_2
 			CompletableFuture<Void> tickFuture = new CompletableFuture<>();
 			this.params.mcServerLevel.getMinecraftServer().addScheduledTask(() ->
 			{
@@ -416,7 +440,7 @@ public class InternalServerGenerator
 				}
 			});
 			tickFuture.join();
-            #endif
+			#endif
     
             #if MC_VER == MC_1_12_2
 			for (ChunkPos neighborPos : neighborIgnoreChunkPosSet)
@@ -663,11 +687,12 @@ public class InternalServerGenerator
 					{
 						HODGE_PODGE_ACCESSOR.allowChunkSimulation(level, neighborPosX, neighborPosZ);
 					}
+					// don't unload chunks a player is watching, MC still owns those.
+					// this mirrors the same guard vanilla uses in WorldServer.saveAllChunks().
 					if (!level.getPlayerManager().func_152621_a(neighborPosX, neighborPosZ))
 					{
-						// TODO should unloadChunksIfNotNearSpawn be implemented for MC 1.7.10?
-						throw new UnsupportedOperationException("should unloadChunksIfNotNearSpawn be implemented for MC 1.7.10?");
-						//provider.unloadChunksIfNotNearSpawn(neighborPosX, neighborPosZ);
+						// only queues the chunk for unload, unloadQueuedChunks() below actually frees it
+						provider.dropChunk(neighborPosX, neighborPosZ);
 					}
 					this.scheduleRemovePosToIgnore(new DhChunkPos(neighborPosX, neighborPosZ));
 				}
