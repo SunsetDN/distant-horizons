@@ -305,7 +305,7 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy, IFo
 			{
 				this.future.complete(this.task.get());
 			}
-			catch (Exception e)
+			catch (Throwable e)
 			{
 				this.future.completeExceptionally(e);
 			}
