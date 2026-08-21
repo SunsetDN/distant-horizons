@@ -509,26 +509,23 @@ public class InternalServerGenerator
 			level.getMinecraftServer().addScheduledTask(() ->
 			#endif
 			{
-				#if MC_VER <= MC_1_7_10
 				ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
-				if (HODGE_PODGE_ACCESSOR != null)
-				{
-					HODGE_PODGE_ACCESSOR.preventChunkSimulation(level, chunkPos.x, chunkPos.z);
-				}
-				ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x, chunkPos.z));
-				#else
-				ChunkProviderServer provider = level.getChunkProvider();
-				#endif
 				
-				// load neighbors first so the target chunk can fully populate
+				// load neighbors first so the target chunk can fully populate.
+				// adjacent generation events share these border chunks, so a reference count
+				// is used to only load each chunk once and to track who still needs it.
 				for (int dx = -1; dx <= 1; dx++)
 				{
 					for (int dz = -1; dz <= 1; dz++)
 					{
-						if (dx == 0 && dz == 0) continue;
-						
 						int neighborPosX = chunkPos.x + dx;
 						int neighborPosZ = chunkPos.z + dz;
+						
+						if (!this.acquireChunkRef(new DhChunkPos(neighborPosX, neighborPosZ)))
+						{
+							// another generation event already has this chunk loaded
+							continue;
+						}
 						
 						if (this.updateManager != null)
 						{
@@ -541,6 +538,15 @@ public class InternalServerGenerator
 							HODGE_PODGE_ACCESSOR.preventChunkSimulation(level, neighborPosX, neighborPosZ);
 						}
 						ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(neighborPosX, neighborPosZ));
+						#endif
+						
+						// the target chunk itself is loaded below, at the requested generation step
+						if (dx == 0 && dz == 0)
+						{
+							continue;
+						}
+						
+						#if MC_VER <= MC_1_7_10
 						if (!provider.chunkExists(neighborPosX, neighborPosZ))
 						{
 							provider.loadChunk(neighborPosX, neighborPosZ);
