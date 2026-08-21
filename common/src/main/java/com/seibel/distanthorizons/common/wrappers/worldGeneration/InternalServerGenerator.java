@@ -61,6 +61,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 #if MC_VER <= MC_1_7_10
 import java.lang.reflect.Field;
@@ -96,7 +97,7 @@ public class InternalServerGenerator
 	 */
 	private static final int MS_TO_IGNORE_CHUNK_AFTER_COMPLETION = 5_000;
 	
-	#if MC_VER <= MC_1_7_10
+	#if MC_VER <= MC_1_12_2
 	/**
 	 * How many times the chunk unload queue is pumped after a generation event finishes.
 	 * Each pump frees a limited number of chunks so several are generally needed,
@@ -219,6 +220,31 @@ public class InternalServerGenerator
 	
 	/** @return true if no generation event currently needs the given pos loaded. */
 	private boolean chunkRefCountIsZero(DhChunkPos chunkPos) { return !this.generationChunkRefCountMap.containsKey(chunkPos); }
+
+	/**
+	 * Runs the given task on the server thread. <br>
+	 * Every version has its own way of queuing up server thread tasks, this hides that difference. <br><br>
+	 */
+	private <T> CompletableFuture<T> supplyOnServerThreadAsync(boolean limited, Supplier<T> task)
+	{
+		#if MC_VER <= MC_1_7_10
+		return FORGE_SERVER_PROXY.scheduleTickTask(limited, task);
+		#else
+		CompletableFuture<T> future = new CompletableFuture<>();
+		this.params.mcServerLevel.getMinecraftServer().addScheduledTask(() ->
+		{
+			try
+			{
+				future.complete(task.get());
+			}
+			catch (Throwable e)
+			{
+				future.completeExceptionally(e);
+			}
+		});
+		return future;
+		#endif
+	}
 	#endif
 	
 	
@@ -367,42 +393,17 @@ public class InternalServerGenerator
 		finally
 		{
 			ArrayList<CompletableFuture<Void>> releaseFutures = new ArrayList<>();
-			#if MC_VER == MC_1_12_2
-			Set<ChunkPos> neighborIgnoreChunkPosSet = new HashSet<>();
-			#endif
-			
-			// release all chunks from the server to prevent out of memory issues
+
+			// release all chunks from the server to prevent out of memory issues.
+			// on versions <= 1.12.2 each release also covers that chunk's neighbors,
+			// which were acquired in requestChunkFromServerAsync.
 			Iterator<ChunkPos> chunkPosIterator = ChunkPosGenStream.getIterator(genEvent.minPos.getX(), genEvent.minPos.getZ(), genEvent.widthInChunks, 0);
 			while (chunkPosIterator.hasNext())
 			{
 				ChunkPos chunkPos = chunkPosIterator.next();
 				releaseFutures.add(this.releaseChunkFromServerAsync(this.params.mcServerLevel, chunkPos));
-        
-                #if MC_VER == MC_1_12_2
-				// collect unique neighbor positions for release and ignore removal
-				for (int dx = -1; dx <= 1; dx++)
-				{
-					for (int dz = -1; dz <= 1; dz++)
-					{
-						if (dx == 0 && dz == 0)
-						{
-							continue;
-						}
-						
-						neighborIgnoreChunkPosSet.add(new ChunkPos(chunkPos.x + dx, chunkPos.z + dz));
-					}
-				}
-                #endif
 			}
-    
-            #if MC_VER == MC_1_12_2
-			// release neighbor chunks that were loaded in requestChunkFromServerAsync
-			for (ChunkPos neighborPos : neighborIgnoreChunkPosSet)
-			{
-				releaseFutures.add(this.releaseChunkFromServerAsync(this.params.mcServerLevel, neighborPos));
-			}
-            #endif
-			
+
 			// wait for all release futures to finish to prevent an issue where DH queues
 			// tickets faster than MC can clear them out
 			for (int i = 0; i < releaseFutures.size(); i++)
@@ -411,58 +412,30 @@ public class InternalServerGenerator
 				releaseFuture.join();
 			}
 			
-			// tick after all unloads are queued
-			#if MC_VER <= MC_1_7_10
-			CompletableFuture<Void> tickFuture = FORGE_SERVER_PROXY.scheduleTickTask(false, () ->
+			// tick after all unloads are queued so MC actually frees the chunks
+			#if MC_VER <= MC_1_12_2
+			CompletableFuture<Void> tickFuture = this.supplyOnServerThreadAsync(false, () ->
 			{
 				ChunkProviderServer provider = (ChunkProviderServer) this.params.mcServerLevel.getChunkProvider();
 				// Each pump frees a limited number of chunks so several are generally needed,
-				//but we want to avoid an endless loop.
+				// but we want to avoid an endless loop.
 				int remainingDrainAttemptCount = MAX_UNLOAD_DRAIN_ATTEMPT_COUNT;
+				#if MC_VER <= MC_1_7_10
 				while (!provider.droppedChunksSet.isEmpty() && remainingDrainAttemptCount-- > 0)
 				{
 					provider.unloadQueuedChunks();
 				}
-				
+				#else
+				while (!provider.droppedChunks.isEmpty() && remainingDrainAttemptCount-- > 0)
+				{
+					provider.tick();
+				}
+				#endif
+
 				return null;
 			});
 			tickFuture.join();
-			#elif MC_VER == MC_1_12_2
-			CompletableFuture<Void> tickFuture = new CompletableFuture<>();
-			this.params.mcServerLevel.getMinecraftServer().addScheduledTask(() ->
-			{
-				try
-				{
-					ChunkProviderServer provider = this.params.mcServerLevel.getChunkProvider();
-					while (!provider.droppedChunks.isEmpty())
-					{
-						provider.tick();
-					}
-				}
-				finally
-				{
-					tickFuture.complete(null);
-				}
-			});
-			tickFuture.join();
 			#endif
-    
-            #if MC_VER == MC_1_12_2
-			for (ChunkPos neighborPos : neighborIgnoreChunkPosSet)
-			{
-				this.chunkSaveIgnoreTimer.schedule(new TimerTask()
-				{
-					@Override
-					public void run()
-					{
-						if (InternalServerGenerator.this.updateManager != null)
-						{
-							InternalServerGenerator.this.updateManager.removePosToIgnore(McObjectConverter.convert(neighborPos));
-						}
-					}
-				}, MS_TO_IGNORE_CHUNK_AFTER_COMPLETION);
-			}
-            #endif
 		}
 	}
 	private void runValidation()
@@ -540,12 +513,9 @@ public class InternalServerGenerator
 				this.updateManager.addPosToIgnore(McObjectConverter.convert(chunkPos));
 			}
 			
-			#if MC_VER <= MC_1_7_10
-			CompletableFuture<Chunk> future = FORGE_SERVER_PROXY.scheduleTickTask(true, () ->
-			#else
-			CompletableFuture<Chunk> future = new CompletableFuture<>();
-			level.getMinecraftServer().addScheduledTask(() ->
-			#endif
+			// limited, since loading a chunk is slow enough that the server thread
+			// may need to push the remaining requests to a later tick
+			return this.supplyOnServerThreadAsync(true, () ->
 			{
 				ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
 				
@@ -598,15 +568,13 @@ public class InternalServerGenerator
 					}
 				}
 				
+				// load the target chunk itself, at the requested generation step
 				#if MC_VER <= MC_1_7_10
 				return provider.loadChunk(chunkPos.x, chunkPos.z);
 				#else
-				Chunk chunk = provider.provideChunk(chunkPos.x, chunkPos.z);
-				future.complete(chunk);
+				return provider.provideChunk(chunkPos.x, chunkPos.z);
 				#endif
 			});
-			
-			return future;
 		}
 		#else
 		{
@@ -667,8 +635,8 @@ public class InternalServerGenerator
 	private CompletableFuture<Void> releaseChunkFromServerAsync(ServerLevel level, ChunkPos chunkPos)
 	#endif
 	{
-		#if MC_VER <= MC_1_7_10
-		return FORGE_SERVER_PROXY.scheduleTickTask(false, () ->
+		#if MC_VER <= MC_1_12_2
+		return this.supplyOnServerThreadAsync(false, () ->
 		{
 			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
 			
@@ -680,13 +648,17 @@ public class InternalServerGenerator
 				{
 					int neighborPosX = chunkPos.x + dx;
 					int neighborPosZ = chunkPos.z + dz;
-					
-					if (!this.releaseChunkRef(new DhChunkPos(neighborPosX, neighborPosZ)))
+					DhChunkPos neighborDhPos = new DhChunkPos(neighborPosX, neighborPosZ);
+
+					if (!this.releaseChunkRef(neighborDhPos))
 					{
 						// another generation event still needs this chunk loaded
 						continue;
 					}
-					
+
+					// in both cases the chunk is only queued for unload here, it's actually
+					// freed by the drain once the whole generation event is done
+					#if MC_VER <= MC_1_7_10
 					ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(neighborPosX, neighborPosZ));
 					if (HODGE_PODGE_ACCESSOR != null)
 					{
@@ -696,10 +668,17 @@ public class InternalServerGenerator
 					// this mirrors the same guard vanilla uses in WorldServer.saveAllChunks().
 					if (!level.getPlayerManager().func_152621_a(neighborPosX, neighborPosZ))
 					{
-						// only queues the chunk for unload, unloadQueuedChunks() below actually frees it
 						provider.dropChunk(neighborPosX, neighborPosZ);
 					}
-					this.scheduleRemovePosToIgnore(new DhChunkPos(neighborPosX, neighborPosZ));
+					#else
+					Chunk chunk = provider.getLoadedChunk(neighborPosX, neighborPosZ);
+					if (chunk != null)
+					{
+						provider.queueUnload(chunk);
+					}
+					#endif
+
+					this.scheduleRemovePosToIgnore(neighborDhPos);
 				}
 			}
 
@@ -707,40 +686,27 @@ public class InternalServerGenerator
 		});
 		#else
 		CompletableFuture<Void> removeTicketFuture = new CompletableFuture<>();
-		#if MC_VER <= MC_1_12_2
-		level.getMinecraftServer().addScheduledTask(() ->
-		#else
 		level.getChunkSource().chunkMap.mainThreadExecutor.execute(() ->
-		#endif
 		{
 			try
 			{
-				#if MC_VER <= MC_1_12_2
-				ChunkProviderServer provider = level.getChunkProvider();
-				
-				Chunk chunk = provider.getLoadedChunk(chunkPos.x, chunkPos.z);
-				if (chunk != null)
-				{
-					provider.queueUnload(chunk);
-				}
-				#elif MC_VER < MC_1_21_5
+				#if MC_VER < MC_1_21_5
 				int chunkLevel = 33; // 33 is equivalent to FULL Chunk
 				level.getChunkSource().distanceManager.removeTicket(DH_SERVER_GEN_TICKET, chunkPos, chunkLevel, chunkPos);
 				#else
 				level.getChunkSource().removeTicketWithRadius(DH_SERVER_GEN_TICKET, chunkPos, 0);
 				#endif
-				
-				#if MC_VER > MC_1_12_2
+
 				level.getChunkSource().chunkMap.tick(() -> false);
-				#endif
-				
+
 				#if MC_VER > MC_1_16_5
 				level.entityManager.tick();
 				#endif
-				
-				
+
+
 				// give MC a few seconds to save the chunk before
 				// we can process update events there again
+				// (versions <= 1.12.2 do this per released pos instead)
 				this.chunkSaveIgnoreTimer.schedule(new TimerTask()
 				{
 					@Override
@@ -752,7 +718,7 @@ public class InternalServerGenerator
 						}
 					}
 				}, MS_TO_IGNORE_CHUNK_AFTER_COMPLETION);
-				
+
 			}
 			catch (Exception e)
 			{
