@@ -688,19 +688,22 @@ if (isNotCommonProject) {
     tasks.register("convertJsonToLang") {
         dependsOn(copyCoreResources)
 
-        File input = project.file("build/resources/main/assets/distanthorizons/lang/en_us.json")
-        File output = project.file("build/resources/main/assets/distanthorizons/lang/en_us.lang")
-        inputs.file(input)
-        outputs.file(output)
+        File inputDirectory = project.file("build/resources/main/assets/distanthorizons/lang")
+        File outputDirectory = inputDirectory
+        inputs.dir(project(":core").file("src/main/resources/assets/distanthorizons/lang"))
         doLast {
-            output.withWriter("UTF-8") { writer ->
-                writer.writeLine("#PARSE_ESCAPES")
-                new JsonSlurper()
-                    .parse(input)
-                    .each { key, value ->
-                        def text = value.toString().replaceAll(/%(?!((\d+)\$)?s|%)/, "%%").replace("\n", "\\n")
-                        writer.writeLine("${key}=${text}")
-                    }
+            fileTree(inputDirectory).matching { include "*.json" }.each { input ->
+                String locale = input.name.substring(0, input.name.length() - ".json".length())
+                File output = new File(outputDirectory, "${locale}.lang")
+                output.withWriter("UTF-8") { writer ->
+                    writer.writeLine("#PARSE_ESCAPES")
+                    new JsonSlurper()
+                        .parse(input)
+                        .each { key, value ->
+                            def text = value.toString().replaceAll(/%(?!((\d+)\$)?s|%)/, "%%").replace("\n", "\\n")
+                            writer.writeLine("${key}=${text}")
+                        }
+                }
             }
         }
     }
