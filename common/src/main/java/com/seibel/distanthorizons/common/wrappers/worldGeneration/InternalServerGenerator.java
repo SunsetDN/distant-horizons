@@ -631,20 +631,21 @@ public class InternalServerGenerator
 			{
 				for (int dz = -1; dz <= 1; dz++)
 				{
-					int x = chunkPos.x + dx;
-					int z = chunkPos.z + dz;
-					ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(x, z));
+					int neighborPosX = chunkPos.x + dx;
+					int neighborPosZ = chunkPos.z + dz;
+					
+					ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(neighborPosX, neighborPosZ));
 					if (HODGE_PODGE_ACCESSOR != null)
 					{
-						HODGE_PODGE_ACCESSOR.allowChunkSimulation(level, x, z);
+						HODGE_PODGE_ACCESSOR.allowChunkSimulation(level, neighborPosX, neighborPosZ);
 					}
-					if (!level.getPlayerManager().func_152621_a(x, z))
+					if (!level.getPlayerManager().func_152621_a(neighborPosX, neighborPosZ))
 					{
 						// TODO should unloadChunksIfNotNearSpawn be implemented for MC 1.7.10?
 						throw new UnsupportedOperationException("should unloadChunksIfNotNearSpawn be implemented for MC 1.7.10?");
-						//provider.unloadChunksIfNotNearSpawn(x, z);
+						//provider.unloadChunksIfNotNearSpawn(neighborPosX, neighborPosZ);
 					}
-					this.scheduleRemovePosToIgnore(new DhChunkPos(x, z));
+					this.scheduleRemovePosToIgnore(new DhChunkPos(neighborPosX, neighborPosZ));
 				}
 			}
 
