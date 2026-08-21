@@ -478,6 +478,15 @@ public class InternalServerGenerator
 			@Override
 			public void run()
 			{
+				#if MC_VER <= MC_1_12_2
+				// a new generation event may have picked this pos back up during the delay,
+				// in which case its update events should stay ignored
+				if (!InternalServerGenerator.this.chunkRefCountIsZero(chunkPos))
+				{
+					return;
+				}
+				#endif
+				
 				if (InternalServerGenerator.this.updateManager != null)
 				{
 					InternalServerGenerator.this.updateManager.removePosToIgnore(chunkPos);
@@ -633,12 +642,21 @@ public class InternalServerGenerator
 		return FORGE_SERVER_PROXY.scheduleTickTask(false, () ->
 		{
 			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
+			
+			// release the target chunk and the neighbors acquired in requestChunkFromServerAsync.
+			// only the chunks that no other generation event needs anymore are actually unloaded.
 			for (int dx = -1; dx <= 1; dx++)
 			{
 				for (int dz = -1; dz <= 1; dz++)
 				{
 					int neighborPosX = chunkPos.x + dx;
 					int neighborPosZ = chunkPos.z + dz;
+					
+					if (!this.releaseChunkRef(new DhChunkPos(neighborPosX, neighborPosZ)))
+					{
+						// another generation event still needs this chunk loaded
+						continue;
+					}
 					
 					ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(neighborPosX, neighborPosZ));
 					if (HODGE_PODGE_ACCESSOR != null)
