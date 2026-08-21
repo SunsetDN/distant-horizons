@@ -59,6 +59,7 @@ import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 #if MC_VER <= MC_1_7_10
@@ -117,6 +118,14 @@ public class InternalServerGenerator
 	#elif MC_VER <= MC_1_12_2
 	private static final java.util.concurrent.Semaphore chunkRequestSemaphore = new java.util.concurrent.Semaphore(20);
 	#endif
+
+	#if MC_VER <= MC_1_12_2
+	/**
+	 * Older Minecraft needs neighboring chunks loaded.
+	 * This map tracks how many in-flight generation events currently need each chunk pos loaded.
+	 */
+	private final ConcurrentHashMap<DhChunkPos, Integer> generationChunkRefCountMap = new ConcurrentHashMap<>();
+	#endif
 	
 	
 	
@@ -150,6 +159,57 @@ public class InternalServerGenerator
 			LOGGER.warn("Failed to increase Forge chunk ticket limit.", e);
 		}
 	}
+	#endif
+	
+	
+	
+	#if MC_VER <= MC_1_12_2
+	//===================================//
+	// neighbor-chunk reference counting //
+	//===================================//
+	
+	/**
+	 * Marks the given pos as needed by one more generation event. <br>
+	 * Must be called from the server thread.
+	 *
+	 * @return true if this was the first reference, meaning the chunk needs to be loaded.
+	 */
+	private boolean acquireChunkRef(DhChunkPos chunkPos)
+	{
+		Integer refCount = this.generationChunkRefCountMap.get(chunkPos);
+		int newRefCount = (refCount == null) ? 1 : (refCount + 1);
+		this.generationChunkRefCountMap.put(chunkPos, newRefCount);
+		return newRefCount == 1;
+	}
+	
+	/**
+	 * Marks the given pos as no longer needed by one generation event. <br>
+	 * Must be called from the server thread.
+	 *
+	 * @return true if this was the last reference, meaning the chunk can be released.
+	 */
+	private boolean releaseChunkRef(DhChunkPos chunkPos)
+	{
+		Integer refCount = this.generationChunkRefCountMap.get(chunkPos);
+		if (refCount == null)
+		{
+			// could happen during shutdown
+			CHUNK_LOAD_LOGGER.debug("Chunk ["+chunkPos+"] was released without being acquired.");
+			return false;
+		}
+		
+		if (refCount > 1)
+		{
+			this.generationChunkRefCountMap.put(chunkPos, refCount - 1);
+			return false;
+		}
+		
+		this.generationChunkRefCountMap.remove(chunkPos);
+		return true;
+	}
+	
+	/** @return true if no generation event currently needs the given pos loaded. */
+	private boolean chunkRefCountIsZero(DhChunkPos chunkPos) { return !this.generationChunkRefCountMap.containsKey(chunkPos); }
 	#endif
 	
 	
