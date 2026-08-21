@@ -292,13 +292,18 @@ public class InternalServerGenerator
 									
 									if (actualThrowable != null)
 									{
+										// some exceptions don't have a message
+										String throwableMessage = (actualThrowable.getMessage() != null)
+											? actualThrowable.getMessage()
+											: actualThrowable.getClass().getSimpleName();
+
 										// ignore expected shutdown exceptions
 										boolean isShutdownException =
 											ExceptionUtil.isShutdownException(actualThrowable)
-											|| actualThrowable.getMessage().contains("Unloaded chunk");
+											|| throwableMessage.contains("Unloaded chunk");
 										if (!isShutdownException)
 										{
-											CHUNK_LOAD_LOGGER.warn("DistantHorizons: Couldn't load chunk [" + chunkPos + "] from server, error: [" + actualThrowable.getMessage() + "].", actualThrowable);
+											CHUNK_LOAD_LOGGER.warn("DistantHorizons: Couldn't load chunk [" + chunkPos + "] from server, error: [" + throwableMessage + "].", actualThrowable);
 										}
 									}
 								});
