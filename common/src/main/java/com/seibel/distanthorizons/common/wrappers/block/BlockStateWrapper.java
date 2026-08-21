@@ -179,6 +179,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	#if MC_VER <= MC_1_7_10
 	public static BlockStateWrapper fromBlockState(IBlockState blockState, ILevelWrapper levelWrapper)
 	{ return fromBlockState(blockState.getBlock(), blockState.getMeta(), levelWrapper); }
+	#endif
 	
 	/**
 	 * Can be faster than BlockStateWrapper#fromBlockState(BlockState, ILevelWrapper)
@@ -255,7 +256,6 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		return fromBlockState(blockState, levelWrapper);
 		#endif
 	}
-	#endif
 
 	#if MC_VER <= MC_1_7_10
 	// For 1.7.10 more accurate name is fromBlockAndMeta
