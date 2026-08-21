@@ -694,6 +694,12 @@ if (isNotCommonProject) {
         doLast {
             fileTree(inputDirectory).matching { include "*.json" }.each { input ->
                 String locale = input.name.substring(0, input.name.length() - ".json".length())
+                if (gradle.ext.minecraft_version == "1.7.10") {
+                    // Legacy Minecraft resolves locale names with an uppercase region (for example, en_US).
+                    locale = locale.replaceFirst(/^([a-z]{2,3})_([a-z]{2})$/, { match, language, region ->
+                        "${language}_${region.toUpperCase(java.util.Locale.ROOT)}"
+                    })
+                }
                 File output = new File(outputDirectory, "${locale}.lang")
                 output.withWriter("UTF-8") { writer ->
                     writer.writeLine("#PARSE_ESCAPES")
