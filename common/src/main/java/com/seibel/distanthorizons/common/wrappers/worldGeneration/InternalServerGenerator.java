@@ -526,25 +526,29 @@ public class InternalServerGenerator
 					for (int dz = -1; dz <= 1; dz++)
 					{
 						if (dx == 0 && dz == 0) continue;
+						
+						int neighborPosX = chunkPos.x + dx;
+						int neighborPosZ = chunkPos.z + dz;
+						
 						if (this.updateManager != null)
 						{
-							this.updateManager.addPosToIgnore(new DhChunkPos(chunkPos.x + dx, chunkPos.z + dz));
+							this.updateManager.addPosToIgnore(new DhChunkPos(neighborPosX, neighborPosZ));
 						}
 
 						#if MC_VER <= MC_1_7_10
 						if (HODGE_PODGE_ACCESSOR != null)
 						{
-							HODGE_PODGE_ACCESSOR.preventChunkSimulation(level, chunkPos.x + dx, chunkPos.z + dz);
+							HODGE_PODGE_ACCESSOR.preventChunkSimulation(level, neighborPosX, neighborPosZ);
 						}
-						ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(chunkPos.x + dx, chunkPos.z + dz));
-						if (!provider.chunkExists(chunkPos.x + dx, chunkPos.z + dz))
+						ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(neighborPosX, neighborPosZ));
+						if (!provider.chunkExists(neighborPosX, neighborPosZ))
 						{
-							provider.loadChunk(chunkPos.x + dx, chunkPos.z + dz);
+							provider.loadChunk(neighborPosX, neighborPosZ);
 						}
 						#else
-						if (provider.getLoadedChunk(chunkPos.x + dx, chunkPos.z + dz) == null)
+						if (provider.getLoadedChunk(neighborPosX, neighborPosZ) == null)
 						{
-							provider.provideChunk(chunkPos.x + dx, chunkPos.z + dz);
+							provider.provideChunk(neighborPosX, neighborPosZ);
 						}
 						#endif
 					}
