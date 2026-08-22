@@ -363,7 +363,7 @@ public class InternalServerGenerator
 			
 			// tick after all unloads are queued so MC actually frees the chunks
 			#if MC_VER <= MC_1_12_2
-			CompletableFuture<Void> tickFuture = ServerThreadTaskHandler.INSTANCE.queueTask(false, () ->
+			CompletableFuture<Void> tickFuture = ServerThreadTaskHandler.INSTANCE.queueEssentialTask(() ->
 			{
 				ChunkProviderServer provider = (ChunkProviderServer) this.params.mcServerLevel.getChunkProvider();
 				// Each pump frees a limited number of chunks so several are generally needed,
@@ -463,9 +463,7 @@ public class InternalServerGenerator
 				this.updateManager.addPosToIgnore(McObjectConverter.convert(chunkPos));
 			}
 			
-			// limited, since loading a chunk is slow enough that the server thread
-			// may need to push the remaining requests to a later tick
-			return ServerThreadTaskHandler.INSTANCE.queueTask(true, () ->
+			return ServerThreadTaskHandler.INSTANCE.queueTask(() ->
 			{
 				ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
 				
@@ -586,10 +584,10 @@ public class InternalServerGenerator
 	#endif
 	{
 		#if MC_VER <= MC_1_12_2
-		return ServerThreadTaskHandler.INSTANCE.queueTask(false, () ->
+		return ServerThreadTaskHandler.INSTANCE.queueEssentialTask(() ->
 		{
 			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
-			
+
 			// release the target chunk and the neighbors acquired in requestChunkFromServerAsync.
 			// only the chunks that no other generation event needs anymore are actually unloaded.
 			for (int dx = -1; dx <= 1; dx++)

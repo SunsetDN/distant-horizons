@@ -1,5 +1,8 @@
 package com.seibel.distanthorizons.common.util.threading;
 
+import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
+import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftSharedWrapper;
+
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -13,8 +16,8 @@ public class ServerThreadTaskHandler
 {
 	public static final ServerThreadTaskHandler INSTANCE = new ServerThreadTaskHandler();
 
-	private final ConcurrentLinkedQueue<QueuedTask<?>> taskQueue = new ConcurrentLinkedQueue<>();
-	private volatile Thread serverThread;
+	private final ConcurrentLinkedQueue<QueuedTask<?>> deferrableTaskQueue = new ConcurrentLinkedQueue<>();
+	private final ConcurrentLinkedQueue<QueuedTask<?>> essentialTaskQueue = new ConcurrentLinkedQueue<>();
 
 
 
@@ -23,71 +26,101 @@ public class ServerThreadTaskHandler
 
 
 	/**
-	 * Queues a task for the server thread.
-	 *
-	 * @param timeLimited if true, the handler may defer later tasks after this
-	 *                    task when the current tick's time budget is exhausted
+	 * Queues a task that may be deferred to a later tick while the server thread is unhealthy. <br>
+	 * Use this for work that only adds load, like requesting a chunk.
 	 */
-	public <T> CompletableFuture<T> queueTask(boolean timeLimited, Supplier<T> task)
+	public <T> CompletableFuture<T> queueTask(Supplier<T> task)
+	{ return addTask(this.deferrableTaskQueue, task); }
+
+	/**
+	 * Queues a task that runs even while the server thread is unhealthy. <br>
+	 * Use this for work that removes load, like releasing a chunk. Deferring that
+	 * work would keep chunks loaded exactly when memory pressure is at its worst.
+	 */
+	public <T> CompletableFuture<T> queueEssentialTask(Supplier<T> task)
+	{
+		return addTask(this.essentialTaskQueue, task);
+	}
+
+	private static <T> CompletableFuture<T> addTask(ConcurrentLinkedQueue<QueuedTask<?>> taskQueue, Supplier<T> task)
 	{
 		CompletableFuture<T> future = new CompletableFuture<>();
-		this.taskQueue.add(new QueuedTask<>(timeLimited, task, future));
+		taskQueue.add(new QueuedTask<>(task, future));
 		return future;
 	}
 
 	/**
-	 * Runs queued tasks on the calling server thread. At least one queued task
-	 * is run, even when that task alone exceeds the supplied budget.
+	 * Runs queued tasks on the server thread. <br>
+	 * Essential tasks run first and are never gated on server health, deferrable
+	 * tasks only run once the server thread is healthy. Both draw from the same
+	 * time budget, and at least one task is run even when that task alone
+	 * exceeds the supplied budget.
 	 */
 	public void runTasks(long maxRunTimeNano)
 	{
-		if (this.serverThread == null)
+		long deadlineNano = System.nanoTime() + maxRunTimeNano;
+
+		// note: if essential tasks keep using up the whole budget then deferrable
+		// tasks will starve. That's acceptable, since essential tasks only exist
+		// because deferrable ones already ran, so the backlog drains instead of deadlocking.
+		if (!runQueueUntilDeadline(this.essentialTaskQueue, deadlineNano))
 		{
-			this.serverThread = Thread.currentThread();
+			return;
 		}
 
-		long deadlineNano = System.nanoTime() + maxRunTimeNano;
+		if (this.deferrableTaskQueue.isEmpty())
+		{
+			return;
+		}
+
+		IMinecraftSharedWrapper mcShared = SingletonInjector.INSTANCE.get(IMinecraftSharedWrapper.class);
+		boolean serverHealthy = mcShared == null || mcShared.isServerThreadHealthy();
+		if (!serverHealthy)
+		{
+			return;
+		}
+
+		runQueueUntilDeadline(this.deferrableTaskQueue, deadlineNano);
+	}
+	/** @return true if the queue was emptied, false if the deadline was reached first. */
+	private static boolean runQueueUntilDeadline(ConcurrentLinkedQueue<QueuedTask<?>> taskQueue, long deadlineNano)
+	{
 		QueuedTask<?> queuedTask;
-		while ((queuedTask = this.taskQueue.poll()) != null)
+		while ((queuedTask = taskQueue.poll()) != null)
 		{
 			queuedTask.run();
-			if (queuedTask.timeLimited && System.nanoTime() >= deadlineNano)
+			if (System.nanoTime() >= deadlineNano)
 			{
-				break;
+				return false;
 			}
 		}
+
+		return true;
 	}
 
 	/** Completes queued tasks exceptionally without running them. */
 	public void cancelPendingTasks()
 	{
+		cancelQueuedTasks(this.essentialTaskQueue);
+		cancelQueuedTasks(this.deferrableTaskQueue);
+	}
+	private static void cancelQueuedTasks(ConcurrentLinkedQueue<QueuedTask<?>> taskQueue)
+	{
 		QueuedTask<?> queuedTask;
-		while ((queuedTask = this.taskQueue.poll()) != null)
+		while ((queuedTask = taskQueue.poll()) != null)
 		{
 			queuedTask.future.completeExceptionally(
 				new CancellationException("The Minecraft server stopped before the queued task could run."));
 		}
-		this.serverThread = null;
 	}
-
-	public boolean isCurrentThread()
-	{
-		return this.serverThread != null && Thread.currentThread() == this.serverThread;
-	}
-
-	public int getQueueSize() { return this.taskQueue.size(); }
-
-
 
 	private static class QueuedTask<T>
 	{
-		private final boolean timeLimited;
 		private final Supplier<T> task;
 		private final CompletableFuture<T> future;
 
-		private QueuedTask(boolean timeLimited, Supplier<T> task, CompletableFuture<T> future)
+		private QueuedTask(Supplier<T> task, CompletableFuture<T> future)
 		{
-			this.timeLimited = timeLimited;
 			this.task = task;
 			this.future = future;
 		}

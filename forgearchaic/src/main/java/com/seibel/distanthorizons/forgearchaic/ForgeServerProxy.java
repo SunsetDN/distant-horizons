@@ -161,7 +161,7 @@ public class ForgeServerProxy implements AbstractModInitializer.IEventProxy
 			return;
 		}
 		
-		ServerThreadTaskHandler.INSTANCE.queueTask(false, () ->
+		ServerThreadTaskHandler.INSTANCE.queueTask(() ->
 		{
 			Chunk chunk = event.world.getChunkFromBlockCoords(event.x, event.z);
 			ChunkWrapper chunkWrapper = new ChunkWrapper(chunk, wrappedLevel);
