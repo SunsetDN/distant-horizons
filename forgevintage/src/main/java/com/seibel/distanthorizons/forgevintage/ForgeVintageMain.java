@@ -142,6 +142,8 @@ public class ForgeVintageMain extends AbstractModInitializer
 	@Mod.EventHandler
 	public void onServerAboutToStart(FMLServerAboutToStartEvent event)
 	{
+		ServerThreadTaskHandler.INSTANCE.reset();
+
 		if (eventHandlerStartServer != null)
 		{
 			eventHandlerStartServer.accept(event.getServer());

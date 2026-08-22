@@ -31,6 +31,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
 
 import com.seibel.distanthorizons.common.AbstractModInitializer;
+import com.seibel.distanthorizons.common.util.threading.ServerThreadTaskHandler;
 import com.seibel.distanthorizons.core.api.internal.ServerApi;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IPluginPacketSender;
@@ -167,6 +168,8 @@ public class ForgeMain extends AbstractModInitializer implements IForgeMain
 		{
 			return;
 		}
+
+		ServerThreadTaskHandler.INSTANCE.reset();
 		
 		if (this.eventHandlerStartServer != null)
 		{

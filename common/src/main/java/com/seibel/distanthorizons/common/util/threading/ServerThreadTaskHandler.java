@@ -18,6 +18,7 @@ public class ServerThreadTaskHandler
 
 	private final ConcurrentLinkedQueue<QueuedTask<?>> deferrableTaskQueue = new ConcurrentLinkedQueue<>();
 	private final ConcurrentLinkedQueue<QueuedTask<?>> essentialTaskQueue = new ConcurrentLinkedQueue<>();
+	private volatile boolean isShutdown;
 
 
 
@@ -42,10 +43,24 @@ public class ServerThreadTaskHandler
 		return addTask(this.essentialTaskQueue, task);
 	}
 
-	private static <T> CompletableFuture<T> addTask(ConcurrentLinkedQueue<QueuedTask<?>> taskQueue, Supplier<T> task)
+	private <T> CompletableFuture<T> addTask(ConcurrentLinkedQueue<QueuedTask<?>> taskQueue, Supplier<T> task)
 	{
 		CompletableFuture<T> future = new CompletableFuture<>();
-		taskQueue.add(new QueuedTask<>(task, future));
+		if (this.isShutdown)
+		{
+			cancelFuture(future);
+			return future;
+		}
+
+		QueuedTask<T> queuedTask = new QueuedTask<>(task, future);
+		taskQueue.add(queuedTask);
+
+		// Close the race where shutdown drains the queue immediately before this add.
+		if (this.isShutdown && taskQueue.remove(queuedTask))
+		{
+			cancelFuture(future);
+		}
+
 		return future;
 	}
 
@@ -101,17 +116,31 @@ public class ServerThreadTaskHandler
 	/** Completes queued tasks exceptionally without running them. */
 	public void cancelPendingTasks()
 	{
+		// Set this before draining so concurrent submissions either get drained or
+		// observe shutdown themselves after entering the queue.
+		this.isShutdown = true;
 		cancelQueuedTasks(this.essentialTaskQueue);
 		cancelQueuedTasks(this.deferrableTaskQueue);
 	}
+
+	/** Prepares this singleton handler for a new Minecraft server session. */
+	public void reset()
+	{
+		this.isShutdown = false;
+	}
+
 	private static void cancelQueuedTasks(ConcurrentLinkedQueue<QueuedTask<?>> taskQueue)
 	{
 		QueuedTask<?> queuedTask;
 		while ((queuedTask = taskQueue.poll()) != null)
 		{
-			queuedTask.future.completeExceptionally(
-				new CancellationException("The Minecraft server stopped before the queued task could run."));
+			cancelFuture(queuedTask.future);
 		}
+	}
+	private static void cancelFuture(CompletableFuture<?> future)
+	{
+		future.completeExceptionally(
+			new CancellationException("The Minecraft server stopped before the queued task could run."));
 	}
 
 	private static class QueuedTask<T>

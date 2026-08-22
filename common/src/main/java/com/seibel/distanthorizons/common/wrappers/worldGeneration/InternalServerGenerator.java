@@ -358,13 +358,15 @@ public class InternalServerGenerator
 			for (int i = 0; i < releaseFutures.size(); i++)
 			{
 				CompletableFuture<Void> releaseFuture = releaseFutures.get(i);
-				releaseFuture.join();
+				this.joinServerCleanupFuture(releaseFuture);
 			}
 			
 			// tick after all unloads are queued so MC actually frees the chunks
 			#if MC_VER <= MC_1_12_2
 			CompletableFuture<Void> tickFuture = ServerThreadTaskHandler.INSTANCE.queueEssentialTask(() ->
 			{
+				try
+				{
 				ChunkProviderServer provider = (ChunkProviderServer) this.params.mcServerLevel.getChunkProvider();
 				// Each pump frees a limited number of chunks so several are generally needed,
 				// but we want to avoid an endless loop.
@@ -380,11 +382,30 @@ public class InternalServerGenerator
 					provider.tick();
 				}
 				#endif
+				}
+				catch (Exception e)
+				{
+					LOGGER.warn("Failed to drain internal server chunk unloads. Error: ["+e.getMessage()+"]", e);
+				}
 
 				return null;
 			});
-			tickFuture.join();
+			this.joinServerCleanupFuture(tickFuture);
 			#endif
+		}
+	}
+	private void joinServerCleanupFuture(CompletableFuture<Void> future)
+	{
+		try
+		{
+			future.join();
+		}
+		catch (RuntimeException e)
+		{
+			if (!ExceptionUtil.isShutdownException(e))
+			{
+				throw e;
+			}
 		}
 	}
 	private void runValidation()
@@ -586,6 +607,8 @@ public class InternalServerGenerator
 		#if MC_VER <= MC_1_12_2
 		return ServerThreadTaskHandler.INSTANCE.queueEssentialTask(() ->
 		{
+			try
+			{
 			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
 
 			// release the target chunk and the neighbors acquired in requestChunkFromServerAsync.
@@ -628,6 +651,11 @@ public class InternalServerGenerator
 
 					this.scheduleRemovePosToIgnore(neighborDhPos);
 				}
+			}
+			}
+			catch (Exception e)
+			{
+				LOGGER.warn("Failed to release chunk ["+chunkPos+"] back to internal server. Error: ["+e.getMessage()+"]", e);
 			}
 
 			return null;
