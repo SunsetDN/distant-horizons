@@ -456,7 +456,8 @@ public class InternalServerGenerator
 		{
 			WorldServer level = this.params.mcServerLevel;
 			
-			// ignore chunk update events for this position
+			// Ignore chunk update events for this position.
+			// Would be added by the loop later, but also here instead of the main server thread.
 			if (this.updateManager != null)
 			{
 				this.updateManager.addPosToIgnore(McObjectConverter.convert(chunkPos));
