@@ -367,21 +367,21 @@ public class InternalServerGenerator
 			{
 				try
 				{
-				ChunkProviderServer provider = (ChunkProviderServer) this.params.mcServerLevel.getChunkProvider();
-				// Each pump frees a limited number of chunks so several are generally needed,
-				// but we want to avoid an endless loop.
-				int remainingDrainAttemptCount = MAX_UNLOAD_DRAIN_ATTEMPT_COUNT;
-				#if MC_VER <= MC_1_7_10
-				while (!provider.droppedChunksSet.isEmpty() && remainingDrainAttemptCount-- > 0)
-				{
-					provider.unloadQueuedChunks();
-				}
-				#else
-				while (!provider.droppedChunks.isEmpty() && remainingDrainAttemptCount-- > 0)
-				{
-					provider.tick();
-				}
-				#endif
+					ChunkProviderServer provider = (ChunkProviderServer) this.params.mcServerLevel.getChunkProvider();
+					// Each pump frees a limited number of chunks so several are generally needed,
+					// but we want to avoid an endless loop.
+					int remainingDrainAttemptCount = MAX_UNLOAD_DRAIN_ATTEMPT_COUNT;
+					#if MC_VER <= MC_1_7_10
+					while (!provider.droppedChunksSet.isEmpty() && remainingDrainAttemptCount-- > 0)
+					{
+						provider.unloadQueuedChunks();
+					}
+					#else
+					while (!provider.droppedChunks.isEmpty() && remainingDrainAttemptCount-- > 0)
+					{
+						provider.tick();
+					}
+					#endif
 				}
 				catch (Exception e)
 				{
@@ -609,49 +609,49 @@ public class InternalServerGenerator
 		{
 			try
 			{
-			ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
-
-			// release the target chunk and the neighbors acquired in requestChunkFromServerAsync.
-			// only the chunks that no other generation event needs anymore are actually unloaded.
-			for (int dx = -1; dx <= 1; dx++)
-			{
-				for (int dz = -1; dz <= 1; dz++)
+				ChunkProviderServer provider = (ChunkProviderServer) level.getChunkProvider();
+	
+				// release the target chunk and the neighbors acquired in requestChunkFromServerAsync.
+				// only the chunks that no other generation event needs anymore are actually unloaded.
+				for (int dx = -1; dx <= 1; dx++)
 				{
-					int neighborPosX = chunkPos.x + dx;
-					int neighborPosZ = chunkPos.z + dz;
-					DhChunkPos neighborDhPos = new DhChunkPos(neighborPosX, neighborPosZ);
-
-					if (!this.releaseChunkRef(neighborDhPos))
+					for (int dz = -1; dz <= 1; dz++)
 					{
-						// another generation event still needs this chunk loaded
-						continue;
+						int neighborPosX = chunkPos.x + dx;
+						int neighborPosZ = chunkPos.z + dz;
+						DhChunkPos neighborDhPos = new DhChunkPos(neighborPosX, neighborPosZ);
+	
+						if (!this.releaseChunkRef(neighborDhPos))
+						{
+							// another generation event still needs this chunk loaded
+							continue;
+						}
+	
+						// in both cases the chunk is only queued for unload here, it's actually
+						// freed by the drain once the whole generation event is done
+						#if MC_VER <= MC_1_7_10
+						ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(neighborPosX, neighborPosZ));
+						if (HODGE_PODGE_ACCESSOR != null)
+						{
+							HODGE_PODGE_ACCESSOR.allowChunkSimulation(level, neighborPosX, neighborPosZ);
+						}
+						// don't unload chunks a player is watching, MC still owns those.
+						// this mirrors the same guard vanilla uses in WorldServer.saveAllChunks().
+						if (!level.getPlayerManager().func_152621_a(neighborPosX, neighborPosZ))
+						{
+							provider.dropChunk(neighborPosX, neighborPosZ);
+						}
+						#else
+						Chunk chunk = provider.getLoadedChunk(neighborPosX, neighborPosZ);
+						if (chunk != null)
+						{
+							provider.queueUnload(chunk);
+						}
+						#endif
+	
+						this.scheduleRemovePosToIgnore(neighborDhPos);
 					}
-
-					// in both cases the chunk is only queued for unload here, it's actually
-					// freed by the drain once the whole generation event is done
-					#if MC_VER <= MC_1_7_10
-					ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(neighborPosX, neighborPosZ));
-					if (HODGE_PODGE_ACCESSOR != null)
-					{
-						HODGE_PODGE_ACCESSOR.allowChunkSimulation(level, neighborPosX, neighborPosZ);
-					}
-					// don't unload chunks a player is watching, MC still owns those.
-					// this mirrors the same guard vanilla uses in WorldServer.saveAllChunks().
-					if (!level.getPlayerManager().func_152621_a(neighborPosX, neighborPosZ))
-					{
-						provider.dropChunk(neighborPosX, neighborPosZ);
-					}
-					#else
-					Chunk chunk = provider.getLoadedChunk(neighborPosX, neighborPosZ);
-					if (chunk != null)
-					{
-						provider.queueUnload(chunk);
-					}
-					#endif
-
-					this.scheduleRemovePosToIgnore(neighborDhPos);
 				}
-			}
 			}
 			catch (Exception e)
 			{
