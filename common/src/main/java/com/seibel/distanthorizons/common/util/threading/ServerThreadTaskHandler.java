@@ -1,5 +1,6 @@
 package com.seibel.distanthorizons.common.util.threading;
 
+import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftSharedWrapper;
 
@@ -18,6 +19,7 @@ public class ServerThreadTaskHandler
 
 	private final ConcurrentLinkedQueue<QueuedTask<?>> deferrableTaskQueue = new ConcurrentLinkedQueue<>();
 	private final ConcurrentLinkedQueue<QueuedTask<?>> essentialTaskQueue = new ConcurrentLinkedQueue<>();
+	private IMinecraftSharedWrapper mcSharedWrapper = null;
 	private volatile boolean isShutdown;
 
 
@@ -88,15 +90,24 @@ public class ServerThreadTaskHandler
 			return;
 		}
 
-		IMinecraftSharedWrapper mcShared = SingletonInjector.INSTANCE.get(IMinecraftSharedWrapper.class);
-		boolean serverHealthy = mcShared == null || mcShared.isServerThreadHealthy();
-		if (!serverHealthy)
+		if (!this.deferrableTasksCanRun())
 		{
 			return;
 		}
 
 		runQueueUntilDeadline(this.deferrableTaskQueue, deadlineNano);
 	}
+	
+	private boolean deferrableTasksCanRun()
+	{
+		if (!Config.Common.WorldGenerator.limitIfServerUnhealthy.get())
+		{
+			return true;
+		}
+
+		return mcSharedWrapper == null || mcSharedWrapper.isServerThreadHealthy();
+	}
+
 	/** @return true if the queue was emptied, false if the deadline was reached first. */
 	private static boolean runQueueUntilDeadline(ConcurrentLinkedQueue<QueuedTask<?>> taskQueue, long deadlineNano)
 	{
@@ -127,6 +138,9 @@ public class ServerThreadTaskHandler
 	public void reset()
 	{
 		this.isShutdown = false;
+		if (mcSharedWrapper == null) {
+			mcSharedWrapper = SingletonInjector.INSTANCE.get(IMinecraftSharedWrapper.class);
+		}
 	}
 
 	private static void cancelQueuedTasks(ConcurrentLinkedQueue<QueuedTask<?>> taskQueue)
