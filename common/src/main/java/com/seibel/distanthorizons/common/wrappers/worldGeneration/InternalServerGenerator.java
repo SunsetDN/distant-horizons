@@ -40,6 +40,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
+import net.minecraftforge.common.ForgeChunkManager;
 #else
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerLevel;
@@ -61,7 +62,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-#if MC_VER <= MC_1_7_10
+#if MC_VER <= MC_1_12_2
 import java.lang.reflect.Field;
 #endif
 
@@ -77,9 +78,8 @@ public class InternalServerGenerator
 			.fileLevelConfig(Config.Common.Logging.logWorldGenChunkLoadEventToFile)
 			.build();
 	
-	#if MC_VER <= MC_1_7_10
+	#if MC_VER <= MC_1_12_2
 	private static final IForgeMain FORGE_MAIN = SingletonInjector.INSTANCE.get(IForgeMain.class);
-	#else
 	#endif
 	
 	private static final IC2meAccessor C2ME_ACCESSOR = ModAccessorInjector.INSTANCE.get(IC2meAccessor.class);
@@ -120,7 +120,7 @@ public class InternalServerGenerator
 	@Nullable
 	private final ChunkUpdateQueueManager updateManager;
 	private final Timer chunkSaveIgnoreTimer = TimerUtil.CreateTimer("ChunkSaveIgnoreTimer");
-	#if MC_VER <= MC_1_7_10
+	#if MC_VER <= MC_1_12_2
 	private final ForgeChunkManager.Ticket dhServerGenTicket;
 	#endif
 
@@ -144,13 +144,13 @@ public class InternalServerGenerator
 		this.dhServerLevel = dhServerLevel;
 		this.updateManager = WorldChunkUpdateManager.INSTANCE.getByLevelWrapper(this.dhServerLevel.getServerLevelWrapper());
 
-		#if MC_VER <= MC_1_7_10
+		#if MC_VER <= MC_1_12_2
 		this.dhServerGenTicket = ForgeChunkManager.requestTicket(FORGE_MAIN, params.mcServerLevel, ForgeChunkManager.Type.NORMAL);
 		increaseChunkLimit(this.dhServerGenTicket, 1000);
 		#endif
 	}
 
-	#if MC_VER <= MC_1_7_10
+	#if MC_VER <= MC_1_12_2
 	private static void increaseChunkLimit(ForgeChunkManager.Ticket ticket, int newMaxDepth)
 	{
 		try
@@ -514,7 +514,12 @@ public class InternalServerGenerator
 						{
 							HODGE_PODGE_ACCESSOR.preventChunkSimulation(level, neighborPosX, neighborPosZ);
 						}
+						#endif
+						
+						#if MC_VER <= MC_1_7_10
 						ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(neighborPosX, neighborPosZ));
+						#else
+						ForgeChunkManager.forceChunk(this.dhServerGenTicket, new ChunkPos(neighborPosX, neighborPosZ));
 						#endif
 						
 						// the target chunk itself is loaded below, at the requested generation step
@@ -523,17 +528,14 @@ public class InternalServerGenerator
 							continue;
 						}
 						
-						#if MC_VER <= MC_1_7_10
 						if (!provider.chunkExists(neighborPosX, neighborPosZ))
 						{
+							#if MC_VER <= MC_1_7_10
 							provider.loadChunk(neighborPosX, neighborPosZ);
-						}
-						#else
-						if (provider.getLoadedChunk(neighborPosX, neighborPosZ) == null)
-						{
+							#else
 							provider.provideChunk(neighborPosX, neighborPosZ);
+							#endif
 						}
-						#endif
 					}
 				}
 				
@@ -631,10 +633,18 @@ public class InternalServerGenerator
 						// freed by the drain once the whole generation event is done
 						#if MC_VER <= MC_1_7_10
 						ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkCoordIntPair(neighborPosX, neighborPosZ));
+						#else
+						ForgeChunkManager.unforceChunk(this.dhServerGenTicket, new ChunkPos(neighborPosX, neighborPosZ));
+						#endif
+						
+						#if MC_VER <= MC_1_7_10
 						if (HODGE_PODGE_ACCESSOR != null)
 						{
 							HODGE_PODGE_ACCESSOR.allowChunkSimulation(level, neighborPosX, neighborPosZ);
 						}
+						#endif
+						
+						#if MC_VER <= MC_1_7_10
 						// don't unload chunks a player is watching, MC still owns those.
 						// this mirrors the same guard vanilla uses in WorldServer.saveAllChunks().
 						if (!level.getPlayerManager().func_152621_a(neighborPosX, neighborPosZ))

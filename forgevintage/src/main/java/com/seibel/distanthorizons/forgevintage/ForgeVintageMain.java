@@ -24,6 +24,7 @@ import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBlockColorOverrideEvent;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBlockStateWrapperCreatedEvent;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiEventParam;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modLoader.IForgeMain;
 import com.seibel.distanthorizons.forgevintage.modAccessor.ModChecker;
 import com.seibel.distanthorizons.forgevintage.modCompat.quark.Quark;
 import com.seibel.distanthorizons.forgevintage.modCompat.sereneseasons.SereneSeasons;
@@ -43,6 +44,7 @@ import net.minecraft.block.BlockGrass;
 import net.minecraft.block.BlockLeaves;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -55,6 +57,7 @@ import vazkii.quark.base.module.ModuleLoader;
 import vazkii.quark.client.feature.GreenerGrass;
 
 
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -63,7 +66,7 @@ import java.util.function.Consumer;
  * check out the ClientProxy.
  */
 @Mod(modid = ModInfo.ID, name = ModInfo.NAME, version = ModInfo.VERSION)
-public class ForgeVintageMain extends AbstractModInitializer
+public class ForgeVintageMain extends AbstractModInitializer implements IForgeMain
 {
 	public static final boolean IS_QUARK_LOADED = Loader.isModLoaded("quark");
 	public static final boolean IS_FURENIKUSROADS_LOADED = Loader.isModLoaded("furenikusroads");
@@ -76,11 +79,15 @@ public class ForgeVintageMain extends AbstractModInitializer
 	@Mod.Instance
 	public static ForgeVintageMain instance;
 	
+	public ForgeVintageMain()
+	{
+		SingletonInjector.INSTANCE.bind(IForgeMain.class, this);
+	}
+	
 	@Mod.EventHandler
 	public void preinit(FMLPreInitializationEvent event)
 	{
 		Configurator.setLevel("org.sqlite", Level.INFO);
-		ForgeChunkManager.setForcedChunkLoadingCallback(ForgeVintageMain.instance, (tickets, world) -> { });
 		
 	}
 	
@@ -98,7 +105,13 @@ public class ForgeVintageMain extends AbstractModInitializer
 		
 		DhApi.events.bind(DhApiBlockStateWrapperCreatedEvent.class, new BlockWrapperCreated());
 		DhApi.events.bind(DhApiBlockColorOverrideEvent.class, new BlockColorOverrider());
+		
+		ForgeChunkManager.setForcedChunkLoadingCallback(
+			instance,
+			(List<ForgeChunkManager.Ticket> tickets, World world) -> chunkLoadedCallback());
 	}
+	
+	private void chunkLoadedCallback() { }
 	
 	@Override
 	protected void createInitialSharedBindings()
