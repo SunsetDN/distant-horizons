@@ -662,9 +662,12 @@ if (isNotCommonProject) {
             expand replaceProperties
         }
 
-        // Remove unused access wideners
+        // Remove unused access wideners/transformers
         exclude { file ->
             if ((file.name.contains(".distanthorizons.accesswidener") && file.name != "${rootProject.accessWidenerVersion}.distanthorizons.accesswidener")) {
+                return true
+            }
+            if (file.name.contains(".distanthorizons_at.cfg") && file.name != "${rootProject.accessWidenerVersion}.distanthorizons_at.cfg") {
                 return true
             }
             return false
