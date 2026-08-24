@@ -30,6 +30,8 @@ dependencies {
     addMod('curse.maven:cofh-core-69162:2920433', rootProject.enable_thermal_dynamics)
     addMod('curse.maven:thermal-dynamics-227443:2920505', rootProject.enable_thermal_dynamics)
 
+    modRuntimeOnly('curse.maven:zume-927564:7983502')
+    
     implementation("zone.rong:mixinbooter:10.7")
 }
 

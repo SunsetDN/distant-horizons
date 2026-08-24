@@ -9,6 +9,11 @@ unimined.minecraft {
         accessTransformer project(":common").file("src/main/resources/${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg")
         mixinConfig("DistantHorizons.forgevintage.mixins.json")
     }
+
+    mods {
+        //remap(configurations.modCompileOnly)
+        remap(configurations.modRuntimeOnly)
+    }
 }
 
 /*// set the java version for running is necessary for older MC versions
