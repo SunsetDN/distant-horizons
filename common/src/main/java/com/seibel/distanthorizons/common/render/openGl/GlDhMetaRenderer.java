@@ -194,8 +194,8 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 		// don't change the viewport size when Iris is rendering the shadow pass
 		// Iris has a custom shadowmap size, and changing the viewport will cause shadows to render
 		// incorrectly.
-		if (IRIS_ACCESSOR != null 
-			&& !IRIS_ACCESSOR.isRenderingShadowPass())
+		if (IRIS_ACCESSOR == null
+			|| !IRIS_ACCESSOR.isRenderingShadowPass())
 		{
 			// This is required for MC versions 1.21.5+
 			// due to MC updating the lightmap by changing the viewport size
