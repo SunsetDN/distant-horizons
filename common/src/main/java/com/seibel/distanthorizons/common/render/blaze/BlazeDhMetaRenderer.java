@@ -5,10 +5,10 @@ public class BlazeDhMetaRenderer {}
 
 #else
 
-import com.mojang.blaze3d.textures.GpuTexture;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterColorDepthTextureCreatedEvent;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiTextureCreatedParam;
-import com.seibel.distanthorizons.common.render.blaze.apply.BlazeDhApplyRenderer;
+import com.seibel.distanthorizons.common.render.blaze.apply.BlazeDhCopyRenderer;
+import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureWrapper;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
@@ -29,11 +29,11 @@ public class BlazeDhMetaRenderer implements IDhMetaRenderer
 	private static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
 	
 	
-	private BlazeDhApplyRenderer applyRenderer;
 	private final float clearDepth;
 	
 	public final BlazeTextureWrapper dhDepthTextureWrapper = BlazeTextureWrapper.createDepth("DhDepthTexture");
 	public final BlazeTextureWrapper dhColorTextureWrapper = BlazeTextureWrapper.createColor("DhColorTexture");
+	public final BlazeTextureViewWrapper mcColorTextureWrapper = new BlazeTextureViewWrapper();
 	
 	
 	
@@ -46,12 +46,6 @@ public class BlazeDhMetaRenderer implements IDhMetaRenderer
 	{
 		AbstractDhRenderApiDefinition renderApiDefinition = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 		this.clearDepth = renderApiDefinition.getRenderDepth().farDepth;
-		
-		this.applyRenderer = new BlazeDhApplyRenderer(
-			"dh_apply_to_mc",
-			null,
-			"apply/blaze/vert", "apply/blaze/frag"
-		);
 	}
 	
 	//endregion
@@ -93,10 +87,10 @@ public class BlazeDhMetaRenderer implements IDhMetaRenderer
 	public void runRenderPassCleanup(RenderParams renderParams) {}
 	
 	@Override
-	public void applyToMcTexture(RenderParams renderParams)
+	public void copyToMcTexture(RenderParams renderParams)
 	{
-		GpuTexture mcColorTexture = MinecraftRenderWrapper.INSTANCE.getRenderTarget().getColorTexture();
-		this.applyRenderer.render(this.dhColorTextureWrapper.getTexture(), this.dhDepthTextureWrapper.getTexture(), mcColorTexture);
+		this.mcColorTextureWrapper.tryWrap(MinecraftRenderWrapper.INSTANCE.getRenderTarget().getColorTexture());
+		BlazeDhCopyRenderer.INSTANCE.render(this.dhColorTextureWrapper, this.mcColorTextureWrapper);
 	}
 	
 	//endregion

@@ -24,11 +24,14 @@ import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
+import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import org.lwjgl.opengl.GL33;
 
 public abstract class GlAbstractShaderRenderer
 {
 	protected static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
+	protected static final AbstractDhRenderApiDefinition RENDER_API_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
+	
 	private static final MinecraftGLWrapper GLMC = MinecraftGLWrapper.INSTANCE;
 	
 	

@@ -13,7 +13,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBeforeBufferRenderEvent;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBeforeRenderPassEvent;
-import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
 import com.seibel.distanthorizons.common.render.blaze.util.BlazeDhVertexFormatUtil;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.BlazeVertexFormatBuilder;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.RenderPassWrapper;
@@ -21,7 +20,6 @@ import com.seibel.distanthorizons.common.render.blaze.wrappers.RenderPipelineBui
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeBlockTextureAtlas;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureViewWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureWrapper;
-import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.IDhBlazeTexture;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.uniform.BlazeLodUniformBufferWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.buffer.BlazeVertexBufferWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.uniform.BlazeUniformBufferWrapper;
@@ -36,7 +34,6 @@ import com.seibel.distanthorizons.core.render.DhApiRenderProxy;
 import com.seibel.distanthorizons.core.render.EDhRenderDepth;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.RenderUtil;
-import com.seibel.distanthorizons.core.util.math.DhMat4f;
 import com.seibel.distanthorizons.core.util.math.DhVec3d;
 import com.seibel.distanthorizons.core.util.math.DhVec3f;
 import com.seibel.distanthorizons.core.util.objects.SortedArraySet;
@@ -69,6 +66,9 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 	
 	private final BlazeUniformBufferWrapper fragUniformBufferWrapper = new BlazeUniformBufferWrapper("fragUniformBlock");
 	private final BlazeUniformBufferWrapper vertSharedUniformBufferWrapper = new BlazeUniformBufferWrapper("vertSharedUniformBlock");
+	
+	/** used for TAA jitter, the 8 represents how many jitter points are available */
+	private int frameIndexMod8 = 0;
 	
 	
 	
@@ -170,6 +170,18 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 	{
 		this.tryInit();
 		
+		
+		
+		if (Config.Client.Advanced.Graphics.enableAntiAliasing.get())
+		{
+			this.frameIndexMod8++;
+			this.frameIndexMod8 %= 8;
+		}
+		else
+		{
+			this.frameIndexMod8 = -1;
+		}
+		
 		try(IProfilerWrapper.IProfileBlock terrain_profile = profiler.push("terrain render"))
 		{
 			profiler.popPush("vert unique uniforms");
@@ -206,7 +218,12 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 					
 					.putFloat((float) renderEventParam.worldYOffset) // uWorldYOffset
 					.putFloat(0.01f) // uMircoOffset // 0.01 block offset
+					
 					.putFloat(earthCurveRatio) // uEarthRadius
+					
+					.putFloat(this.frameIndexMod8) // uFrameMod8
+					.putFloat(BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.getWidth()) // uViewWidth
+					.putFloat(BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.getHeight()) // uViewHeight
 					
 					.putVec3f(
 						(float) renderEventParam.exactCameraPosition.x,

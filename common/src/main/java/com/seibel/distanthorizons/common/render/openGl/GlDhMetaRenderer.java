@@ -9,7 +9,7 @@ import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhAp
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLProxy;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GlDhFramebuffer;
 import com.seibel.distanthorizons.common.render.openGl.glObject.texture.*;
-import com.seibel.distanthorizons.common.render.openGl.postProcessing.apply.GlDhApplyShader;
+import com.seibel.distanthorizons.common.render.openGl.postProcessing.copy.GlDhCopyShader;
 import com.seibel.distanthorizons.common.render.openGl.terrain.GlBlockTextureAtlas;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.wrappers.misc.LightMapWrapper;
@@ -440,7 +440,7 @@ public class GlDhMetaRenderer implements IDhMetaRenderer
 	}
 	
 	@Override
-	public void applyToMcTexture(RenderParams renderParams) { GlDhApplyShader.INSTANCE.render(renderParams); }
+	public void copyToMcTexture(RenderParams renderParams) { GlDhCopyShader.INSTANCE.render(renderParams); }
 	
 	//endregion
 	

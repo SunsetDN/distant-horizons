@@ -19,6 +19,7 @@ import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.LodBufferContainer;
 import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.LodQuadBuilder;
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
+import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.render.RenderParams;
@@ -27,6 +28,7 @@ import com.seibel.distanthorizons.core.util.math.DhMat4f;
 import com.seibel.distanthorizons.core.util.math.DhVec3d;
 import com.seibel.distanthorizons.core.util.math.DhVec3f;
 import com.seibel.distanthorizons.core.util.objects.SortedArraySet;
+import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IProfilerWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.objects.IVertexBufferWrapper;
@@ -43,6 +45,7 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 		.fileLevelConfig(Config.Common.Logging.logRendererEventToFile)
 		.build();
 	
+	private static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
 	private static final MinecraftGLWrapper GLMC = MinecraftGLWrapper.INSTANCE;
 	private static final IIrisAccessor IRIS_ACCESSOR = ModAccessorInjector.INSTANCE.get(IIrisAccessor.class);
 	
@@ -56,6 +59,11 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 	
 	public GlAbstractVertexAttribute vao;
 	
+	/** used for TAA jitter, the 8 represents how many jitter points are available */
+	private int frameIndexMod8 = 0;
+	
+	
+	
 	// uniforms //
 	//region 
 	
@@ -65,6 +73,11 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 	
 	public int uMircoOffset = -1;
 	public int uEarthRadius = -1;
+	
+	public int uFrameMod8 = -1;
+	public int uViewWidth = -1;
+	public int uViewHeight = -1;
+	
 	public int uLightMap = -1;
 	public int uBlockAtlas = -1;
 	
@@ -113,6 +126,10 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 		this.uDitherDhRendering = this.getUniformLocation("uDitherDhRendering");
 		this.uMircoOffset = this.getUniformLocation("uMircoOffset");
 		this.uEarthRadius = this.getUniformLocation("uEarthRadius");
+		
+		this.uFrameMod8 = this.getUniformLocation("uFrameMod8");
+		this.uViewWidth = this.getUniformLocation("uViewWidth");
+		this.uViewHeight = this.getUniformLocation("uViewHeight");
 		
 		this.uLightMap = this.getUniformLocation("uLightMap");
 		this.uBlockAtlas = this.getUniformLocation("uBlockAtlas");
@@ -233,6 +250,23 @@ public class GlDhTerrainShaderProgram extends GlShaderProgram implements IDhApiS
 			curveRatio = 0.0f;
 		}
 		this.setUniform(this.uEarthRadius, curveRatio);
+		
+		
+		if (Config.Client.Advanced.Graphics.enableAntiAliasing.get())
+		{
+			this.frameIndexMod8++;
+			this.frameIndexMod8 %= 8;
+		}
+		else
+		{
+			this.frameIndexMod8 = -1;
+		}
+		this.setUniform(this.uFrameMod8, (float)this.frameIndexMod8);
+		
+		int width = MC_RENDER.getTargetFramebufferViewportWidth();
+		int height = MC_RENDER.getTargetFramebufferViewportHeight();
+		this.setUniform(this.uViewWidth, (float) width);
+		this.setUniform(this.uViewHeight, (float) height);
 		
 		// Noise Uniforms
 		this.setUniform(this.uNoiseEnabled, Config.Client.Advanced.Graphics.NoiseTexture.enableNoiseTexture.get());

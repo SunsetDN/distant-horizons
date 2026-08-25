@@ -140,7 +140,7 @@ public class BlazeDhSsaoRenderer implements IDhSsaoRenderer
 		this.pipeline = pipelineBuilder.build();
 		
 		
-		this.vboGpuBuffer = BlazePostProcessUtil.createAndUploadScreenVertexData("McSsao");
+		this.vboGpuBuffer = BlazePostProcessUtil.createAndUploadScreenVertexData("DhSsao");
 	}
 	
 	//endregion
@@ -157,7 +157,7 @@ public class BlazeDhSsaoRenderer implements IDhSsaoRenderer
 	{
 		this.tryInit();
 		
-		
+		// shouldn't happen, but just in case
 		if (BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper.isEmpty()
 			|| BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.isEmpty())
 		{
