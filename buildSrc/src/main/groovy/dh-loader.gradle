@@ -105,6 +105,24 @@ java {
     withSourcesJar()
 }
 
+// ==================== Configurations ====================
+
+evaluationDependsOn(":core")
+
+configurations {
+    shadowMe
+    coreProjects
+    shadowMe.extendsFrom(coreProjects)
+    implementation.extendsFrom(shadowMe)
+
+    common
+    implementation.extendsFrom(common)
+
+    modCompileOnly
+    compileOnly.extendsFrom(modCompileOnly)
+    modRuntimeOnly
+    runtimeOnly.extendsFrom(modRuntimeOnly)
+}
 
 // ==================== Loader-Only Config ====================
 
@@ -149,6 +167,7 @@ if (isNotCommonProject) {
                     'FMLCorePluginContainsFMLMod': true,
                     'FMLAT': "${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg",
                     'ForceLoadAsMod': true,
+                    "Lwjgl3ify-Aware": true
                 )
             }
         }
@@ -196,20 +215,30 @@ if (isNotCommonProject) {
         }
     }
 
-    dependencies {
-        implementation(project(":common"))
-    }
-
-    processResources {
-        from project(":common").sourceSets.main.resources
-    }
-
     def lwjglVariant = ["1.7.10", "1.12.2"].contains(gradle.ext.minecraft_version) ? "lwjgl2" : "lwjgl3"
 
     tasks.withType(JavaCompile).configureEach {
         source(project(":common").sourceSets.main.allSource)
         source(project(":common").sourceSets.lwjglCommon.allSource)
         source(project(":common").sourceSets."${lwjglVariant}".allSource)
+    }
+    
+    dependencies {
+        implementation(project(":common"))
+    }
+
+    def isLegacyLwjgl = ["1.7.10", "1.12.2"].contains(gradle.ext.minecraft_version)
+    if (isLegacyLwjgl) {
+        def lwjgl3Classes = files(project(":common").sourceSets.lwjgl3.output.classesDirs)
+        lwjgl3Classes.builtBy(project(":common").tasks.named("compileLwjgl3Java"))
+
+        dependencies {
+            shadowMe lwjgl3Classes
+        }
+    }
+    
+    processResources {
+        from project(":common").sourceSets.main.resources
     }
 
     tasks.named(compileJava.name).configure {
@@ -286,47 +315,35 @@ if (!isNotCommonProject) {
         lwjgl2CompileOnly("org.lwjgl.lwjgl:lwjgl:${lwjgl2Version}")
     }
 
-    def extraSourceSets = [sourceSets.lwjglCommon, sourceSets.lwjgl2]
-
-    extraSourceSets.each { srcSet ->
-        ["apiElements", "runtimeElements"].each { conf ->
-            def variant = configurations.getByName(conf).outgoing.variants.maybeCreate("classes")
-            variant.attributes {
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-            }
-            variant.artifact(srcSet.java.destinationDirectory) {
-                type = "java-classes-directory"
-                builtBy tasks.named(srcSet.compileJavaTaskName)
-            }
-        }
-    }
-
     jar {
         from(rootProject.file("COPYING"))
         from(rootProject.file("COPYING.LESSER"))
         from(sourceSets.lwjglCommon.output)
         from(sourceSets.lwjgl2.output)
         from(sourceSets.lwjgl3.output)
+        manifest {
+            attributes([
+                "Lwjgl3ify-Aware": "true"
+            ])
+        }
     }
-}
+    
+    def extraSourceSets = [sourceSets.lwjglCommon, sourceSets.lwjgl2]
 
-// ==================== Configurations ====================
+    configurations {
+        apiElements
+        runtimeElements
+    }
 
-evaluationDependsOn(":core")
-
-configurations {
-    shadowMe
-    coreProjects
-    shadowMe.extendsFrom(coreProjects)
-    implementation.extendsFrom(shadowMe)
-
-    common
-    implementation.extendsFrom(common)
-
-    modCompileOnly
-    compileOnly.extendsFrom(modCompileOnly)
-    modRuntimeOnly
-    runtimeOnly.extendsFrom(modRuntimeOnly)
+    extraSourceSets.each { srcSet ->
+        ["apiElements", "runtimeElements"].each { conf ->
+            configurations.getByName(conf).outgoing.variants.named("classes") {
+                artifact(srcSet.java.destinationDirectory) {
+                    builtBy tasks.named(srcSet.compileJavaTaskName)
+                }
+            }
+        }
+    }
 }
 
 

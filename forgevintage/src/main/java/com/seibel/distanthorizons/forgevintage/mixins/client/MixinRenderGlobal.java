@@ -42,7 +42,7 @@ public class MixinRenderGlobal
 {
 	@Shadow private WorldClient world;
 
-	@Inject(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;DILnet/minecraft/entity/Entity;)I", at = @At("HEAD"), cancellable = true, remap = false)
+	@Inject(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;DILnet/minecraft/entity/Entity;)I", at = @At("HEAD"), cancellable = true)
 	private void renderChunkLayer(BlockRenderLayer blockLayerIn, double partialTicks, int pass, Entity entityIn, CallbackInfoReturnable<Integer> cir)
 	{
 		// Cancelling CUTOUT RenderLayer will cause crash

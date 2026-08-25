@@ -38,6 +38,24 @@ dependencies {
     modRuntimeOnly('curse.maven:zume-927564:7983502')
     
     implementation "io.github.legacymoddingmc:unimixins:0.1.23:dev"
+/*
+    modImplementation("com.github.GTNewHorizons:lwjgl3ify:2.1.5") {
+        exclude group: "io.github.legacymoddingmc", module: "unimixins"
+    }
+    modImplementation("com.github.GTNewHorizons:lwjgl3ify:2.1.5:forgePatches") {
+        exclude group: "io.github.legacymoddingmc", module: "unimixins"
+    }
+    def lwjglVersion = "3.3.3"
+    implementation "org.lwjgl:lwjgl:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-opengl:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-stb:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl:${lwjglVersion}:natives-windows"
+    implementation "org.lwjgl:lwjgl-opengl:${lwjglVersion}:natives-windows"
+    implementation "org.lwjgl:lwjgl-glfw:${lwjglVersion}:natives-windows"
+    implementation "org.lwjgl:lwjgl-stb:${lwjglVersion}:natives-windows"
+*/
+
 }
 
 // ==================== Tasks ====================

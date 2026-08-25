@@ -1,5 +1,6 @@
 package com.seibel.distanthorizons.forgearchaic;
 
+//import com.gtnewhorizons.retrofuturabootstrap.SharedConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.lib.tree.ClassNode;
@@ -17,6 +18,9 @@ public class DistantHorizonsMixinConfigPlugin implements IMixinConfigPlugin
 	public void onLoad(String mixinPackage)
 	{
 		LOGGER.info("Loaded DistantHorizons mixin plugin");
+/*		var handle = SharedConfig.getRfbTransformers().stream().filter(transformer -> transformer.id().equals("lwjgl3ify:redirect")).findFirst().orElseThrow();
+		handle.exclusions().add("com.seibel.distanthorizons.main");
+		handle.exclusions().add("com.seibel.distanthorizons.lwjgl.lwjgl3");*/
 	}
 	@Override
 	public String getRefMapperConfig()
