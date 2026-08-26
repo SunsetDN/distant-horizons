@@ -141,6 +141,10 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	
 	// properties //
 	
+	#if MC_VER <= MC_1_7_10
+	private final Object[] wrappedMcObject;
+	#endif
+	
 	@Nullable
 	#if MC_VER <= MC_1_12_2
 	public final IBlockState blockState;
@@ -218,7 +222,13 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		}
 		else
 		{
-			#if MC_VER <= MC_1_12_2
+			#if MC_VER <= MC_1_7_10
+			Object[] wrappedObject = (Object[]) guess.getWrappedMcObject();
+			guessBlockState = new FakeBlockState(
+				(Block) wrappedObject[0],
+				(Integer) wrappedObject[1]
+			);
+			#elif MC_VER <= MC_1_12_2
 			guessBlockState = (IBlockState) guess.getWrappedMcObject();
 			#else 
 			guessBlockState = (BlockState) guess.getWrappedMcObject();
@@ -278,6 +288,10 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			return AIR;
 		}
 		
+		#if MC_VER <= MC_1_7_10
+		FakeBlockState blockState = new FakeBlockState(block, meta);
+		#endif
+		
 		// pooling wrappers significantly improves chunk->LOD processing speed
 		// and also reduces GC pressure
 		#if MC_VER <= MC_1_7_10
@@ -314,9 +328,6 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			
 			
 			// create a wrapper specifically for the API event to use
-			#if MC_VER <= MC_1_7_10
-			FakeBlockState blockState = new FakeBlockState(block, meta, blockId);
-			#endif
 			BlockStateWrapper apiWrapper = new BlockStateWrapper(blockState, levelWrapper, null);
 			DhApiBlockStateWrapperCreatedEvent.EventParam eventParam = new DhApiBlockStateWrapperCreatedEvent.EventParam(apiWrapper);
 			ApiEventInjector.INSTANCE.fireAllEvents(DhApiBlockStateWrapperCreatedEvent.class, eventParam);
@@ -336,7 +347,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 				// create a new wrapper using whatever overrides the API user set
 				BlockStateWrapper returnWrapper = new BlockStateWrapper(blockState, levelWrapper, eventParam);
 				#if MC_VER <= MC_1_7_10
-				WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(packedIdMeta, apiWrapper);
+				WRAPPER_BY_BLOCK_ID_AND_META.putIfAbsent(packedIdMeta, returnWrapper);
 				#else
 				WRAPPER_BY_BLOCK_STATE.putIfAbsent(blockState, returnWrapper);
 				#endif
@@ -353,6 +364,16 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	{
 		
 		this.blockState = blockState;
+		#if MC_VER <= MC_1_7_10
+		if (blockState != null && !isAir()) {
+			this.wrappedMcObject = new Object[] {
+				blockState.getBlock(),
+				blockState.getMeta()
+			};
+		} else {
+			this.wrappedMcObject = null;
+		}
+		#endif
 		this.serialString = serialize(blockState, levelWrapper);
 		this.hashCode = Objects.hash(this.serialString);
 		String lowerCaseSerial = this.serialString.toLowerCase();
@@ -1289,7 +1310,13 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	public String getSerialString() { return this.serialString; }
 	
 	@Override
-	public Object getWrappedMcObject() { return this.blockState; }
+	public Object getWrappedMcObject() {
+		#if MC_VER <= MC_1_7_10
+		return this.wrappedMcObject;
+		#else
+		return this.blockState;
+		#endif
+	}
 	
 	@Override
 	public boolean isAir() { return isAir(this.blockState); }
