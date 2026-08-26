@@ -17,18 +17,17 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.seibel.distanthorizons.common.render.openGl.postProcessing.apply;
+package com.seibel.distanthorizons.common.render.openGl.postProcessing.copy;
 
 import com.seibel.distanthorizons.common.render.openGl.GlDhMetaRenderer;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GLState;
 import com.seibel.distanthorizons.common.render.openGl.glObject.shader.GlShaderProgram;
 import com.seibel.distanthorizons.common.render.openGl.postProcessing.GlScreenQuad;
+import com.seibel.distanthorizons.common.render.openGl.util.GlAbstractShaderRenderer;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
-import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
-import com.seibel.distanthorizons.common.render.openGl.util.GlAbstractShaderRenderer;
 import com.seibel.distanthorizons.core.logging.DhLogger;
-import com.seibel.distanthorizons.core.render.EDhRenderDepth;
+import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
@@ -36,20 +35,20 @@ import org.lwjgl.opengl.GL30;
 import static com.seibel.distanthorizons.lwjgl.LWJGLServiceProvider.LWJGL;
 
 /**
- * Copies {@link com.seibel.distanthorizons.core.render.renderer.LodRenderer}'s currently active color and depth texture to Minecraft's framebuffer. 
+ * Copies {@link com.seibel.distanthorizons.core.render.renderer.LodRenderer}'s 
+ * currently active color texture to Minecraft's framebuffer. 
  */
-public class GlDhApplyShader extends GlAbstractShaderRenderer
+public class GlDhCopyShader extends GlAbstractShaderRenderer
 {
-	public static GlDhApplyShader INSTANCE = new GlDhApplyShader();
+	public static GlDhCopyShader INSTANCE = new GlDhCopyShader();
 	
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	private static final MinecraftGLWrapper GLMC = MinecraftGLWrapper.INSTANCE;
 	private static final AbstractDhRenderApiDefinition RENDER_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 	
+	
 	// uniforms
-	public int uSourceColorTexture;
-	public int uSourceDepthTexture;
-	public int uIsReverseZDepth;
+	public int uCopyTexture;
 	
 	
 	
@@ -58,21 +57,19 @@ public class GlDhApplyShader extends GlAbstractShaderRenderer
  	//=======//
 	//region
 	
-	private GlDhApplyShader() { }
+	private GlDhCopyShader() { }
 	
 	@Override
 	public void onInit()
 	{
 		this.shader = new GlShaderProgram(
 			"assets/distanthorizons/shaders/shared/gl/quad_apply.vert",
-			"assets/distanthorizons/shaders/apply/gl/apply.frag",
+			"assets/distanthorizons/shaders/copy/gl/apply.frag",
 			"vPosition"
 		);
 		
 		// uniform setup
-		this.uSourceColorTexture = this.shader.getUniformLocation("uSourceColorTexture");
-		this.uSourceDepthTexture = this.shader.getUniformLocation("uSourceDepthTexture");
-		this.uIsReverseZDepth = this.shader.getUniformLocation("uIsReverseZDepth");
+		this.uCopyTexture = this.shader.getUniformLocation("uCopyTexture");
 		
 	}
 	
@@ -123,13 +120,7 @@ public class GlDhApplyShader extends GlAbstractShaderRenderer
 			
 			GLMC.glActiveTexture(GL13.GL_TEXTURE0);
 			GLMC.glBindTexture(GlDhMetaRenderer.INSTANCE.getActiveColorTextureId());
-			LWJGL.glUniform1i(this.uSourceColorTexture, 0);
-			
-			GLMC.glActiveTexture(GL13.GL_TEXTURE1);
-			GLMC.glBindTexture(GlDhMetaRenderer.INSTANCE.getActiveDepthTextureId());
-			LWJGL.glUniform1i(this.uSourceDepthTexture, 1);
-			
-			LWJGL.glUniform1i(this.uIsReverseZDepth, (RENDER_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0);
+			LWJGL.glUniform1i(this.uCopyTexture, 0);
 			
 			// Copy to MC's framebuffer
 			GLMC.glBindFramebuffer(GL30.GL_FRAMEBUFFER, targetFrameBuffer);
@@ -173,13 +164,7 @@ public class GlDhApplyShader extends GlAbstractShaderRenderer
 			
 			GLMC.glActiveTexture(GL13.GL_TEXTURE0);
 			GLMC.glBindTexture(GlDhMetaRenderer.INSTANCE.getActiveColorTextureId());
-			LWJGL.glUniform1i(this.uSourceColorTexture, 0);
-			
-			GLMC.glActiveTexture(GL13.GL_TEXTURE1);
-			GLMC.glBindTexture(GlDhMetaRenderer.INSTANCE.getActiveDepthTextureId());
-			LWJGL.glUniform1i(this.uSourceDepthTexture, 1);
-			
-			LWJGL.glUniform1i(this.uIsReverseZDepth, (RENDER_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0);
+			LWJGL.glUniform1i(this.uCopyTexture, 0);
 			
 			
 			

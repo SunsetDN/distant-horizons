@@ -154,16 +154,16 @@ if (isNotCommonProject) {
                 'Multi-Release': true,
                 'Main-Class': 'com.seibel.distanthorizons.core.jar.JarMain',
             )
-            if (project.name == "forgevintage") {
+            if (project.name == "forge112") {
                 attributes(
-                    'FMLCorePlugin': 'com.seibel.distanthorizons.forgevintage.DistantHorizonsLoadingPlugin',
+                    'FMLCorePlugin': 'com.seibel.distanthorizons.forge112.DistantHorizonsLoadingPlugin',
                     'FMLCorePluginContainsFMLMod': true,
                     'FMLAT': "${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg",
                     'ForceLoadAsMod': true
                 )
-            } else if (project.name == "forgearchaic") {
+            } else if (project.name == "forge17") {
                 attributes(
-                    'FMLCorePlugin': 'com.seibel.distanthorizons.forgearchaic.DistantHorizonsLoadingPlugin',
+                    'FMLCorePlugin': 'com.seibel.distanthorizons.forge17.DistantHorizonsLoadingPlugin',
                     'FMLCorePluginContainsFMLMod': true,
                     'FMLAT': "${gradle.ext.accessWidenerVersion}.distanthorizons_at.cfg",
                     'ForceLoadAsMod': true,
@@ -509,7 +509,7 @@ if (isNotCommonProject) {
         def loaderPaths = configurations.minecraftLibraries.resolve().collect { it.path }.toSet()
         tasks.withType(JavaExec).configureEach { runTask ->
             dependsOn(shadowJar)
-            if (project.name != "forgevintage" && project.name != "forgearchaic") {
+            if (project.name != "forge112" && project.name != "forge17") {
                 classpath = files(shadowJar.archiveFile) + classpath.filter { file ->
                     file != shadowJar.archiveFile.get().asFile &&
                         !file.path.contains(project.buildDir.path) &&
@@ -519,7 +519,7 @@ if (isNotCommonProject) {
                         !(shadowedPaths.contains(file.path) && !loaderPaths.contains(file.path))
                 }
             } else {
-                // For forgearchaic(1.7.10), forgevintage(1.8-1.12.2), don't put shadow jar on app classpath.
+                // For forge(1.7.10 and 1.12.2), don't put shadow jar on app classpath.
                 dependsOn(tasks.named("shadeDowngradedApi"))
                 classpath = classpath.filter { file ->
                     !file.path.contains(project.buildDir.path) &&
@@ -545,8 +545,8 @@ if (isNotCommonProject) {
 
             if (project.name == "forge"
                 || project.name == "neoforge"
-                || project.name == "forgevintage"
-                || project.name == "forgearchaic") {
+                || project.name == "forge112"
+                || project.name == "forge17") {
                 // fix (Neo)forge, debug running
                 doFirst {
                     def modsDir = rootProject.file("run/${isClient ? 'client' : 'server'}/mods")
@@ -560,9 +560,7 @@ if (isNotCommonProject) {
                     });
 
 
-                    def jarSource = project.name in ["forgevintage", "forgearchaic"]
-                        ? tasks.named("shadeDowngradedApi").get().archiveFile
-                        : shadowJar.archiveFile
+                    def jarSource = project.name in ["forge112", "forge17"] ? tasks.named("shadeDowngradedApi").get().archiveFile : shadowJar.archiveFile
 
                     // Copy shadow jar into mods folder so (Neo)Forge discovers it properly
                     copy {
@@ -740,7 +738,7 @@ if (isNotCommonProject) {
     downgradeJar.archiveClassifier.set(null)
     shadeDowngradedApi.archiveClassifier.set(null)
 
-    if (project.name == "forgevintage" || project.name == "forgearchaic") {
+    if (project.name == "forge112" || project.name == "forge17") {
         gradle.taskGraph.whenReady { graph ->
             if (graph.hasTask("${project.path}:runClient")) {
                 downgradeJar.inputFile.set(shadowJar.archiveFile)

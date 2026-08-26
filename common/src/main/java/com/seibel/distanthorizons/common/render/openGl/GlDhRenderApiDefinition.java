@@ -6,6 +6,7 @@ import com.seibel.distanthorizons.common.render.openGl.generic.GlGenericObjectRe
 import com.seibel.distanthorizons.common.render.openGl.generic.GlGenericObjectVertexContainer;
 import com.seibel.distanthorizons.common.render.openGl.glObject.GlDummyUniformData;
 import com.seibel.distanthorizons.common.render.openGl.glObject.buffer.GLVertexBuffer;
+import com.seibel.distanthorizons.common.render.openGl.postProcessing.antialiasing.GlDhTaaRenderer;
 import com.seibel.distanthorizons.common.render.openGl.postProcessing.fade.GlDhFarFadeRenderer;
 import com.seibel.distanthorizons.common.render.openGl.postProcessing.fade.GlVanillaFadeRenderer;
 import com.seibel.distanthorizons.common.render.openGl.postProcessing.fog.GlDhFogRenderer;
@@ -53,6 +54,7 @@ public class GlDhRenderApiDefinition extends AbstractDhRenderApiDefinition
 	@Override public IDhSsaoRenderer getSsaoRenderer() { return GlDhSSAORenderer.INSTANCE; }
 	@Override public IDhFogRenderer getFogRenderer() { return GlDhFogRenderer.INSTANCE; }
 	@Override public IDhFarFadeRenderer getFarFadeRenderer() { return GlDhFarFadeRenderer.INSTANCE; }
+	@Override public IDhAntiAliasRenderer getAntiAliasRenderer() { return GlDhTaaRenderer.INSTANCE; }
 	@Override public AbstractDebugWireframeRenderer getDebugWireframeRenderer() { return GlDhDebugWireframeRenderer.INSTANCE; }
 	
 	@Override public IDhVanillaFadeRenderer getVanillaFadeRenderer() { return GlVanillaFadeRenderer.INSTANCE; }
