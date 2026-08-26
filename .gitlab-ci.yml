@@ -73,15 +73,16 @@ build:
       "1.18.2",
       "1.17.1",
       "1.16.5",
-      "1.12.2"
+      "1.12.2",
+      "1.7.10"
       ]
   before_script:
     - *retry_script
-    # Only MC 1.16.5 (Java 8) and 1.12.2 (JDK 8 for MC alongside JDK 25 for unimined) need JDK 8
+    # Only MC 1.16.5 (Java 8), 1.12.2 and 1.7.10 (JDK 8 for MC alongside JDK 25 for unimined) need JDK 8
     # Installing it for every matrix job floods the network with parallel apt installs at pipeline start for no reason.
     - |
       case "$MC_VER" in
-        1.16.5|1.12.2)
+        1.16.5|1.12.2|1.7.10)
           retry apt-get update -q
           retry apt-get install -y openjdk-8-jdk
           ;;
