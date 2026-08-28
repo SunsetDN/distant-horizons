@@ -61,7 +61,7 @@ public final class GenerationEvent
 	// constructor //
 	//=============//
 	
-	private GenerationEvent(
+	public GenerationEvent(
 			DhChunkPos minPos, int widthInChunks, BatchGenerationEnvironment generationGroup,
 			EDhApiDistantGeneratorMode generatorMode, EDhApiWorldGenerationStep targetGenerationStep, Consumer<IChunkWrapper> resultConsumer)
 	{
