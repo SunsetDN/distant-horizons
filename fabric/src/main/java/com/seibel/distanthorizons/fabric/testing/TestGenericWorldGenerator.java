@@ -5,13 +5,12 @@ import com.seibel.distanthorizons.api.enums.EDhApiDetailLevel;
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiDistantGeneratorMode;
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiWorldGenerationStep;
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiWorldGeneratorReturnType;
-import com.seibel.distanthorizons.api.interfaces.block.IDhApiBiomeWrapper;
-import com.seibel.distanthorizons.api.interfaces.block.IDhApiBlockStateWrapper;
 import com.seibel.distanthorizons.api.interfaces.override.worldGenerator.IDhApiWorldGenerator;
 import com.seibel.distanthorizons.api.interfaces.world.IDhApiLevelWrapper;
 import com.seibel.distanthorizons.api.objects.data.DhApiTerrainDataPoint;
 import com.seibel.distanthorizons.api.objects.data.IDhApiFullDataSource;
-import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
+import com.seibel.distanthorizons.common.wrappers.block.BiomeWrapper;
+import com.seibel.distanthorizons.common.wrappers.block.BlockStateWrapper;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.BatchGenerationEnvironment;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.GenerationEvent;
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
@@ -30,17 +29,11 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.world.IBiomeWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapper;
 import com.seibel.distanthorizons.coreapi.util.BitShiftUtil;
-import com.seibel.distanthorizons.coreapi.util.ColorUtil;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import com.seibel.distanthorizons.core.logging.DhLogger;
-import net.minecraft.tags.BiomeTags;
-import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -49,9 +42,7 @@ import net.minecraft.world.level.levelgen.RandomState;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -61,11 +52,11 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 {
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
-	private final IDhApiLevelWrapper levelWrapper;
+	private final IServerLevelWrapper serverLevelWrapper;
 	
 	private static final PhantomArrayListPool ARRAY_LIST_POOL = new PhantomArrayListPool("TestWorldGen");
 	private final BatchGenerationEnvironment batchGenerator;
-	private static final ConcurrentHashMap<IDhApiBiomeWrapper, IDhApiBlockStateWrapper> BIOME_TO_BLOCK_WRAPPER = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<IBiomeWrapper, IBlockStateWrapper> BIOME_TO_BLOCK_WRAPPER = new ConcurrentHashMap<>();
 	
 	
 	
@@ -73,12 +64,10 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 	// constructor //
 	//=============//
 	
-	public TestGenericWorldGenerator(IDhApiLevelWrapper levelWrapper)
+	public TestGenericWorldGenerator(IDhApiLevelWrapper serverLevelWrapper)
 	{ 
-		this.levelWrapper = levelWrapper;
-		
-		IServerLevelWrapper serverLevelWrapper = (IServerLevelWrapper)levelWrapper;
-		IDhServerLevel serverLevel = (IDhServerLevel)serverLevelWrapper.getDhLevel();
+		this.serverLevelWrapper = (IServerLevelWrapper) serverLevelWrapper;
+		IDhServerLevel serverLevel = (IDhServerLevel)this.serverLevelWrapper.getDhLevel();
 		
 		this.batchGenerator = new BatchGenerationEnvironment(serverLevel);
 	}
@@ -158,7 +147,7 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 			for (int i = 0; i < chunkList.size(); i++)
 			{
 				IChunkWrapper chunkWrapper = chunkList.get(i);
-				try (FullDataSourceV2 dataSource = LodDataBuilder.createFromChunk((IServerLevelWrapper)this.levelWrapper, chunkWrapper))
+				try (FullDataSourceV2 dataSource = LodDataBuilder.createFromChunk((IServerLevelWrapper)this.serverLevelWrapper, chunkWrapper))
 				{
 					((FullDataSourceV2)pooledFullDataSource).updateFromDataSource(dataSource);
 				}
@@ -171,12 +160,14 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 		
 		
 		
-		IDhApiBlockStateWrapper borderBlock; // TODO borderBlock is just for proof-of-concept testing
-		IDhApiBlockStateWrapper airBlock;
+		IBlockStateWrapper waterBlock;
+		IBlockStateWrapper iceBlock;
+		IBlockStateWrapper snowBlock;
 		try
 		{
-			airBlock = DhApi.Delayed.wrapperFactory.getAirBlockStateWrapper();
-			borderBlock = DhApi.Delayed.wrapperFactory.getDefaultBlockStateWrapper("minecraft:stone", this.levelWrapper);
+			waterBlock = BlockStateWrapper.deserialize("minecraft:water", this.serverLevelWrapper);
+			iceBlock = BlockStateWrapper.deserialize("minecraft:ice", this.serverLevelWrapper);
+			snowBlock = BlockStateWrapper.deserialize("minecraft:snow", this.serverLevelWrapper);
 		}
 		catch (IOException e)
 		{
@@ -191,7 +182,7 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 		//=====================//
 		//region
 		
-		ServerLevel level = ((ServerLevel)this.levelWrapper.getWrappedMcObject());
+		ServerLevel level = ((ServerLevel)this.serverLevelWrapper.getWrappedMcObject());
 		RandomState randomState = level.getChunkSource().randomState();
 		DensityFunction finalDensity = randomState.router().finalDensity();
 		ChunkGenerator generator = level.getChunkSource().getGenerator();
@@ -228,8 +219,8 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 					int blockX = chunkPosMinX * 16 + (x * BitShiftUtil.powerOfTwo(detailLevel)); // TODO is there better logic than just doing power-of-two?
 					int blockZ = chunkPosMinZ * 16 + (z * BitShiftUtil.powerOfTwo(detailLevel));
 					
-					int maxHeight = findSurfaceHeight(finalDensity, (ILevelWrapper) this.levelWrapper, blockX, blockZ, relativeSeaLevel);
-					maxHeight -= this.levelWrapper.getMinHeight(); // convert to level relative position
+					int maxHeight = findSurfaceHeight(finalDensity, this.serverLevelWrapper, blockX, blockZ, relativeSeaLevel);
+					maxHeight -= this.serverLevelWrapper.getMinHeight(); // convert to level relative position
 					
 					heightmap.set(x + width * z, maxHeight);
 				}
@@ -242,8 +233,6 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 				for (int z = 0; z < width; z++)
 				{
 					dataPoints.clear();
-					
-					boolean useWater = false;
 					
 					// convert to block pos
 					int blockX = chunkPosMinX * 16 + (x * BitShiftUtil.powerOfTwo(detailLevel)); // TODO is there better logic than just doing power-of-two?
@@ -275,61 +264,113 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 						maxHeightLong = Math.round(interpolated);
 					}
 					
-					int maxHeight = (int) maxHeightLong;
-					if (maxHeight <= relativeSeaLevel)
+					int surfaceHeight = (int) maxHeightLong;
+					int waterHeight = Integer.MIN_VALUE; // TODO
+					if (surfaceHeight < relativeSeaLevel)
 					{
-						useWater = true;
-						maxHeight = relativeSeaLevel;
+						waterHeight = relativeSeaLevel;
 					}
 					
 					// get biome
 					Holder<Biome> biomeHolder = biomeSource.getNoiseBiome(
 						QuartPos.fromBlock(blockX), // x
-						QuartPos.fromBlock(maxHeight), // y
+						QuartPos.fromBlock(surfaceHeight), // y
 						QuartPos.fromBlock(blockZ), // z
 						randomState.sampler()
 					);
-					IDhApiBiomeWrapper biomeWrapper = DhApi.Delayed.wrapperFactory.getBiomeWrapper(new Object[] { biomeHolder }, this.levelWrapper);
+					IBiomeWrapper biomeWrapper = BiomeWrapper.getBiomeWrapper(biomeHolder, this.serverLevelWrapper);
+					boolean isColdBiome = biomeHolder.value().getBaseTemperature() < 0.1f; // https://minecraft.wiki/w/Biome#Temperature
 					
 					
 					// get block
-					IDhApiBlockStateWrapper surfaceBlock;
-					if (!useWater)
-					{
-						surfaceBlock = this.getSurfaceBlockState(
+					IBlockStateWrapper surfaceBlock
+						= this.getSurfaceBlockState(
 							biomeWrapper,
 							blockX, blockZ);
-					}
-					else
-					{
-						try
-						{
-							surfaceBlock = DhApi.Delayed.wrapperFactory.getDefaultBlockStateWrapper("minecraft:water", this.levelWrapper);
-						}
-						catch (IOException e)
-						{
-							LOGGER.error("Failed to get biome/block: "+ e.getMessage(), e);
-							return;
-						}
-					}
 					
-					// TODO remove border logic once getSurfaceBlockState() has been implemented
-					if (x == 0 || x == (width-1)
-						|| z == 0 || z == (width-1))
-					{
-						// using a border block makes it easier to see different sections being generated
-						surfaceBlock = borderBlock;
-					}
+					//// TODO remove border logic once getSurfaceBlockState() has been implemented
+					//if (x == 0 || x == (width-1)
+					//	|| z == 0 || z == (width-1))
+					//{
+					//	// using a border block makes it easier to see different sections being generated
+					//	surfaceBlock = borderBlock;
+					//}
 					
 					
 					
 					// sky lighting can be ignored. DH will auto light the LODs after they've been submitted
 					// block lighting however will need to be generated here
-					// TODO block lighting could be determined by the block state wrapper
-					dataPoints.add(DhApiTerrainDataPoint.create((byte)0, 0, 15, 0, maxHeight, surfaceBlock, biomeWrapper));
-					dataPoints.add(DhApiTerrainDataPoint.create((byte)0, 0, 15, maxHeight, this.levelWrapper.getMaxHeight(), airBlock, biomeWrapper));
-					
-					pooledFullDataSource.setApiDataPointColumn(x, z, EDhApiWorldGenerationStep.SURFACE, dataPoints);
+					{
+						int surfaceSkyLight = LodUtil.MAX_MC_LIGHT;
+						if (waterHeight != Integer.MIN_VALUE)
+						{
+							surfaceSkyLight -= (waterHeight - surfaceHeight);
+							if (surfaceSkyLight < LodUtil.MIN_MC_LIGHT)
+							{
+								surfaceSkyLight = LodUtil.MIN_MC_LIGHT;
+							}
+						}
+						else
+						{
+							// uncovered surface blocks use snow in cold biomes
+							if (isColdBiome)
+							{
+								surfaceBlock = snowBlock;
+							}
+						}
+						
+						
+						// surface
+						dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, surfaceBlock.getLightEmission(), surfaceSkyLight, 0, surfaceHeight,
+							surfaceBlock, biomeWrapper));
+						
+						
+						// optional water
+						if (waterHeight != Integer.MIN_VALUE)
+						{
+							if (isColdBiome)
+							{
+								int waterHeightDiff = (waterHeight - surfaceHeight);
+								if (waterHeightDiff >= 2)
+								{
+									// under-ice water
+									dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, 0, LodUtil.MAX_MC_LIGHT - 1, surfaceHeight, waterHeight - 1,
+										waterBlock, biomeWrapper));
+									
+									// surface ice
+									dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, 0, LodUtil.MAX_MC_LIGHT, waterHeight - 1, waterHeight,
+										iceBlock, biomeWrapper));
+								}
+								else if (waterHeightDiff == 1)
+								{
+									// ice 
+									dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, 0, LodUtil.MAX_MC_LIGHT, surfaceHeight, waterHeight,
+										iceBlock, biomeWrapper));
+								}
+							}
+							else
+							{
+								dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, 0, LodUtil.MAX_MC_LIGHT, surfaceHeight, waterHeight,
+									waterBlock, biomeWrapper));
+							}
+							
+							
+							surfaceHeight = waterHeight;
+						}
+						
+						// air
+						dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, 0, LodUtil.MAX_MC_LIGHT, surfaceHeight, this.serverLevelWrapper.getMaxHeight(), // TODO does level max height need to be offset by level min height? probably
+							BlockStateWrapper.AIR, biomeWrapper));
+						
+						try
+						{
+							pooledFullDataSource.setApiDataPointColumn(x, z, EDhApiWorldGenerationStep.SURFACE, dataPoints);
+						}
+						catch (Exception e)
+						{
+							throw e;
+						}
+					}
 				}
 			}
 		}
@@ -346,8 +387,8 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 	//=====================//
 	//region
 	
-	private IDhApiBlockStateWrapper getSurfaceBlockState(
-		IDhApiBiomeWrapper biomeWrapper,
+	private IBlockStateWrapper getSurfaceBlockState(
+		IBiomeWrapper biomeWrapper,
 		int blockX, int blockZ)
 	{
 		// TODO replace with a concurrent hash lookup based on the biome.
@@ -356,7 +397,7 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 		
 		HashMap<IBiomeWrapper, HashMap<IBlockStateWrapper, Integer>> biomeBlockCounts = new HashMap<>();
 		
-		IDhApiBlockStateWrapper blockState = BIOME_TO_BLOCK_WRAPPER.get(biomeWrapper);
+		IBlockStateWrapper blockState = BIOME_TO_BLOCK_WRAPPER.get(biomeWrapper);
 		if (blockState == null)
 		{
 			Consumer<IChunkWrapper> resultConsumer = (chunkWrapper) -> 
@@ -414,67 +455,16 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 		{
 			return blockState;
 		}
+		
 		try
 		{
-			return DhApi.Delayed.wrapperFactory.getDefaultBlockStateWrapper("minecraft:magenta_wool", this.levelWrapper);
+			return BlockStateWrapper.deserialize("minecraft:pink_wool", this.serverLevelWrapper);
 		}
 		catch (IOException e)
 		{
 			LOGGER.error("failed to get block: " + e.getMessage(), e);
-			return DhApi.Delayed.wrapperFactory.getAirBlockStateWrapper();
+			return BlockStateWrapper.AIR;
 		}
-		
-		//// dummy logic that returns a colored wool block
-		//// for proof-of-concept testing
-		//try
-		//{
-		//	String blockResourceLocation;
-		//	if (false)
-		//	switch (detailLevel)
-		//	{
-		//		case 0:
-		//			blockResourceLocation = "minecraft:red_wool";
-		//			break;
-		//		case 1:
-		//			blockResourceLocation = "minecraft:orange_wool";
-		//			break;
-		//		case 2:
-		//			blockResourceLocation = "minecraft:yellow_wool";
-		//			break;
-		//		case 3:
-		//			blockResourceLocation = "minecraft:lime_wool";
-		//			break;
-		//		case 4:
-		//			blockResourceLocation = "minecraft:cyan_wool";
-		//			break;
-		//		case 5:
-		//			blockResourceLocation = "minecraft:blue_wool";
-		//			break;
-		//		case 6:
-		//			blockResourceLocation = "minecraft:magenta_wool";
-		//			break;
-		//		case 7:
-		//			blockResourceLocation = "minecraft:white_wool";
-		//			break;
-		//		case 8:
-		//			blockResourceLocation = "minecraft:gray_wool";
-		//			break;
-		//		default:
-		//			blockResourceLocation = "minecraft:black_wool";
-		//			break;
-		//	}
-		//	else
-		//	{
-		//		blockResourceLocation = "minecraft:grass_block";
-		//	}
-		//	
-		//	return DhApi.Delayed.wrapperFactory.getDefaultBlockStateWrapper(blockResourceLocation, this.levelWrapper);
-		//}
-		//catch (IOException e)
-		//{
-		//	LOGGER.error("Failed to get biome/block: "+ e.getMessage(), e);
-		//	return DhApi.Delayed.wrapperFactory.getAirBlockStateWrapper();
-		//}
 	}
 	
 	private Pair<IBlockStateWrapper, Integer> getMostCommonBlockForBiome(
