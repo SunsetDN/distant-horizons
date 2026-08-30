@@ -98,6 +98,7 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	// must be defined before AIR, otherwise a null pointer will be thrown
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
+	
 	#if MC_VER <= MC_1_12_2
 	public static final ConcurrentHashMap<IBlockState, BlockStateWrapper> WRAPPER_BY_BLOCK_STATE = new ConcurrentHashMap<>();
 	#else
@@ -105,17 +106,6 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	#endif
     public static final ConcurrentHashMap<String, BlockStateWrapper> WRAPPER_BY_RESOURCE_LOCATION = new ConcurrentHashMap<>();
 	
-	public static final String AIR_STRING = "AIR";
-	public static final BlockStateWrapper AIR = new BlockStateWrapper(null, null, null);
-	
-	public static final String DIRT_RESOURCE_LOCATION_STRING = "minecraft:dirt";
-	public static final String WATER_RESOURCE_LOCATION_STRING = "minecraft:water";
-	
-	public static ObjectOpenHashSet<IBlockStateWrapper> rendererIgnoredBlocks = null;
-	public static ObjectOpenHashSet<IBlockStateWrapper> rendererIgnoredCaveBlocks = null;
-	public static ObjectOpenHashSet<IBlockStateWrapper> waterSubsurfaceReplacementBlocks = null;
-	public static ObjectOpenHashSet<IBlockStateWrapper> waterSurfaceReplacementBlocks = null;
-	public static IBlockStateWrapper waterBlock = null;
 	
 	/** keep track of broken blocks so we don't log every time */
 	#if MC_VER <= MC_1_21_10
@@ -123,6 +113,33 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	#else
 	private static final HashSet<Identifier> BROKEN_RESOURCE_LOCATIONS = new HashSet<>();
 	#endif
+	
+	
+	// static blocks //
+	//region
+	
+	public static final String AIR_STRING = "AIR";
+	public static final BlockStateWrapper AIR = new BlockStateWrapper(null, null, null);
+	
+	private static final String WATER_RESOURCE_LOCATION_STRING = "minecraft:water";
+	private static BlockStateWrapper waterBlock = null;
+	
+	private static final String DIRT_RESOURCE_LOCATION_STRING = "minecraft:dirt";
+	private static BlockStateWrapper dirtBlock = null;
+	
+	private static final String ICE_RESOURCE_LOCATION_STRING = "minecraft:ice";
+	private static BlockStateWrapper iceBlock = null;
+	
+	private static final String SNOW_RESOURCE_LOCATION_STRING = "minecraft:snow";
+	private static BlockStateWrapper snowBlock = null;
+	
+	//endregion
+	
+	
+	private static ObjectOpenHashSet<IBlockStateWrapper> rendererIgnoredBlocks = null;
+	private static ObjectOpenHashSet<IBlockStateWrapper> rendererIgnoredCaveBlocks = null;
+	private static ObjectOpenHashSet<IBlockStateWrapper> waterSubsurfaceReplacementBlocks = null;
+	private static ObjectOpenHashSet<IBlockStateWrapper> waterSurfaceReplacementBlocks = null;
 	
 	
 	
@@ -1035,7 +1052,17 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		
 		return waterSubsurfaceReplacementBlocks;
 	}
-	public static IBlockStateWrapper getWaterBlockStateWrapper(ILevelWrapper levelWrapper)
+	
+	//endregion
+	
+	
+	
+	//======================//
+	// static block getters //
+	//======================//
+	//region
+	
+	public static BlockStateWrapper getWaterBlockStateWrapper(ILevelWrapper levelWrapper)
 	{
 		// use the cached version if possible
 		if (waterBlock != null)
@@ -1043,8 +1070,64 @@ public class BlockStateWrapper implements IBlockStateWrapper
 			return waterBlock;
 		}
 		
-		waterBlock = WrapperFactory.INSTANCE.deserializeBlockStateWrapperOrGetDefault("minecraft:water", levelWrapper);
+		waterBlock = BlockStateWrapper.deserializeOrDefault(WATER_RESOURCE_LOCATION_STRING, levelWrapper);
+		if (waterBlock.equals(AIR))
+		{
+			LOGGER.warn("Failed to deserialize ["+WATER_RESOURCE_LOCATION_STRING+"], issues may occur.");
+		}
+		
 		return waterBlock;
+	}
+	
+	public static BlockStateWrapper getDirtBlockStateWrapper(ILevelWrapper levelWrapper)
+	{
+		// use the cached version if possible
+		if (dirtBlock != null)
+		{
+			return dirtBlock;
+		}
+		
+		dirtBlock = BlockStateWrapper.deserializeOrDefault(DIRT_RESOURCE_LOCATION_STRING, levelWrapper);
+		if (dirtBlock.equals(AIR))
+		{
+			LOGGER.warn("Failed to deserialize ["+DIRT_RESOURCE_LOCATION_STRING+"], issues may occur.");
+		}
+		
+		return dirtBlock;
+	}
+	
+	public static BlockStateWrapper getIceBlockStateWrapper(ILevelWrapper levelWrapper)
+	{
+		// use the cached version if possible
+		if (iceBlock != null)
+		{
+			return iceBlock;
+		}
+		
+		iceBlock = BlockStateWrapper.deserializeOrDefault(ICE_RESOURCE_LOCATION_STRING, levelWrapper);
+		if (iceBlock.equals(AIR))
+		{
+			LOGGER.warn("Failed to deserialize ["+ICE_RESOURCE_LOCATION_STRING+"], issues may occur.");
+		}
+		
+		return iceBlock;
+	}
+	
+	public static BlockStateWrapper getSnowBlockStateWrapper(ILevelWrapper levelWrapper)
+	{
+		// use the cached version if possible
+		if (snowBlock != null)
+		{
+			return snowBlock;
+		}
+		
+		snowBlock = BlockStateWrapper.deserializeOrDefault(SNOW_RESOURCE_LOCATION_STRING, levelWrapper);
+		if (snowBlock.equals(AIR))
+		{
+			LOGGER.warn("Failed to deserialize ["+SNOW_RESOURCE_LOCATION_STRING+"], issues may occur.");
+		}
+		
+		return snowBlock;
 	}
 	
 	//endregion
@@ -1141,7 +1224,11 @@ public class BlockStateWrapper implements IBlockStateWrapper
 		rendererIgnoredCaveBlocks = null;
 		waterSurfaceReplacementBlocks = null;
 		waterSubsurfaceReplacementBlocks = null;
+		
 		waterBlock = null;
+		dirtBlock = null;
+		iceBlock = null;
+		snowBlock = null;
 	}
 	
 	//endregion
@@ -1281,8 +1368,21 @@ public class BlockStateWrapper implements IBlockStateWrapper
 	}
 	
 	
+	/** returns AIR if the given string can't be deserialized */
+	public static BlockStateWrapper deserializeOrDefault(String resourceStateString, ILevelWrapper levelWrapper)
+	{
+		try
+		{
+			return deserialize(resourceStateString, levelWrapper);
+		}
+		catch (IOException e)
+		{
+			return BlockStateWrapper.AIR;
+		}
+	}
+	
 	/** will only work if a level is currently loaded */
-	public static IBlockStateWrapper deserialize(String resourceStateString, ILevelWrapper levelWrapper) throws IOException
+	public static BlockStateWrapper deserialize(String resourceStateString, ILevelWrapper levelWrapper) throws IOException
 	{
 		// we need the final string for the concurrent hash map later
 		final String finalResourceStateString = resourceStateString;

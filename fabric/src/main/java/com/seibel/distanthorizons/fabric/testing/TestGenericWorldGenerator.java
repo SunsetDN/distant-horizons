@@ -58,11 +58,17 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 	private final BatchGenerationEnvironment batchGenerator;
 	private static final ConcurrentHashMap<IBiomeWrapper, IBlockStateWrapper> BIOME_TO_BLOCK_WRAPPER = new ConcurrentHashMap<>();
 	
+	// commonly used blocks cached for quick access
+	private final IBlockStateWrapper waterBlock;
+	private final IBlockStateWrapper iceBlock;
+	private final IBlockStateWrapper snowBlock;
+	
 	
 	
 	//=============//
 	// constructor //
 	//=============//
+	//region
 	
 	public TestGenericWorldGenerator(IDhApiLevelWrapper serverLevelWrapper)
 	{ 
@@ -70,13 +76,21 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 		IDhServerLevel serverLevel = (IDhServerLevel)this.serverLevelWrapper.getDhLevel();
 		
 		this.batchGenerator = new BatchGenerationEnvironment(serverLevel);
+		
+		
+		this.waterBlock = BlockStateWrapper.getWaterBlockStateWrapper(this.serverLevelWrapper);
+		this.iceBlock = BlockStateWrapper.getIceBlockStateWrapper(this.serverLevelWrapper);
+		this.snowBlock = BlockStateWrapper.getSnowBlockStateWrapper(this.serverLevelWrapper);
 	}
+	
+	//endregion
 	
 	
 	
 	//============//
 	// properties //
 	//============//
+	//region
 	
 	@Override
 	public byte getSmallestDataDetailLevel() { return (byte) (EDhApiDetailLevel.BLOCK.detailLevel); }
@@ -91,11 +105,19 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 	@Override
 	public boolean runApiValidation() { return true; }
 	
+	//endregion
+	
 	
 	
 	//==================//
 	// chunk generation //
 	//==================//
+	//region
+	
+	@Override
+	public void preGeneratorTaskStart() { /* do nothing */ }
+	
+	
 	
 	@Override
 	public CompletableFuture<Void> generateLod(
@@ -154,24 +176,6 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 			}
 			resultConsumer.accept(pooledFullDataSource);
 			
-			return;
-		}
-		
-		
-		
-		
-		IBlockStateWrapper waterBlock;
-		IBlockStateWrapper iceBlock;
-		IBlockStateWrapper snowBlock;
-		try
-		{
-			waterBlock = BlockStateWrapper.deserialize("minecraft:water", this.serverLevelWrapper);
-			iceBlock = BlockStateWrapper.deserialize("minecraft:ice", this.serverLevelWrapper);
-			snowBlock = BlockStateWrapper.deserialize("minecraft:snow", this.serverLevelWrapper);
-		}
-		catch (IOException e)
-		{
-			LOGGER.error("Failed to get biome/block: "+ e.getMessage(), e);
 			return;
 		}
 		
@@ -381,6 +385,9 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 		#endif
 	}
 	
+	//endregion
+	
+	
 	
 	//=====================//
 	// block getting logic //
@@ -391,10 +398,6 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 		IBiomeWrapper biomeWrapper,
 		int blockX, int blockZ)
 	{
-		// TODO replace with a concurrent hash lookup based on the biome.
-		//      When missing, generate a single chunk to determine the most common
-		//      surface block and then return that going forward.
-		
 		HashMap<IBiomeWrapper, HashMap<IBlockStateWrapper, Integer>> biomeBlockCounts = new HashMap<>();
 		
 		IBlockStateWrapper blockState = BIOME_TO_BLOCK_WRAPPER.get(biomeWrapper);
@@ -423,13 +426,12 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 				EDhApiDistantGeneratorMode.SURFACE, EDhApiWorldGenerationStep.SURFACE,
 				resultConsumer);
 			this.batchGenerator.generateEvent(genEvent);
-			//
 			
 			
 			
 			for (IBiomeWrapper biome : biomeBlockCounts.keySet())
 			{
-				Pair<IBlockStateWrapper, Integer> pair = getMostCommonBlockForBiome(biomeBlockCounts, biome);
+				Pair<IBlockStateWrapper, Integer> pair = this.getMostCommonBlockForBiome(biomeBlockCounts, biome);
 				IBlockStateWrapper block = pair.first;
 				int count = pair.second;
 				if (count > 8
@@ -600,16 +602,16 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 	
 	
 	
-	@Override
-	public void preGeneratorTaskStart() { /* do nothing */ }
-	
-	
-	
 	//=========//
 	// cleanup //
 	//=========//
+	//region
 	
 	@Override
 	public void close() { /* do nothing */ }
+	
+	//endregion
+	
+	
 	
 }

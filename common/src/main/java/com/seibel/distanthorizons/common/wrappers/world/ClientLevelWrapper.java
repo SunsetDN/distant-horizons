@@ -124,7 +124,6 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 	
 	private boolean cloudColorFailLogged = false;
 	
-	private volatile BlockStateWrapper dirtBlockWrapper;
 	private volatile IDhLevel dhLevel;
 	private volatile long lastAccessTime = System.currentTimeMillis();
 	
@@ -392,21 +391,8 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 	@Override
 	public int getDirtBlockColor()
 	{
-		if (this.dirtBlockWrapper == null)
-		{
-			try
-			{
-				this.dirtBlockWrapper = (BlockStateWrapper) BlockStateWrapper.deserialize(BlockStateWrapper.DIRT_RESOURCE_LOCATION_STRING, this);
-			}
-			catch (IOException e)
-			{
-				// shouldn't happen, but just in case
-				LOGGER.warn("Unable to get dirt color with resource location ["+BlockStateWrapper.DIRT_RESOURCE_LOCATION_STRING+"] with level ["+this+"].", e);
-				return -1;
-			}
-		}
-		
-		return this.getBlockColor(DhBlockPos.ZERO, BiomeWrapper.EMPTY_WRAPPER, null, this.dirtBlockWrapper);
+		BlockStateWrapper dirtBlockWrapper = BlockStateWrapper.getDirtBlockStateWrapper(this);
+		return this.getBlockColor(DhBlockPos.ZERO, BiomeWrapper.EMPTY_WRAPPER, null, dirtBlockWrapper);
 	}
 	
 	@Override 
