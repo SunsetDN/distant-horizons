@@ -169,9 +169,12 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 			for (int i = 0; i < chunkList.size(); i++)
 			{
 				IChunkWrapper chunkWrapper = chunkList.get(i);
-				try (FullDataSourceV2 dataSource = LodDataBuilder.createFromChunk((IServerLevelWrapper)this.serverLevelWrapper, chunkWrapper))
+				try (FullDataSourceV2 dataSource = LodDataBuilder.createFromChunk(this.serverLevelWrapper, chunkWrapper))
 				{
-					((FullDataSourceV2)pooledFullDataSource).updateFromDataSource(dataSource);
+					if (dataSource != null)
+					{
+						((FullDataSourceV2)pooledFullDataSource).updateFromDataSource(dataSource);
+					}
 				}
 			}
 			resultConsumer.accept(pooledFullDataSource);
@@ -319,14 +322,17 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 							// uncovered surface blocks use snow in cold biomes
 							if (isColdBiome)
 							{
-								surfaceBlock = snowBlock;
+								surfaceBlock = this.snowBlock;
 							}
 						}
 						
 						
 						// surface
-						dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, surfaceBlock.getLightEmission(), surfaceSkyLight, 0, surfaceHeight,
-							surfaceBlock, biomeWrapper));
+						if (surfaceHeight != 0) // will be 0 the column is only air (ie The End)
+						{
+							dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, surfaceBlock.getLightEmission(), surfaceSkyLight, 0, surfaceHeight,
+								surfaceBlock, biomeWrapper));
+						}
 						
 						
 						// optional water
@@ -339,23 +345,23 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 								{
 									// under-ice water
 									dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, 0, LodUtil.MAX_MC_LIGHT - 1, surfaceHeight, waterHeight - 1,
-										waterBlock, biomeWrapper));
+										this.waterBlock, biomeWrapper));
 									
 									// surface ice
 									dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, 0, LodUtil.MAX_MC_LIGHT, waterHeight - 1, waterHeight,
-										iceBlock, biomeWrapper));
+										this.iceBlock, biomeWrapper));
 								}
 								else if (waterHeightDiff == 1)
 								{
 									// ice 
 									dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, 0, LodUtil.MAX_MC_LIGHT, surfaceHeight, waterHeight,
-										iceBlock, biomeWrapper));
+										this.iceBlock, biomeWrapper));
 								}
 							}
 							else
 							{
 								dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, 0, LodUtil.MAX_MC_LIGHT, surfaceHeight, waterHeight,
-									waterBlock, biomeWrapper));
+									this.waterBlock, biomeWrapper));
 							}
 							
 							
