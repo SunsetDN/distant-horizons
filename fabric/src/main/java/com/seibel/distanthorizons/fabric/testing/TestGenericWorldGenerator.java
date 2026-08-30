@@ -1,6 +1,5 @@
 package com.seibel.distanthorizons.fabric.testing;
 
-import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.api.enums.EDhApiDetailLevel;
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiDistantGeneratorMode;
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiWorldGenerationStep;
@@ -39,13 +38,16 @@ import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.RandomState;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 
 public class TestGenericWorldGenerator implements IDhApiWorldGenerator
@@ -55,13 +57,26 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 	private final IServerLevelWrapper serverLevelWrapper;
 	
 	private static final PhantomArrayListPool ARRAY_LIST_POOL = new PhantomArrayListPool("TestWorldGen");
-	private final BatchGenerationEnvironment batchGenerator;
-	private static final ConcurrentHashMap<IBiomeWrapper, IBlockStateWrapper> BIOME_TO_BLOCK_WRAPPER = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<IBiomeWrapper, BlockCountPair> BIOME_TO_BLOCK_WRAPPER = new ConcurrentHashMap<>();
+	
+	/** 
+	 * how far below the candidate height to check.
+	 * By default MC samples noise on a 4x8x4 grid (source: BuilderB0y),
+	 * so sampling 8 and 8x2 points down respectively should give us
+	 * a pretty good guess if the datapoint is a small floating island or not.
+	 */
+	private static final int[] SANITY_CHECK_DEPTHS = { 4, 8, 16 };
+	
+	/** when marching down the world, this is how many blocks we should step at a time */
+	private static final int MARCH_STEP = 8;
+	
 	
 	// commonly used blocks cached for quick access
 	private final IBlockStateWrapper waterBlock;
 	private final IBlockStateWrapper iceBlock;
 	private final IBlockStateWrapper snowBlock;
+	
+	private final BatchGenerationEnvironment batchGenerator;
 	
 	
 	
@@ -196,6 +211,7 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 		BiomeSource biomeSource = generator.getBiomeSource();
 		
 		int relativeSeaLevel = level.getSeaLevel() - level.getMinY();
+		int relativeMaxHeight = this.serverLevelWrapper.getMaxHeight() - this.serverLevelWrapper.getMinHeight();
 		
 		//endregion
 		
@@ -223,10 +239,10 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 				for (int z = 0; z < width; z+=2)
 				{
 					// convert to block pos
-					int blockX = chunkPosMinX * 16 + (x * BitShiftUtil.powerOfTwo(detailLevel)); // TODO is there better logic than just doing power-of-two?
+					int blockX = chunkPosMinX * 16 + (x * BitShiftUtil.powerOfTwo(detailLevel));
 					int blockZ = chunkPosMinZ * 16 + (z * BitShiftUtil.powerOfTwo(detailLevel));
 					
-					int maxHeight = findSurfaceHeight(finalDensity, this.serverLevelWrapper, blockX, blockZ, relativeSeaLevel);
+					int maxHeight = findSurfaceHeight(finalDensity, this.serverLevelWrapper, blockX, blockZ);
 					maxHeight -= this.serverLevelWrapper.getMinHeight(); // convert to level relative position
 					
 					heightmap.set(x + width * z, maxHeight);
@@ -242,7 +258,7 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 					dataPoints.clear();
 					
 					// convert to block pos
-					int blockX = chunkPosMinX * 16 + (x * BitShiftUtil.powerOfTwo(detailLevel)); // TODO is there better logic than just doing power-of-two?
+					int blockX = chunkPosMinX * 16 + (x * BitShiftUtil.powerOfTwo(detailLevel));
 					int blockZ = chunkPosMinZ * 16 + (z * BitShiftUtil.powerOfTwo(detailLevel));
 					
 					
@@ -294,14 +310,6 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 						= this.getSurfaceBlockState(
 							biomeWrapper,
 							blockX, blockZ);
-					
-					//// TODO remove border logic once getSurfaceBlockState() has been implemented
-					//if (x == 0 || x == (width-1)
-					//	|| z == 0 || z == (width-1))
-					//{
-					//	// using a border block makes it easier to see different sections being generated
-					//	surfaceBlock = borderBlock;
-					//}
 					
 					
 					
@@ -369,17 +377,10 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 						}
 						
 						// air
-						dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, 0, LodUtil.MAX_MC_LIGHT, surfaceHeight, this.serverLevelWrapper.getMaxHeight(), // TODO does level max height need to be offset by level min height? probably
+						dataPoints.add(DhApiTerrainDataPoint.create((byte) 0, 0, LodUtil.MAX_MC_LIGHT, surfaceHeight, relativeMaxHeight, // minus min height to convert 
 							BlockStateWrapper.AIR, biomeWrapper));
 						
-						try
-						{
-							pooledFullDataSource.setApiDataPointColumn(x, z, EDhApiWorldGenerationStep.SURFACE, dataPoints);
-						}
-						catch (Exception e)
-						{
-							throw e;
-						}
+						pooledFullDataSource.setApiDataPointColumn(x, z, EDhApiWorldGenerationStep.SURFACE, dataPoints);
 					}
 				}
 			}
@@ -404,18 +405,29 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 		IBiomeWrapper biomeWrapper,
 		int blockX, int blockZ)
 	{
-		HashMap<IBiomeWrapper, HashMap<IBlockStateWrapper, Integer>> biomeBlockCounts = new HashMap<>();
-		
-		IBlockStateWrapper blockState = BIOME_TO_BLOCK_WRAPPER.get(biomeWrapper);
-		if (blockState == null)
+		BlockCountPair existingBlockCountPair = BIOME_TO_BLOCK_WRAPPER.get(biomeWrapper);
+		if (existingBlockCountPair != null)
 		{
-			Consumer<IChunkWrapper> resultConsumer = (chunkWrapper) -> 
+			return existingBlockCountPair.blockStateWrapper;
+		}
+		
+		
+		
+		//
+		// generate chunks to 
+		// determine surface blocks //
+		//
+		
+		HashMap<IBiomeWrapper, HashMap<IBlockStateWrapper, Integer>> biomeBlockCounts = new HashMap<>();
+		{
+			Consumer<IChunkWrapper> chunkResultConsumer = (chunkWrapper) ->
 			{
-				for(int x = 0; x < LodUtil.CHUNK_WIDTH; x++)
+				for (int x = 0; x < LodUtil.CHUNK_WIDTH; x++)
 				{
-					for(int z = 0; z < LodUtil.CHUNK_WIDTH; z++)
+					for (int z = 0; z < LodUtil.CHUNK_WIDTH; z++)
 					{
 						int height = chunkWrapper.getSolidHeightMapValue(x, z);
+						
 						IBiomeWrapper biome = chunkWrapper.getBiome(x, height, z);
 						IBlockStateWrapper block = chunkWrapper.getBlockState(x, height, z);
 						
@@ -425,57 +437,88 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 				}
 			};
 			DhChunkPos chunkPos = new DhChunkPos(new DhBlockPos2D(blockX, blockZ));
-			chunkPos = new DhChunkPos(chunkPos.getX() -1 , chunkPos.getZ() -1);
+			// subtract 2 from each chunk pos so the target chunk is near the center
+			chunkPos = new DhChunkPos(
+				chunkPos.getX() - 2, 
+				chunkPos.getZ() - 2);
 			GenerationEvent genEvent = new GenerationEvent(
-				chunkPos, 4,
+				chunkPos,
+				// 6 chunks wide mean we get 2 to 3 chunks of buffer, to get
+				// a fairly large dataset of what the biome would be like
+				6,
 				this.batchGenerator,
 				EDhApiDistantGeneratorMode.SURFACE, EDhApiWorldGenerationStep.SURFACE,
-				resultConsumer);
+				chunkResultConsumer);
 			this.batchGenerator.generateEvent(genEvent);
-			
-			
-			
-			for (IBiomeWrapper biome : biomeBlockCounts.keySet())
+		}
+		
+		
+		
+		//
+		// process generated biome/block pairs //
+		//
+		
+		for (IBiomeWrapper biome : biomeBlockCounts.keySet())
+		{
+			BlockCountPair newPair = this.getMostCommonBlockForBiome(biomeBlockCounts, biome);
+			if (newPair == null)
 			{
-				Pair<IBlockStateWrapper, Integer> pair = this.getMostCommonBlockForBiome(biomeBlockCounts, biome);
-				IBlockStateWrapper block = pair.first;
-				int count = pair.second;
-				if (count > 8
-					&& !BIOME_TO_BLOCK_WRAPPER.containsKey(biome))
+				continue;
+			}
+			
+			// require a moderate number of surface blocks be found
+			// to prevent tiny biomes skewing the data
+			if (newPair.count < 32)
+			{
+				continue;
+			}
+			
+			
+			// add this biome/block
+			if (!BIOME_TO_BLOCK_WRAPPER.containsKey(biome))
+			{
+				BIOME_TO_BLOCK_WRAPPER.put(biome, newPair);
+			}
+			else
+			{
+				BIOME_TO_BLOCK_WRAPPER.compute(biome, (existingBiome,existingPair) ->
 				{
-					BIOME_TO_BLOCK_WRAPPER.put(biome, block);
-					
-					if (biomeWrapper.equals(biome))
+					if (existingPair == null
+						|| existingPair.count < newPair.count)
 					{
-						blockState = block;
+						// don't log if the block is the same
+						if (!existingPair.blockStateWrapper.equals(newPair.blockStateWrapper))
+						{
+							LOGGER.info("["+existingBiome.getSerialString()+"] Replacing [" + existingPair + "] with [" + newPair + "]");
+						}
+						
+						return newPair;
 					}
-				}
+					
+					return existingPair;
+				});
 			}
-			
-			if (blockState == null)
-			{
-				blockState = BIOME_TO_BLOCK_WRAPPER.get(biomeWrapper);
-			}
-			
 		}
 		
-		if (blockState != null)
+		
+		
+		BlockCountPair pair = this.getMostCommonBlockForBiome(biomeBlockCounts, biomeWrapper);
+		if (pair != null)
 		{
-			return blockState;
+			BIOME_TO_BLOCK_WRAPPER.putIfAbsent(biomeWrapper, pair);
 		}
 		
-		try
+		BlockCountPair foundBlockPair = BIOME_TO_BLOCK_WRAPPER.get(biomeWrapper);
+		if (foundBlockPair == null)
 		{
-			return BlockStateWrapper.deserialize("minecraft:pink_wool", this.serverLevelWrapper);
+			return BlockStateWrapper.getDirtBlockStateWrapper(this.serverLevelWrapper);
 		}
-		catch (IOException e)
-		{
-			LOGGER.error("failed to get block: " + e.getMessage(), e);
-			return BlockStateWrapper.AIR;
-		}
+		
+		return foundBlockPair.blockStateWrapper;
 	}
 	
-	private Pair<IBlockStateWrapper, Integer> getMostCommonBlockForBiome(
+	@Nullable
+	private BlockCountPair getMostCommonBlockForBiome(
 		HashMap<IBiomeWrapper, HashMap<IBlockStateWrapper, Integer>> biomeBlockCounts, IBiomeWrapper biome)
 	{
 		HashMap<IBlockStateWrapper, Integer> blockCounts = biomeBlockCounts.get(biome);
@@ -496,7 +539,7 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 			}
 		}
 		
-		return new Pair<>(mostCommonBlock, highestCount);
+		return new BlockCountPair(mostCommonBlock, highestCount);
 	}
 	
 	//endregion
@@ -508,21 +551,42 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 	//=====================//
 	//region
 	
-	// originally based on world gen logic
-	// from the LOD mod "Ecstatic"
-	// https://www.curseforge.com/minecraft/mc-mods/ecstatic
+	private static int findSurfaceHeight(DensityFunction finalDensity, ILevelWrapper levelWrapper, int blockX, int blockZ)
+	{
+		// stat notes:
+		// each are with 24 cores for DH
+		// 128 render distance
+		// terralith world
+		
+		
+		//// 15.9 million // 37 sec
+		//// this is the most accurate but also the slowest (especially for extended height worlds)
+		//return findSurfaceHeightMarching(finalDensity, levelWrapper, blockX, blockZ, NO_HEIGHT_HINT);
+		
+		
+		//// 3.3 million // 23 sec
+		//// this is the fastest but most likely to have incorrect height if overhangs exist
+		//return binarySearchSurfaceHeight(finalDensity, levelWrapper, blockX, blockZ);
+		
+		
+		// 5.3 million // 27 sec
+		// middle ground between binary search for best-case scenarios
+		// and marching for accuracy
+		int candidate = binarySearchSurfaceHeight(finalDensity, levelWrapper, blockX, blockZ);
+
+		if (sanityCheckSurface(finalDensity, levelWrapper, blockX, blockZ, candidate))
+		{
+			return candidate;
+		}
+
+		// fall back to the slower, anomaly-aware marching approach
+		return findSurfaceHeightMarching(finalDensity, levelWrapper, blockX, blockZ);
+	}
 	
-	// tested on MC 26.1.2 and 26.2.0
-	
-	private static final int MARCH_STEP = 8;
-	public static final int NO_HEIGHT_HINT = Integer.MIN_VALUE; // no neighboring point to check against for floating points
-	private static final int FLOATING_OUTLIER_THRESHOLD_BLOCKS = 24; // maximum height diff between neighboring points before being treated as a floating block/blob
-	
-	private static int findSurfaceHeight(
+	private static int binarySearchSurfaceHeight(
 		DensityFunction finalDensity, 
 		ILevelWrapper levelWrapper, 
-		int blockX, int blockZ,
-		int seaLevel)
+		int blockX, int blockZ)
 	{
 		int nonSolidY = levelWrapper.getMaxHeight(); // known non-solid (top of world)
 		int solidY = levelWrapper.getMinHeight() - 1; // assume bottom-most is solid; adjust if not guaranteed
@@ -549,31 +613,21 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 		return solidY + 1; // first air block above the ground, consistent with your existing convention
 	}
 	
-	private static int findSurfaceHeight_walk(
+	private static int findSurfaceHeightMarching(
 		DensityFunction finalDensity, 
 		ILevelWrapper levelWrapper, 
-		int blockX, int blockZ, int expectedHeightHint)
+		int blockX, int blockZ)
 	{
-		int top = levelWrapper.getMaxHeight(); // TODO getting cut off at ~120 Y
+		int top = levelWrapper.getMaxHeight();
 		int bottom = levelWrapper.getMinHeight();
 		int prevY = top;
-		int y = top - MARCH_STEP;
-		int fallback = bottom;
+		int y = (top - MARCH_STEP);
 		
 		while (y >= bottom)
 		{
 			if (isSolid(finalDensity, blockX, y, blockZ))
 			{
-				int candidate = binaryRefine(finalDensity, blockX, blockZ, prevY, y) + 1;
-				if (expectedHeightHint == NO_HEIGHT_HINT
-					|| Math.abs(candidate - expectedHeightHint) <= FLOATING_OUTLIER_THRESHOLD_BLOCKS)
-				{
-					return candidate;
-				}
-
-				fallback = candidate;
-				prevY = candidate - 1;
-				y = prevY - MARCH_STEP;
+				return binaryRefine(finalDensity, blockX, blockZ, prevY, y) + 1;
 			}
 			else
 			{
@@ -582,8 +636,11 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 			}
 		}
 		
-		return fallback;
+		// should only happen on empty worlds (ie the end)
+		return levelWrapper.getMinHeight();
 	}
+	
+	// TODO rename
 	private static int binaryRefine(DensityFunction finalDensity, int blockX, int blockZ, int highNonSolidY, int lowSolidY)
 	{
 		while (highNonSolidY - lowSolidY > 1)
@@ -601,6 +658,33 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 		
 		return lowSolidY;
 	}
+	
+	private static boolean sanityCheckSurface(
+		DensityFunction finalDensity, ILevelWrapper levelWrapper,
+		int blockX, int blockZ, int candidateSurfaceY)
+	{
+		int bottom = levelWrapper.getMinHeight();
+		int solidTopY = candidateSurfaceY - 1; // binary search's solidY, i.e. the actual top solid block
+		
+		for (int depth : SANITY_CHECK_DEPTHS)
+		{
+			int checkY = solidTopY - depth;
+			if (checkY < bottom)
+			{
+				break; // ran out of world to check, treat as fine
+			}
+			
+			if (!isSolid(finalDensity, blockX, checkY, blockZ))
+			{
+				return false; // hit air again below — this was likely a thin floating blob, not real ground
+			}
+		}
+		
+		return true;
+	}
+	
+	
+	// TODO rename
 	private static boolean isSolid(DensityFunction finalDensity, int blockX, int blockY, int blockZ)
 	{ return finalDensity.compute(new DensityFunction.SinglePointContext(blockX, blockY, blockZ)) > 0.0; }
 	
@@ -615,6 +699,35 @@ public class TestGenericWorldGenerator implements IDhApiWorldGenerator
 	
 	@Override
 	public void close() { /* do nothing */ }
+	
+	//endregion
+	
+	
+	
+	//================//
+	// helper classes //
+	//================//
+	//region
+	
+	private static class BlockCountPair
+	{
+		public final IBlockStateWrapper blockStateWrapper;
+		public final int count;
+		
+		public BlockCountPair(IBlockStateWrapper blockStateWrapper, int count)
+		{
+			this.blockStateWrapper = blockStateWrapper;
+			this.count = count;
+		}
+		
+		@Override
+		public String toString()
+		{
+			// count first for easier reading with long block serials
+			return this.count + " - " + this.blockStateWrapper.getSerialString();
+		}
+		
+	}
 	
 	//endregion
 	
