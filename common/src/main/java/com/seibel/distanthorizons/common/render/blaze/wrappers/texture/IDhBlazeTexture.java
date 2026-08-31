@@ -5,11 +5,13 @@ public interface IDhBlazeTexture {}
 #else
 
 import com.mojang.blaze3d.textures.GpuSampler;
+import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.GpuTextureView;
 
 public interface IDhBlazeTexture
 {
 	
+	GpuTexture getTexture();
 	GpuTextureView getTextureView();
 	GpuSampler getTextureSampler();
 	

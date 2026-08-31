@@ -52,6 +52,7 @@ public class BlazeTextureWrapper implements IDhBlazeTexture, IDhApiBlazeTextureW
 	private GpuTexture texture = null;
 	private GpuTextureView textureView = null;
 	private GpuSampler textureSampler = null;
+	private final Object[] unsafeReturnArray = new Object[3];
 	
 	private int width = -1;
 	private int height = -1;
@@ -318,6 +319,27 @@ public class BlazeTextureWrapper implements IDhBlazeTexture, IDhApiBlazeTextureW
 		{
 			COMMAND_ENCODER.clearDepthTexture(this.texture, depth);
 		}
+	}
+	
+	//endregion
+	
+	
+	
+	//==========//
+	// wrapping //
+	//==========//
+	//region
+	@Override 
+	public Object getWrappedMcObject()
+	{
+		// Blaze textures have a few different objects needed for
+		// rendering, so put them all in a pooled array
+		{
+			this.unsafeReturnArray[0] = this.texture;
+			this.unsafeReturnArray[1] = this.textureView;
+			this.unsafeReturnArray[2] = this.textureSampler;
+		}
+		return this.unsafeReturnArray;
 	}
 	
 	//endregion
