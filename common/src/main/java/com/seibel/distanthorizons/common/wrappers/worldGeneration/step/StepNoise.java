@@ -23,7 +23,7 @@ package com.seibel.distanthorizons.common.wrappers.worldGeneration.step;
 import java.util.ArrayList;
 
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
-import com.seibel.distanthorizons.common.wrappers.worldGeneration.BatchGenerationEnvironment;
+import com.seibel.distanthorizons.common.wrappers.worldGeneration.DhChunkGenerator;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.params.ThreadWorldGenParams;
 
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject.DhLitWorldGenRegion;
@@ -44,7 +44,7 @@ public final class StepNoise extends AbstractWorldGenStep
 {
 	private static final ChunkStatus STATUS = ChunkStatus.NOISE;
 	
-	private final BatchGenerationEnvironment environment;
+	private final DhChunkGenerator dhChunkGen;
 	
 	
 	
@@ -52,7 +52,7 @@ public final class StepNoise extends AbstractWorldGenStep
 	// constructor //
 	//=============//
 	
-	public StepNoise(BatchGenerationEnvironment batchGenerationEnvironment) { this.environment = batchGenerationEnvironment; }
+	public StepNoise(DhChunkGenerator dhChunkGen) { this.dhChunkGen = dhChunkGen; }
 	
 	
 	
@@ -97,10 +97,10 @@ public final class StepNoise extends AbstractWorldGenStep
 							tParams.structFeatManager.forWorldGenRegion(worldGenRegion), 
 							chunk));
 			#else
-			chunk = this.environment.confirmFutureWasRunSynchronously(
-						this.environment.globalParams.generator.fillFromNoise(
+			chunk = this.dhChunkGen.confirmFutureWasRunSynchronously(
+						this.dhChunkGen.globalParams.generator.fillFromNoise(
 							Blender.of(worldGenRegion), 
-							this.environment.globalParams.randomState,
+							this.dhChunkGen.globalParams.randomState,
 							tParams.structFeatManager.forWorldGenRegion(worldGenRegion), 
 							chunk));
 			#endif

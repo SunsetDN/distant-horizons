@@ -15,7 +15,6 @@ import com.seibel.distanthorizons.core.generation.DhLightingEngine;
 import com.seibel.distanthorizons.core.level.IDhServerLevel;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
-import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.util.ExceptionUtil;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.TimerUtil;
@@ -50,12 +49,11 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 #endif
 
 import java.util.*;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 
-public class InternalServerGenerator
+public class DhInternalServerGenerator
 {
 	public static final DhLogger LOGGER = new DhLoggerBuilder()
 			.name("LOD World Gen - Internal Server")
@@ -104,7 +102,7 @@ public class InternalServerGenerator
 	// constructor //
 	//=============//
 	
-	public InternalServerGenerator(GlobalWorldGenParams params, IDhServerLevel dhServerLevel)
+	public DhInternalServerGenerator(GlobalWorldGenParams params, IDhServerLevel dhServerLevel)
 	{
 		this.params = params;
 		this.dhServerLevel = dhServerLevel;
@@ -117,7 +115,7 @@ public class InternalServerGenerator
 	// generation //
 	//============//
 	
-	public void generateChunksViaInternalServer(GenerationEvent genEvent)
+	public void generateChunksViaInternalServer(ChunkGenEvent genEvent)
 	{
 		this.runValidation();
 		
@@ -134,7 +132,7 @@ public class InternalServerGenerator
 			#endif
 			
 			{
-				Iterator<ChunkPos> chunkPosIterator = ChunkPosGenStream.getIterator(genEvent.minPos.getX(), genEvent.minPos.getZ(), genEvent.widthInChunks, 0);
+				Iterator<ChunkPos> chunkPosIterator = ChunkPosGenStream.getIterator(genEvent.minChunkPos.getX(), genEvent.minChunkPos.getZ(), genEvent.widthInChunks, 0);
 				while (chunkPosIterator.hasNext())
 				{
 					ChunkPos chunkPos = chunkPosIterator.next();
@@ -242,7 +240,7 @@ public class InternalServerGenerator
 			#endif
 			
 			// release all chunks from the server to prevent out of memory issues
-			Iterator<ChunkPos> chunkPosIterator = ChunkPosGenStream.getIterator(genEvent.minPos.getX(), genEvent.minPos.getZ(), genEvent.widthInChunks, 0);
+			Iterator<ChunkPos> chunkPosIterator = ChunkPosGenStream.getIterator(genEvent.minChunkPos.getX(), genEvent.minChunkPos.getZ(), genEvent.widthInChunks, 0);
 			while (chunkPosIterator.hasNext())
 			{
 				ChunkPos chunkPos = chunkPosIterator.next();
@@ -492,9 +490,9 @@ public class InternalServerGenerator
 					@Override
 					public void run()
 					{
-						if (InternalServerGenerator.this.updateManager != null)
+						if (DhInternalServerGenerator.this.updateManager != null)
 						{
-							InternalServerGenerator.this.updateManager.removePosToIgnore(McObjectConverter.convert(chunkPos));
+							DhInternalServerGenerator.this.updateManager.removePosToIgnore(McObjectConverter.convert(chunkPos));
 						}
 					}
 				}, MS_TO_IGNORE_CHUNK_AFTER_COMPLETION);

@@ -19,7 +19,7 @@
 
 package com.seibel.distanthorizons.neoforge.mixins.server;
 
-import com.seibel.distanthorizons.common.wrappers.worldGeneration.BatchGenerationEnvironment;
+import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.core.util.objects.RunOnThisThreadExecutorService;
 import org.spongepowered.asm.mixin.Mixin;
 
@@ -54,7 +54,7 @@ public class MixinUtilBackgroundThread
 	@Inject(method = "backgroundExecutor", at = @At("HEAD"), cancellable = true)
 	private static void overrideUtil$backgroundExecutor(CallbackInfoReturnable<ExecutorService> ci)
 	{
-		if (BatchGenerationEnvironment.isThisDhWorldGenThread())
+		if (DhApi.isDhThread())
 		{
 			// run this task on the current DH thread instead of a new MC thread
 			ci.setReturnValue(new RunOnThisThreadExecutorService());
@@ -70,7 +70,7 @@ public class MixinUtilBackgroundThread
 			at = @At("HEAD"), cancellable = true)
 	private static void overrideUtil$wrapThreadWithTaskName(String string, Runnable r, CallbackInfoReturnable<Runnable> ci)
 	{
-		if (BatchGenerationEnvironment.isThisDhWorldGenThread())
+		if (DhApi.isDhThread())
 		{
 			//ApiShared.LOGGER.info("util wrapThreadWithTaskName(Runnable) triggered");
 			ci.setReturnValue(r);
@@ -86,7 +86,7 @@ public class MixinUtilBackgroundThread
 			at = @At("HEAD"), cancellable = true)
 	private static void overrideUtil$wrapThreadWithTaskNameForSupplier(String string, Supplier<?> r, CallbackInfoReturnable<Supplier<?>> ci)
 	{
-		if (BatchGenerationEnvironment.isThisDhWorldGenThread())
+		if (DhApi.isDhThread())
 		{
 			//ApiShared.LOGGER.info("util wrapThreadWithTaskName(Supplier) triggered");
 			ci.setReturnValue(r);

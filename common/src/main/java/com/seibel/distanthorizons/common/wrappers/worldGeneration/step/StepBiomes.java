@@ -23,7 +23,7 @@ package com.seibel.distanthorizons.common.wrappers.worldGeneration.step;
 import java.util.ArrayList;
 
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
-import com.seibel.distanthorizons.common.wrappers.worldGeneration.BatchGenerationEnvironment;
+import com.seibel.distanthorizons.common.wrappers.worldGeneration.DhChunkGenerator;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.params.ThreadWorldGenParams;
 
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject.DhLitWorldGenRegion;
@@ -42,7 +42,7 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 
 public final class StepBiomes extends AbstractWorldGenStep
 {
-	private final BatchGenerationEnvironment environment;
+	private final DhChunkGenerator dhChunkGen;
 	
 	public static final ChunkStatus STATUS = ChunkStatus.BIOMES;
 	
@@ -52,7 +52,7 @@ public final class StepBiomes extends AbstractWorldGenStep
 	// constructor //
 	//=============//
 	
-	public StepBiomes(BatchGenerationEnvironment batchGenerationEnvironment) { this.environment = batchGenerationEnvironment; }
+	public StepBiomes(DhChunkGenerator dhChunkGen) { this.dhChunkGen = dhChunkGen; }
 	
 	
 	
@@ -104,9 +104,9 @@ public final class StepBiomes extends AbstractWorldGenStep
 							chunk)
 					);
 			#else
-			chunk = this.environment.confirmFutureWasRunSynchronously(
-						this.environment.globalParams.generator.createBiomes(
-							this.environment.globalParams.randomState, 
+			chunk = this.dhChunkGen.confirmFutureWasRunSynchronously(
+						this.dhChunkGen.globalParams.generator.createBiomes(
+							this.dhChunkGen.globalParams.randomState, 
 							Blender.of(worldGenRegion),
 							tParams.structFeatManager.forWorldGenRegion(worldGenRegion), 
 							chunk)

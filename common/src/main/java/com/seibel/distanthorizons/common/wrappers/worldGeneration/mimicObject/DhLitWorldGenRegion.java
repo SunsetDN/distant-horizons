@@ -25,7 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.seibel.distanthorizons.common.wrappers.McObjectConverter;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
-import com.seibel.distanthorizons.common.wrappers.worldGeneration.BatchGenerationEnvironment;
+import com.seibel.distanthorizons.common.wrappers.worldGeneration.DhChunkGenerator;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.util.LodUtil;
@@ -88,7 +88,7 @@ public class DhLitWorldGenRegion extends WorldGenRegion
 	
 	public final ServerLevel serverLevel;
 	public final DummyLightEngine lightEngine;
-	public final BatchGenerationEnvironment.IEmptyChunkRetrievalFunc generator;
+	public final DhChunkGenerator.IEmptyChunkRetrievalFunc generator;
 	public final int writeRadius;
 	public final int size;
 	
@@ -133,7 +133,7 @@ public class DhLitWorldGenRegion extends WorldGenRegion
 			ChunkAccess centerChunk,
 			ServerLevel serverLevel, DummyLightEngine lightEngine,
 			List<ChunkAccess> chunkList, ChunkStatus chunkStatus, int writeRadius,
-			BatchGenerationEnvironment.IEmptyChunkRetrievalFunc generator)
+			DhChunkGenerator.IEmptyChunkRetrievalFunc generator)
 	{
 		#if MC_VER == MC_1_16_5
 		super(serverLevel, chunkList);

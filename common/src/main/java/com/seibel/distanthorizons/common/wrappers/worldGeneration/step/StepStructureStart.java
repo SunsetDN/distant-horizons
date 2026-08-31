@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
-import com.seibel.distanthorizons.common.wrappers.worldGeneration.BatchGenerationEnvironment;
+import com.seibel.distanthorizons.common.wrappers.worldGeneration.DhChunkGenerator;
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.params.ThreadWorldGenParams;
 
 import com.seibel.distanthorizons.common.wrappers.worldGeneration.mimicObject.DhLitWorldGenRegion;
@@ -46,7 +46,7 @@ public final class StepStructureStart extends AbstractWorldGenStep
 	private static final ChunkStatus STATUS = ChunkStatus.STRUCTURE_STARTS;
 	private static final ReentrantLock STRUCTURE_PLACEMENT_LOCK = new ReentrantLock();
 	
-	private final BatchGenerationEnvironment environment;
+	private final DhChunkGenerator dhChunkGen;
 	
 	
 	
@@ -54,7 +54,7 @@ public final class StepStructureStart extends AbstractWorldGenStep
 	// constructor //
 	//=============//
 	
-	public StepStructureStart(BatchGenerationEnvironment batchGenerationEnvironment) { this.environment = batchGenerationEnvironment; }
+	public StepStructureStart(DhChunkGenerator dhChunkGen) { this.dhChunkGen = dhChunkGen; }
 	
 	
 	
@@ -77,7 +77,7 @@ public final class StepStructureStart extends AbstractWorldGenStep
 		#elif MC_VER < MC_1_19_4
 		if (!this.environment.globalParams.worldGenSettings.generateStructures()) 
 		#else
-		if (!this.environment.globalParams.worldOptions.generateStructures())
+		if (!this.dhChunkGen.globalParams.worldOptions.generateStructures())
 		#endif
 		{
 			return;
@@ -104,10 +104,10 @@ public final class StepStructureStart extends AbstractWorldGenStep
 					this.environment.globalParams.mcServerLevel.getChunkSource().getGeneratorState(),
 					tParams.structFeatManager, chunk, this.environment.globalParams.structures);
 			#else
-			this.environment.globalParams.generator.createStructures(this.environment.globalParams.registry,
-					this.environment.globalParams.mcServerLevel.getChunkSource().getGeneratorState(),
-					tParams.structFeatManager, chunk, this.environment.globalParams.structures, 
-					this.environment.globalParams.mcServerLevel.dimension());
+			this.dhChunkGen.globalParams.generator.createStructures(this.dhChunkGen.globalParams.registry,
+					this.dhChunkGen.globalParams.mcServerLevel.getChunkSource().getGeneratorState(),
+					tParams.structFeatManager, chunk, this.dhChunkGen.globalParams.structures, 
+					this.dhChunkGen.globalParams.mcServerLevel.dimension());
 			#endif
 			
 			

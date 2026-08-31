@@ -29,7 +29,8 @@ import com.seibel.distanthorizons.common.wrappers.block.BlockStateWrapper;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 import com.seibel.distanthorizons.common.wrappers.world.ClientLevelWrapper;
 import com.seibel.distanthorizons.common.wrappers.world.ServerLevelWrapper;
-import com.seibel.distanthorizons.common.wrappers.worldGeneration.BatchGenerationEnvironment;
+import com.seibel.distanthorizons.common.wrappers.worldGeneration.DhChunkGenerator;
+import com.seibel.distanthorizons.common.wrappers.worldGeneration.DhRoughSurfaceGenerator;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.level.IDhLevel;
 import com.seibel.distanthorizons.core.level.IDhServerLevel;
@@ -44,7 +45,8 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhGe
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.objects.IVertexBufferWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IBiomeWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
-import com.seibel.distanthorizons.core.wrapperInterfaces.worldGeneration.IBatchGeneratorEnvironmentWrapper;
+import com.seibel.distanthorizons.core.wrapperInterfaces.worldGeneration.IChunkGenerator;
+import com.seibel.distanthorizons.core.wrapperInterfaces.worldGeneration.IRoughGenerator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 #if MC_VER > MC_1_17_1
@@ -62,14 +64,12 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 #endif
 
 import java.io.IOException;
-import java.util.HashSet;
 
 /**
  * This handles creating abstract wrapper objects.
@@ -108,11 +108,24 @@ public class WrapperFactory implements IWrapperFactory
 	//region
 	
 	@Override
-	public IBatchGeneratorEnvironmentWrapper createBatchGenerator(IDhLevel targetLevel)
+	public IChunkGenerator createChunkGenerator(IDhLevel targetLevel)
 	{
 		if (targetLevel instanceof IDhServerLevel)
 		{
-			return new BatchGenerationEnvironment((IDhServerLevel) targetLevel);
+			return new DhChunkGenerator((IDhServerLevel) targetLevel);
+		}
+		else
+		{
+			throw new IllegalArgumentException("The target level must be a server-side level.");
+		}
+	}
+	
+	@Override 
+	public IRoughGenerator createRoughGenerator(IDhLevel targetLevel, IChunkGenerator batchChunkGenerator)
+	{
+		if (targetLevel instanceof IDhServerLevel)
+		{
+			return new DhRoughSurfaceGenerator(((IDhServerLevel) targetLevel).getServerLevelWrapper(), (DhChunkGenerator) batchChunkGenerator);
 		}
 		else
 		{

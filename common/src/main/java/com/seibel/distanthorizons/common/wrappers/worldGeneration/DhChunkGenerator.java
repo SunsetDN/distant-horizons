@@ -48,7 +48,7 @@ import com.seibel.distanthorizons.core.util.gridList.ArrayGridList;
 import com.seibel.distanthorizons.core.util.objects.UncheckedInterruptedException;
 import com.seibel.distanthorizons.core.wrapperInterfaces.chunk.ChunkLightStorage;
 import com.seibel.distanthorizons.core.wrapperInterfaces.chunk.IChunkWrapper;
-import com.seibel.distanthorizons.core.wrapperInterfaces.worldGeneration.IBatchGeneratorEnvironmentWrapper;
+import com.seibel.distanthorizons.core.wrapperInterfaces.worldGeneration.IChunkGenerator;
 import com.seibel.distanthorizons.common.wrappers.chunk.ChunkWrapper;
 
 import java.util.*;
@@ -99,7 +99,7 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 #endif
 
 
-public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironmentWrapper
+public final class DhChunkGenerator implements IChunkGenerator
 {
 	public static final DhLogger LOGGER = new DhLoggerBuilder()
 			.name("LOD World Gen")
@@ -133,7 +133,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	@Nullable
 	private final ChunkUpdateQueueManager updateManager;
 	
-	public final InternalServerGenerator internalServerGenerator;
+	public final DhInternalServerGenerator internalServerGenerator;
 	
 	#if MC_VER > MC_1_12_2
 	public final ChunkFileReader chunkFileReader;
@@ -143,7 +143,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	
 	
 	
-	public final LinkedBlockingQueue<GenerationEvent> generationEventQueue = new LinkedBlockingQueue<>();
+	public final LinkedBlockingQueue<ChunkGenEvent> generationEventQueue = new LinkedBlockingQueue<>();
 	public final GlobalWorldGenParams globalParams;
 	
 	#if MC_VER > MC_1_12_2
@@ -159,9 +159,6 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	public boolean generatedChunkWithoutBiomeWarningLogged = false;
 	public int unknownExceptionCount = 0;
 	public long lastExceptionTriggerTime = 0;
-	
-	public static ThreadLocal<Boolean> isDhWorldGenThreadRef = new ThreadLocal<>();
-	public static boolean isThisDhWorldGenThread() { return (isDhWorldGenThreadRef.get() != null); }
 	
 	
 	
@@ -192,12 +189,12 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		MAX_WORLD_GEN_CHUNK_BORDER_NEEDED = 0;
 	}
 	
-	public BatchGenerationEnvironment(IDhServerLevel dhServerLevel)
+	public DhChunkGenerator(IDhServerLevel dhServerLevel)
 	{
 		this.dhServerLevel = dhServerLevel;
 		this.updateManager = WorldChunkUpdateManager.INSTANCE.getByLevelWrapper(this.dhServerLevel.getServerLevelWrapper());
 		this.globalParams = new GlobalWorldGenParams(dhServerLevel);
-		this.internalServerGenerator = new InternalServerGenerator(this.globalParams, this.dhServerLevel);
+		this.internalServerGenerator = new DhInternalServerGenerator(this.globalParams, this.dhServerLevel);
 		
 		#if MC_VER > MC_1_12_2
 		this.chunkFileReader = new ChunkFileReader(this.globalParams);
@@ -270,10 +267,10 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		
 		
 		// Update all current out standing jobs
-		Iterator<GenerationEvent> iter = this.generationEventQueue.iterator();
+		Iterator<ChunkGenEvent> iter = this.generationEventQueue.iterator();
 		while (iter.hasNext())
 		{
-			GenerationEvent event = iter.next();
+			ChunkGenEvent event = iter.next();
 			if (event.future.isDone())
 			{
 				if (event.future.isCompletedExceptionally() && !event.future.isCancelled())
@@ -310,7 +307,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	//==================//
 	
 	/** @throws RejectedExecutionException if the given {@link Executor} is cancelled. */
-	public void generateEvent(GenerationEvent genEvent) throws RejectedExecutionException
+	public void generateChunks(ChunkGenEvent genEvent) throws RejectedExecutionException
 	{
 		// Minecraft's generation events expect odd chunk width areas (3x3, 7x7, or 11x11),
 		// but DH submits square generation events (4x4).
@@ -337,8 +334,8 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		int borderSize = MAX_WORLD_GEN_CHUNK_BORDER_NEEDED;
 		// genEvent.size - 1 converts the even width size to an odd number for MC compatability
 		int refSize = (genEvent.widthInChunks - 1) + (borderSize * 2);
-		int refPosX = genEvent.minPos.getX() - borderSize;
-		int refPosZ = genEvent.minPos.getZ() - borderSize;
+		int refPosX = genEvent.minChunkPos.getX() - borderSize;
+		int refPosZ = genEvent.minChunkPos.getZ() - borderSize;
 		
 		LightGetterAdaptor lightGetterAdaptor = new LightGetterAdaptor(this.globalParams.mcServerLevel);
 		DummyLightEngine dummyLightEngine = new DummyLightEngine(lightGetterAdaptor);
@@ -357,7 +354,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		HashMap<DhChunkPos, CompletableFuture<ChunkWrapper>> readFutureByDhChunkPos = new HashMap<>();
 		
 		Iterator<ChunkPos> existingChunkPosIterator = ChunkPosGenStream.getIterator(
-			genEvent.minPos.getX(), genEvent.minPos.getZ(),
+			genEvent.minChunkPos.getX(), genEvent.minChunkPos.getZ(),
 			genEvent.widthInChunks,
 			// 0 radius -> only pull existing chunks from disk
 			0);
@@ -389,7 +386,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		//===================================//
 		
 		Iterator<ChunkPos> emptyChunkPosIterator = ChunkPosGenStream.getIterator(
-			genEvent.minPos.getX(), genEvent.minPos.getZ(), 
+			genEvent.minChunkPos.getX(), genEvent.minChunkPos.getZ(), 
 			genEvent.widthInChunks,
 			// the extra radius of 8 is to account for structure references which need a chunk radius of 8
 			8);
@@ -546,7 +543,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 			// submit generated chunks //
 			//=========================//
 			
-			Iterator<ChunkPos> iterator = ChunkPosGenStream.getIterator(genEvent.minPos.getX(), genEvent.minPos.getZ(), genEvent.widthInChunks, 0);
+			Iterator<ChunkPos> iterator = ChunkPosGenStream.getIterator(genEvent.minChunkPos.getX(), genEvent.minChunkPos.getZ(), genEvent.widthInChunks, 0);
 			while (iterator.hasNext())
 			{
 				ChunkPos chunkPos = iterator.next();
@@ -576,12 +573,12 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 			boolean isShutdownException = ExceptionUtil.isShutdownException(e);
 			if (!isShutdownException)
 			{
-				LOGGER.error("Completion error during world gen for min chunk pos ["+genEvent.minPos+"], error: ["+e.getMessage()+"].", e);
+				LOGGER.error("Completion error during world gen for min chunk pos ["+genEvent.minChunkPos +"], error: ["+e.getMessage()+"].", e);
 			}
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Unexpected error during world gen for min chunk pos ["+genEvent.minPos+"], error: ["+e.getMessage()+"].", e);
+			LOGGER.error("Unexpected error during world gen for min chunk pos ["+genEvent.minChunkPos +"], error: ["+e.getMessage()+"].", e);
 		}
 		#endif
 	}
@@ -592,7 +589,7 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	
 	#if MC_VER > MC_1_12_2
 	public void generateDirect(
-			GenerationEvent genEvent, ArrayGridList<ChunkWrapper> chunkWrappersToGenerate,
+			ChunkGenEvent genEvent, ArrayGridList<ChunkWrapper> chunkWrappersToGenerate,
 			DhLitWorldGenRegion region) throws InterruptedException
 	{
 		if (Thread.interrupted())
@@ -748,9 +745,9 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 					@Override
 					public void run() 
 					{
-						if (BatchGenerationEnvironment.this.updateManager != null)
+						if (DhChunkGenerator.this.updateManager != null)
 						{
-							BatchGenerationEnvironment.this.updateManager.removePosToIgnore(chunkWrapper.getChunkPos());
+							DhChunkGenerator.this.updateManager.removePosToIgnore(chunkWrapper.getChunkPos());
 						}
 					}
 				}, MS_TO_IGNORE_CHUNK_AFTER_COMPLETION);
@@ -766,12 +763,12 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	
 	@Override
 	public CompletableFuture<Void> queueGenEvent(
-			int minX, int minZ, int chunkWidthCount, 
-			EDhApiDistantGeneratorMode generatorMode, EDhApiWorldGenerationStep targetStep,
-			ExecutorService worldGeneratorThreadPool, Consumer<IChunkWrapper> resultConsumer)
+		int chunkPosMinX, int chunkPosMinZ, int chunkWidthCount,
+		EDhApiDistantGeneratorMode generatorMode, EDhApiWorldGenerationStep targetStep,
+		ExecutorService worldGeneratorThreadPool, Consumer<IChunkWrapper> resultConsumer)
 	{
-		GenerationEvent genEvent = GenerationEvent.start(
-				new DhChunkPos(minX, minZ), chunkWidthCount, this,
+		ChunkGenEvent genEvent = ChunkGenEvent.start(
+				new DhChunkPos(chunkPosMinX, chunkPosMinZ), chunkWidthCount, this,
 				generatorMode, targetStep, resultConsumer, 
 				worldGeneratorThreadPool);
 		this.generationEventQueue.add(genEvent);
@@ -783,18 +780,19 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	//================//
 	// base overrides //
 	//================//
+	//region
 	
 	@Override
 	public void close()
 	{
-		LOGGER.info("Closing [" +BatchGenerationEnvironment.class.getSimpleName() + "]");
+		LOGGER.info("Closing [" + DhChunkGenerator.class.getSimpleName() + "]");
 		
 		
 		// cancel in-progress tasks
-		Iterator<GenerationEvent> genEventIter = this.generationEventQueue.iterator();
+		Iterator<ChunkGenEvent> genEventIter = this.generationEventQueue.iterator();
 		while (genEventIter.hasNext())
 		{
-			GenerationEvent event = genEventIter.next();
+			ChunkGenEvent event = genEventIter.next();
 			event.future.cancel(true);
 			genEventIter.remove();
 		}
@@ -805,11 +803,14 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		#endif
 	}
 	
+	//endregion
+	
 	
 	
 	//================//
 	// helper methods //
 	//================//
+	//region
 	
 	/**
 	 * Called before code that may run for an extended period of time. <br>
@@ -820,15 +821,18 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 	{
 		if (Thread.interrupted())
 		{
-			throw new InterruptedException("["+BatchGenerationEnvironment.class.getSimpleName()+"] task interrupted.");
+			throw new InterruptedException("["+ DhChunkGenerator.class.getSimpleName()+"] task interrupted.");
 		}
 	}
+	
+	//endregion
 	
 	
 	
 	//================//
 	// helper classes //
 	//================//
+	//region
 	
 	#if MC_VER > MC_1_12_2
 	@FunctionalInterface
@@ -837,5 +841,9 @@ public final class BatchGenerationEnvironment implements IBatchGeneratorEnvironm
 		ChunkAccess getChunk(int chunkPosX, int chunkPosZ);
 	}
 	#endif
+	
+	//endregion
+	
+	
 	
 }

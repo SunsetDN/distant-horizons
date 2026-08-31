@@ -35,7 +35,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.chunk.IChunkWrapper;
 
 import com.seibel.distanthorizons.core.logging.DhLogger;
 
-public final class GenerationEvent
+public final class ChunkGenEvent
 {
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();;
 	
@@ -48,7 +48,8 @@ public final class GenerationEvent
 	#if MC_VER > MC_1_12_2
 	public final ThreadWorldGenParams threadedParam;
 	#endif
-	public final DhChunkPos minPos;
+	
+	public final DhChunkPos minChunkPos;
 	public final int widthInChunks;
 	public final EDhApiWorldGenerationStep targetGenerationStep;
 	public final EDhApiDistantGeneratorMode generatorMode;
@@ -61,19 +62,21 @@ public final class GenerationEvent
 	// constructor //
 	//=============//
 	
-	public GenerationEvent(
-			DhChunkPos minPos, int widthInChunks, BatchGenerationEnvironment generationGroup,
+	public ChunkGenEvent(
+			DhChunkPos minChunkPos, int widthInChunks, DhChunkGenerator generationGroup,
 			EDhApiDistantGeneratorMode generatorMode, EDhApiWorldGenerationStep targetGenerationStep, Consumer<IChunkWrapper> resultConsumer)
 	{
 		this.id = DEBUG_ID_REF.getAndIncrement();
 		
-		this.minPos = minPos;
+		this.minChunkPos = minChunkPos;
 		this.widthInChunks = widthInChunks;
 		this.targetGenerationStep = targetGenerationStep;
 		this.generatorMode = generatorMode;
+		
 		#if MC_VER > MC_1_12_2
 		this.threadedParam = ThreadWorldGenParams.getOrMake(generationGroup.globalParams);
 		#endif
+		
 		this.future = new CompletableFuture<>();
 		this.resultConsumer = resultConsumer;
 	}
@@ -84,12 +87,15 @@ public final class GenerationEvent
 	// start //
 	//=======//
 	
-	public static GenerationEvent start(
-			DhChunkPos minPos, int widthInChunks, BatchGenerationEnvironment genEnvironment,
-			EDhApiDistantGeneratorMode generatorMode, EDhApiWorldGenerationStep target, Consumer<IChunkWrapper> resultConsumer,
-			ExecutorService worldGeneratorThreadPool)
+	public static ChunkGenEvent start(
+		DhChunkPos minPos, int widthInChunks,
+		DhChunkGenerator genEnvironment,
+		EDhApiDistantGeneratorMode generatorMode, EDhApiWorldGenerationStep target, Consumer<IChunkWrapper> resultConsumer,
+		ExecutorService worldGeneratorThreadPool)
 	{
-		GenerationEvent genEvent = new GenerationEvent(minPos, widthInChunks, genEnvironment, generatorMode, target, resultConsumer);
+		ChunkGenEvent genEvent = new ChunkGenEvent(minPos, widthInChunks, 
+			genEnvironment, generatorMode, 
+			target, resultConsumer);
 		
 		try
 		{
@@ -97,9 +103,6 @@ public final class GenerationEvent
 			{
 				try
 				{
-					BatchGenerationEnvironment.isDhWorldGenThreadRef.set(true);
-					
-					
 					if (genEvent.generatorMode == EDhApiDistantGeneratorMode.INTERNAL_SERVER)
 					{
 						genEnvironment.internalServerGenerator.generateChunksViaInternalServer(genEvent);
@@ -109,7 +112,7 @@ public final class GenerationEvent
 					{
 						try
 						{
-							genEnvironment.generateEvent(genEvent);
+							genEnvironment.generateChunks(genEvent);
 						}
 						catch (Throwable throwable)
 						{
@@ -125,10 +128,6 @@ public final class GenerationEvent
 				{
 					handleWorldGenThrowable(genEvent, initialThrowable);
 				}
-				finally
-				{
-					BatchGenerationEnvironment.isDhWorldGenThreadRef.remove();
-				}
 			});
 		}
 		catch (RejectedExecutionException e)
@@ -139,7 +138,7 @@ public final class GenerationEvent
 		return genEvent;
 	}
 	/** There's probably a better way to handle this, but it'll work for now */
-	private static void handleWorldGenThrowable(GenerationEvent generationEvent, Throwable initialThrowable)
+	private static void handleWorldGenThrowable(ChunkGenEvent generationEvent, Throwable initialThrowable)
 	{
 		Throwable throwable = initialThrowable;
 		while (throwable instanceof CompletionException)
@@ -170,7 +169,7 @@ public final class GenerationEvent
 	//================//
 	
 	@Override
-	public String toString() { return this.id + ":" + this.widthInChunks + "@" + this.minPos + "(" + this.targetGenerationStep + ")"; }
+	public String toString() { return this.id + ":" + this.widthInChunks + "@" + this.minChunkPos + "(" + this.targetGenerationStep + ")"; }
 	
 	
 	
