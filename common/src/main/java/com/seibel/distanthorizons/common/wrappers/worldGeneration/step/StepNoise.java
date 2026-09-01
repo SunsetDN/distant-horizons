@@ -74,26 +74,26 @@ public final class StepNoise extends AbstractWorldGenStep
 			ChunkAccess chunk = chunkWrapper.getChunk();
 			
 			#if MC_VER < MC_1_17_1
-			this.environment.globalParams.generator.fillFromNoise(worldGenRegion, tParams.structFeatManager, chunk);
+			this.dhChunkGen.globalParams.generator.fillFromNoise(worldGenRegion, tParams.structFeatManager, chunk);
 			#elif MC_VER < MC_1_18_2
-			chunk = this.environment.confirmFutureWasRunSynchronously(
-						this.environment.globalParams.generator.fillFromNoise(
+			chunk = this.dhChunkGen.confirmFutureWasRunSynchronously(
+						this.dhChunkGen.globalParams.generator.fillFromNoise(
 							Runnable::run,
 							tParams.structFeatManager.forWorldGenRegion(worldGenRegion), 
 							chunk));
 			#elif MC_VER < MC_1_19_2
-			chunk = this.environment.confirmFutureWasRunSynchronously(
-						this.environment.globalParams.generator.fillFromNoise(
+			chunk = this.dhChunkGen.confirmFutureWasRunSynchronously(
+						this.dhChunkGen.globalParams.generator.fillFromNoise(
 							Runnable::run, 
 							Blender.of(worldGenRegion),
 							tParams.structFeatManager.forWorldGenRegion(worldGenRegion), 
 							chunk));
 			#elif MC_VER < MC_1_21_1
-			chunk = this.environment.confirmFutureWasRunSynchronously(
-						this.environment.globalParams.generator.fillFromNoise(
+			chunk = this.dhChunkGen.confirmFutureWasRunSynchronously(
+						this.dhChunkGen.globalParams.generator.fillFromNoise(
 							Runnable::run, 
 							Blender.of(worldGenRegion), 
-							this.environment.globalParams.randomState,
+							this.dhChunkGen.globalParams.randomState,
 							tParams.structFeatManager.forWorldGenRegion(worldGenRegion), 
 							chunk));
 			#else

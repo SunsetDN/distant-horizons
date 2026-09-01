@@ -73,9 +73,9 @@ public final class StepStructureStart extends AbstractWorldGenStep
 		ArrayList<ChunkWrapper> chunksToGen = this.getChunkWrappersToGenerate(chunkWrappers);
 		
 		#if MC_VER < MC_1_19_2
-		if (!this.environment.globalParams.worldGenSettings.generateFeatures())
+		if (!this.dhChunkGen.globalParams.worldGenSettings.generateFeatures())
 		#elif MC_VER < MC_1_19_4
-		if (!this.environment.globalParams.worldGenSettings.generateStructures()) 
+		if (!this.dhChunkGen.globalParams.worldGenSettings.generateStructures()) 
 		#else
 		if (!this.dhChunkGen.globalParams.worldOptions.generateStructures())
 		#endif
@@ -94,15 +94,15 @@ public final class StepStructureStart extends AbstractWorldGenStep
 			STRUCTURE_PLACEMENT_LOCK.lock();
 			
 			#if MC_VER < MC_1_19_2
-			this.environment.globalParams.generator.createStructures(this.environment.globalParams.registry, tParams.structFeatManager, chunk, this.environment.globalParams.structures,
-					this.environment.globalParams.worldSeed);
+			this.dhChunkGen.globalParams.generator.createStructures(this.dhChunkGen.globalParams.registry, tParams.structFeatManager, chunk, this.dhChunkGen.globalParams.structures,
+					this.dhChunkGen.globalParams.worldSeed);
 			#elif MC_VER < MC_1_19_4
-			this.environment.globalParams.generator.createStructures(this.environment.globalParams.registry, this.environment.globalParams.randomState, tParams.structFeatManager, chunk, this.environment.globalParams.structures,
-					this.environment.globalParams.worldSeed);
+			this.dhChunkGen.globalParams.generator.createStructures(this.dhChunkGen.globalParams.registry, this.dhChunkGen.globalParams.randomState, tParams.structFeatManager, chunk, this.dhChunkGen.globalParams.structures,
+					this.dhChunkGen.globalParams.worldSeed);
 			#elif MC_VER <= MC_1_21_3
-			this.environment.globalParams.generator.createStructures(this.environment.globalParams.registry,
-					this.environment.globalParams.mcServerLevel.getChunkSource().getGeneratorState(),
-					tParams.structFeatManager, chunk, this.environment.globalParams.structures);
+			this.dhChunkGen.globalParams.generator.createStructures(this.dhChunkGen.globalParams.registry,
+					this.dhChunkGen.globalParams.mcServerLevel.getChunkSource().getGeneratorState(),
+					tParams.structFeatManager, chunk, this.dhChunkGen.globalParams.structures);
 			#else
 			this.dhChunkGen.globalParams.generator.createStructures(this.dhChunkGen.globalParams.registry,
 					this.dhChunkGen.globalParams.mcServerLevel.getChunkSource().getGeneratorState(),

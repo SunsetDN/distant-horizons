@@ -123,7 +123,7 @@ public class DhRoughSurfaceGenerator implements IRoughGenerator
 		ChunkGenerator generator = level.getChunkSource().getGenerator();
 		BiomeSource biomeSource = generator.getBiomeSource();
 		
-		int relativeSeaLevel = level.getSeaLevel() - level.getMinY();
+		int relativeSeaLevel = this.serverLevelWrapper.getSeaLevel() - this.serverLevelWrapper.getMinHeight();
 		int relativeMaxHeight = this.serverLevelWrapper.getMaxHeight() - this.serverLevelWrapper.getMinHeight();
 		
 		//endregion

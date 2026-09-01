@@ -538,6 +538,9 @@ public class ClientLevelWrapper implements IClientLevelWrapper
 	}
 	
 	@Override
+	public int getSeaLevel() { return this.level.getSeaLevel(); }
+	
+	@Override
 	public #if MC_VER <= MC_1_12_2 WorldClient #else ClientLevel #endif getWrappedMcObject() { return this.level; }
 	
 	private void tryUnloadFromWorld()

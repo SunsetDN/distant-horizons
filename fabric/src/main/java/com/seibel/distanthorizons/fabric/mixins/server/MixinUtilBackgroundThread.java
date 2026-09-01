@@ -54,7 +54,7 @@ public class MixinUtilBackgroundThread
 	@Inject(method = "backgroundExecutor", at = @At("HEAD"), cancellable = true)
 	private static void overrideUtil$backgroundExecutor(CallbackInfoReturnable<ExecutorService> ci)
 	{
-		if (BDhApi.isDhThread())
+		if (DhApi.isDhThread())
 		{
 			// run this task on the current DH thread instead of a new MC thread
 			ci.setReturnValue(new RunOnThisThreadExecutorService());
@@ -70,7 +70,7 @@ public class MixinUtilBackgroundThread
 			at = @At("HEAD"), cancellable = true)
 	private static void overrideUtil$wrapThreadWithTaskName(String string, Runnable r, CallbackInfoReturnable<Runnable> ci)
 	{
-		if (BDhApi.isDhThread())
+		if (DhApi.isDhThread())
 		{
 			//ApiShared.LOGGER.info("util wrapThreadWithTaskName(Runnable) triggered");
 			ci.setReturnValue(r);
@@ -86,7 +86,7 @@ public class MixinUtilBackgroundThread
 			at = @At("HEAD"), cancellable = true)
 	private static void overrideUtil$wrapThreadWithTaskNameForSupplier(String string, Supplier<?> r, CallbackInfoReturnable<Supplier<?>> ci)
 	{
-		if (BDhApi.isDhThread())
+		if (DhApi.isDhThread())
 		{
 			//ApiShared.LOGGER.info("util wrapThreadWithTaskName(Supplier) triggered");
 			ci.setReturnValue(r);
