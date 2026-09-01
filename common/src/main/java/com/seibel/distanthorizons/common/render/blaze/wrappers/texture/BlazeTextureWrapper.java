@@ -147,7 +147,7 @@ public class BlazeTextureWrapper implements IDhBlazeTexture, IDhApiBlazeTextureW
 	
 	@Override public String getName() { return this.name; }
 	
-	@Override public GpuTexture getTexture() { return this.texture; }
+	public GpuTexture getTexture() { return this.texture; }
 	@Override public GpuTextureView getTextureView() { return this.textureView; }
 	@Override public GpuSampler getTextureSampler() { return this.textureSampler; }
 	

@@ -11,7 +11,6 @@ import com.mojang.blaze3d.textures.GpuTextureView;
 public interface IDhBlazeTexture
 {
 	
-	GpuTexture getTexture();
 	GpuTextureView getTextureView();
 	GpuSampler getTextureSampler();
 	

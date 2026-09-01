@@ -609,7 +609,7 @@ public class GLBuffer implements AutoCloseable
 						// log stack traces if present
 						if (LOG_PHANTOM_ALLOCATION_STACKS)
 						{
-							PhantomLoggingHelper.LogAllocationStackTracePairCounts(LOGGER, allocationStackTraceCountPairList);
+							PhantomLoggingHelper.LogAllocationStackTracePairCounts(LOGGER, "", allocationStackTraceCountPairList);
 						}
 					}
 				}
