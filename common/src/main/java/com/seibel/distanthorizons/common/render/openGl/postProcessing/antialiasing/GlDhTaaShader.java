@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.common.render.openGl.postProcessing.antialiasing;
 
+import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingApi;
 import com.seibel.distanthorizons.common.render.openGl.GlDhMetaRenderer;
 import com.seibel.distanthorizons.common.render.openGl.glObject.shader.GlShaderProgram;
 import com.seibel.distanthorizons.common.render.openGl.postProcessing.GlScreenQuad;
@@ -155,8 +156,7 @@ public class GlDhTaaShader extends GlAbstractShaderRenderer
 			this.shader.setUniform(this.uViewWidth, (float) width);
 			this.shader.setUniform(this.uViewHeight, (float) height);
 			
-			// TODO should be is Vulkan
-			this.shader.setUniform(this.uIsReverseZDepth, 0);//(RENDER_API_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0);
+			this.shader.setUniform(this.uIsReverseZDepth, (RENDER_API_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0);
 		}
 	}
 	
