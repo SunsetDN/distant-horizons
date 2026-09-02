@@ -86,7 +86,7 @@ public final class StepFeatures extends AbstractWorldGenStep
 			{
 				#if MC_VER < MC_1_18_2
 				worldGenRegion.setOverrideCenter(chunk.getPos());
-				environment.globalParams.generator.applyBiomeDecoration(worldGenRegion, tParams.structFeatManager);
+				this.dhChunkGen.globalParams.generator.applyBiomeDecoration(worldGenRegion, tParams.structFeatManager);
 				#else
 				if (worldGenRegion.hasChunk(chunkWrapper.getChunkPos().getX(), chunkWrapper.getChunkPos().getZ()))
 				{

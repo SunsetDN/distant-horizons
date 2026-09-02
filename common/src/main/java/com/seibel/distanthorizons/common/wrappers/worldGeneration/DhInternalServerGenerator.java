@@ -24,6 +24,7 @@ import com.seibel.distanthorizons.coreapi.ModInfo;
 
 import org.jetbrains.annotations.Nullable;
 #if MC_VER <= MC_1_12_2
+import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -308,9 +309,9 @@ public class DhInternalServerGenerator
 					@Override
 					public void run()
 					{
-						if (InternalServerGenerator.this.updateManager != null)
+						if (DhInternalServerGenerator.this.updateManager != null)
 						{
-							InternalServerGenerator.this.updateManager.removePosToIgnore(McObjectConverter.convert(neighborPos));
+							DhInternalServerGenerator.this.updateManager.removePosToIgnore(McObjectConverter.convert(neighborPos));
 						}
 					}
 				}, MS_TO_IGNORE_CHUNK_AFTER_COMPLETION);
