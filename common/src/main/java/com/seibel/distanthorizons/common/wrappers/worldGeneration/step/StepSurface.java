@@ -71,9 +71,9 @@ public final class StepSurface extends AbstractWorldGenStep
 			ChunkAccess chunk = chunkWrapper.getChunk();
 			
 			#if MC_VER < MC_1_18_2
-			this.environment.globalParams.generator.buildSurfaceAndBedrock(worldGenRegion, chunk);
+			this.dhChunkGen.globalParams.generator.buildSurfaceAndBedrock(worldGenRegion, chunk);
 			#elif MC_VER < MC_1_19_2
-			this.environment.globalParams.generator.buildSurface(worldGenRegion, tParams.structFeatManager.forWorldGenRegion(worldGenRegion), chunk);
+			this.dhChunkGen.globalParams.generator.buildSurface(worldGenRegion, tParams.structFeatManager.forWorldGenRegion(worldGenRegion), chunk);
 			#else
 			this.dhChunkGen.globalParams.generator.buildSurface(worldGenRegion, tParams.structFeatManager.forWorldGenRegion(worldGenRegion), this.dhChunkGen.globalParams.randomState, chunk);
 			#endif

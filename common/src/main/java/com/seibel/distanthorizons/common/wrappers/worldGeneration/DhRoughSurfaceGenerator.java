@@ -1,5 +1,16 @@
 package com.seibel.distanthorizons.common.wrappers.worldGeneration;
 
+#if MC_VER <= MC_1_18_2
+
+/** 
+ * this generator only works for MC 1.19.2 and newer
+ * since the older versions don't have the necessary 
+ * "RandomState" and "DensityFunction" MC objects needed 
+ */
+public class DhRoughSurfaceGenerator { }
+
+#else
+
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiDistantGeneratorMode;
 import com.seibel.distanthorizons.api.enums.worldGeneration.EDhApiWorldGenerationStep;
 import com.seibel.distanthorizons.api.objects.data.DhApiTerrainDataPoint;
@@ -22,6 +33,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapp
 import com.seibel.distanthorizons.core.wrapperInterfaces.worldGeneration.IRoughGenerator;
 import com.seibel.distanthorizons.coreapi.util.BitShiftUtil;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
 import net.minecraft.server.level.ServerLevel;
@@ -30,6 +42,7 @@ import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.RandomState;
+
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.WillNotClose;
@@ -106,18 +119,13 @@ public class DhRoughSurfaceGenerator implements IRoughGenerator
 		EDhApiDistantGeneratorMode generatorMode,
 		Consumer<IDhApiFullDataSource> resultConsumer)
 	{
-		// this test is only validated for 1.18.2 and up 
-		// (and it is only needed when testing world gen overrides/API chunks, so it isn't normally needed)
-		#if MC_VER >= MC_1_18_2
-		
-		
-		
 		//=====================//
 		// noise gen variables //
 		//=====================//
 		//region
 		
 		ServerLevel level = ((ServerLevel)this.serverLevelWrapper.getWrappedMcObject());
+		
 		RandomState randomState = level.getChunkSource().randomState();
 		DensityFunction finalDensity = randomState.router().finalDensity();
 		ChunkGenerator generator = level.getChunkSource().getGenerator();
@@ -300,9 +308,6 @@ public class DhRoughSurfaceGenerator implements IRoughGenerator
 		}
 		
 		resultConsumer.accept(pooledFullDataSource);
-		
-		#else
-		#endif
 	}
 	
 	//endregion
@@ -650,3 +655,5 @@ public class DhRoughSurfaceGenerator implements IRoughGenerator
 	
 	
 }
+
+#endif

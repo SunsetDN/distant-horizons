@@ -123,6 +123,9 @@ public class WrapperFactory implements IWrapperFactory
 	@Override 
 	public IRoughGenerator createRoughGenerator(IDhLevel targetLevel, IChunkGenerator batchChunkGenerator)
 	{
+		#if MC_VER <= MC_1_18_2
+		return null;
+		#else
 		if (targetLevel instanceof IDhServerLevel)
 		{
 			return new DhRoughSurfaceGenerator(((IDhServerLevel) targetLevel).getServerLevelWrapper(), (DhChunkGenerator) batchChunkGenerator);
@@ -131,6 +134,7 @@ public class WrapperFactory implements IWrapperFactory
 		{
 			throw new IllegalArgumentException("The target level must be a server-side level.");
 		}
+		#endif
 	}
 	
 	@Override

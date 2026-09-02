@@ -531,13 +531,19 @@ public abstract class AbstractModInitializer
 	 */
 	private static void setUnsupportedConfigsBasedOnMcVersion()
 	{
-		
+		// graphics/rendering
 		#if MC_VER <= MC_1_12_2
 		Config.Client.Advanced.Graphics.Experimental.renderingEngine.setMcVersionOverrideValue(EDhApiRenderingEngine.OPEN_GL);
 		Config.Client.Advanced.Graphics.Quality.vanillaFadeMode.setMcVersionOverrideValue(EDhApiMcRenderingFadeMode.NONE);
 		Config.Common.WorldGenerator.distantGeneratorMode.setMcVersionOverrideValue(EDhApiDistantGeneratorMode.INTERNAL_SERVER);
 		#elif MC_VER <= MC_1_21_10
 		Config.Client.Advanced.Graphics.Experimental.renderingEngine.setMcVersionOverrideValue(EDhApiRenderingEngine.OPEN_GL);
+		#else
+		#endif
+		
+		// worldgen
+		#if MC_VER <= MC_1_18_2
+		Config.Common.WorldGenerator.enableFastSurfaceGenerator.setMcVersionOverrideValue(false);
 		#else
 		#endif
 	}
