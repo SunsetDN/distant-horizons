@@ -41,6 +41,7 @@ import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapp
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.core.render.EDhDepthRange;
 import com.seibel.distanthorizons.core.render.EDhRenderDepth;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.RenderUtil;
@@ -56,7 +57,7 @@ public class BlazeDhFarFadeRenderer implements IDhFarFadeRenderer
 	
 	private static final GpuDevice GPU_DEVICE = RenderSystem.getDevice();
 	private static final CommandEncoder COMMAND_ENCODER = GPU_DEVICE.createCommandEncoder();
-	private static final AbstractDhRenderApiDefinition RENDER_API_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
+	private static final AbstractDhRenderApiDefinition RENDER_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 	
 	public static final BlazeDhFarFadeRenderer INSTANCE = new BlazeDhFarFadeRenderer();
 	
@@ -163,7 +164,7 @@ public class BlazeDhFarFadeRenderer implements IDhFarFadeRenderer
 				.putFloat(fadeStartDistance) // uStartFadeBlockDistance
 				.putFloat(fadeEndDistance) // uEndFadeBlockDistance
 				.putMat4f(renderParams.dhInverseMvmProjectionMatrix) // uDhInvMvmProj
-				.putInt((RENDER_API_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0) // uIsReverseZDepth
+				.putInt((RENDER_DEF.getDepthRange() == EDhDepthRange.ZERO_TO_POS_ONE) ? 1 : 0) // uDepthIsZeroToPositiveOne
 				.finishAndUpload()
 			;
 		}

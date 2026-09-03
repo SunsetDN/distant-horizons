@@ -37,6 +37,7 @@ import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.core.render.EDhDepthRange;
 import com.seibel.distanthorizons.core.render.EDhRenderDepth;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.LodUtil;
@@ -67,7 +68,7 @@ public class BlazeDhFogRenderer implements IDhFogRenderer
 {
 	public static final DhLogger LOGGER = new DhLoggerBuilder().build(); 
 	
-	private static final AbstractDhRenderApiDefinition RENDER_API_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
+	private static final AbstractDhRenderApiDefinition RENDER_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 	
 	private static final GpuDevice GPU_DEVICE = RenderSystem.getDevice();
 	private static final CommandEncoder COMMAND_ENCODER = GPU_DEVICE.createCommandEncoder();
@@ -230,7 +231,8 @@ public class BlazeDhFogRenderer implements IDhFogRenderer
 				
 				.putMat4f(inverseMvmProjMatrix) // uInvMvmProj
 				
-				.putInt((RENDER_API_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0) // uIsReverseZDepth
+				.putInt((RENDER_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0) // uIsReverseZDepth
+				.putInt((RENDER_DEF.getDepthRange() == EDhDepthRange.ZERO_TO_POS_ONE) ? 1 : 0) // uDepthIsZeroToPositiveOne
 				
 				.finishAndUpload()
 			;

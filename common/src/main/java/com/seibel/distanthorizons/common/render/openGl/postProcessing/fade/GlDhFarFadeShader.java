@@ -26,6 +26,7 @@ import com.seibel.distanthorizons.common.render.openGl.postProcessing.GlScreenQu
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.common.render.openGl.util.GlAbstractShaderRenderer;
+import com.seibel.distanthorizons.core.render.EDhDepthRange;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.RenderUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
@@ -55,6 +56,8 @@ public class GlDhFarFadeShader extends GlAbstractShaderRenderer
 	
 	public int uStartFadeBlockDistance = -1;
 	public int uEndFadeBlockDistance = -1;
+	
+	public int uDepthIsZeroToPositiveOne = -1;
 	
 	
 	
@@ -86,6 +89,8 @@ public class GlDhFarFadeShader extends GlAbstractShaderRenderer
 		this.uStartFadeBlockDistance = this.shader.tryGetUniformLocation("uStartFadeBlockDistance");
 		this.uEndFadeBlockDistance = this.shader.tryGetUniformLocation("uEndFadeBlockDistance");
 		
+		this.uDepthIsZeroToPositiveOne = this.shader.tryGetUniformLocation("uDepthIsZeroToPositiveOne");
+		
 	}
 	
 	
@@ -106,6 +111,8 @@ public class GlDhFarFadeShader extends GlAbstractShaderRenderer
 		
 		this.shader.setUniform(this.uStartFadeBlockDistance, fadeStartDistance);
 		this.shader.setUniform(this.uEndFadeBlockDistance, fadeEndDistance);
+		
+		this.shader.setUniform(this.uDepthIsZeroToPositiveOne, (RENDER_DEF.getDepthRange() == EDhDepthRange.ZERO_TO_POS_ONE) ? 1 : 0);
 		
 	}
 	

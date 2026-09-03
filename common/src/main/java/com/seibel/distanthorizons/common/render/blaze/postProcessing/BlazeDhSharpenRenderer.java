@@ -45,7 +45,7 @@ public class BlazeDhSharpenRenderer
 	
 	public static final BlazeDhSharpenRenderer INSTANCE = new BlazeDhSharpenRenderer();
 	
-	private static final AbstractDhRenderApiDefinition RENDER_API_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
+	private static final AbstractDhRenderApiDefinition RENDER_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 	
 	
 	private RenderPipeline pipeline;
@@ -125,7 +125,7 @@ public class BlazeDhSharpenRenderer
 				.putFloat(BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.getHeight()) // viewHeight
 				
 				.putFloat(0.3f) // uCasAmount
-				.putInt((RENDER_API_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0) // uIsReverseZDepth
+				.putInt((RENDER_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0) // uIsReverseZDepth
 				
 				.finishAndUpload()
 			;

@@ -35,6 +35,7 @@ import com.seibel.distanthorizons.common.render.blaze.wrappers.uniform.BlazeUnif
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.core.render.EDhDepthRange;
 import com.seibel.distanthorizons.core.render.EDhRenderDepth;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.math.DhMat4f;
@@ -48,7 +49,7 @@ public class BlazeDhTaaRenderer implements IDhAntiAliasRenderer
 	
 	public static final BlazeDhTaaRenderer INSTANCE = new BlazeDhTaaRenderer();
 	
-	private static final AbstractDhRenderApiDefinition RENDER_API_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
+	private static final AbstractDhRenderApiDefinition RENDER_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 	
 	
 	private RenderPipeline pipeline;
@@ -184,7 +185,7 @@ public class BlazeDhTaaRenderer implements IDhAntiAliasRenderer
 				.putFloat(BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.getWidth()) // viewWidth
 				.putFloat(BlazeDhMetaRenderer.INSTANCE.dhColorTextureWrapper.getHeight()) // viewHeight
 				
-				.putInt((RENDER_API_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0) // uIsReverseZDepth
+				.putInt(((RENDER_DEF.getDepthRange() == EDhDepthRange.ZERO_TO_POS_ONE) ? 1 : 0)) // uDepthIsZeroToPositiveOne
 				
 				.finishAndUpload()
 			;

@@ -30,7 +30,7 @@ import org.lwjgl.opengl.GL33;
 public abstract class GlAbstractShaderRenderer
 {
 	protected static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
-	protected static final AbstractDhRenderApiDefinition RENDER_API_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
+	protected static final AbstractDhRenderApiDefinition RENDER_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 	
 	private static final MinecraftGLWrapper GLMC = MinecraftGLWrapper.INSTANCE;
 	
@@ -48,7 +48,10 @@ public abstract class GlAbstractShaderRenderer
 	
 	public void init()
 	{
-		if (this.init) return;
+		if (this.init)
+		{
+			return;
+		}
 		this.init = true;
 		
 		this.onInit();

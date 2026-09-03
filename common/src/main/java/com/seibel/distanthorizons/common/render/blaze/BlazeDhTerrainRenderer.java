@@ -48,7 +48,7 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 {
 	public static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
-	private static final AbstractDhRenderApiDefinition RENDER_API_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
+	private static final AbstractDhRenderApiDefinition RENDER_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 	
 	private static final GpuDevice GPU_DEVICE = RenderSystem.getDevice();
 	private static final CommandEncoder COMMAND_ENCODER = GPU_DEVICE.createCommandEncoder();
@@ -100,7 +100,7 @@ public class BlazeDhTerrainRenderer implements IDhTerrainRenderer
 			
 			pipelineBuilder.withFaceCulling(true);
 			pipelineBuilder.withDepthWrite(true);
-			if (RENDER_API_DEF.getRenderDepth() == EDhRenderDepth.FORWARD_Z)
+			if (RENDER_DEF.getRenderDepth() == EDhRenderDepth.FORWARD_Z)
 			{
 				pipelineBuilder.withDepthTest(RenderPipelineBuilderWrapper.EDhDepthTest.LESS);
 			}

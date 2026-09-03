@@ -34,6 +34,7 @@ import com.seibel.distanthorizons.common.render.blaze.wrappers.uniform.BlazeUnif
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.core.render.EDhDepthRange;
 import com.seibel.distanthorizons.core.render.EDhRenderDepth;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.RenderUtil;
@@ -62,7 +63,7 @@ public class BlazeDhSsaoRenderer implements IDhSsaoRenderer
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build(); 
 	
 	private static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
-	private static final AbstractDhRenderApiDefinition RENDER_API_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
+	private static final AbstractDhRenderApiDefinition RENDER_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 	
 	private static final GpuDevice GPU_DEVICE = RenderSystem.getDevice();
 	private static final CommandEncoder COMMAND_ENCODER = GPU_DEVICE.createCommandEncoder();
@@ -191,7 +192,8 @@ public class BlazeDhSsaoRenderer implements IDhSsaoRenderer
 				.putMat4f(invertedProjMatrix)
 				.putMat4f(projMatrix)
 				
-				.putInt((RENDER_API_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0) // uIsReverseZDepth
+				.putInt((RENDER_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0) // uIsReverseZDepth
+				.putInt((RENDER_DEF.getDepthRange() == EDhDepthRange.ZERO_TO_POS_ONE) ? 1 : 0) // uDepthIsZeroToPositiveOne
 				.finishAndUpload()
 			;
 		}
@@ -213,6 +215,7 @@ public class BlazeDhSsaoRenderer implements IDhSsaoRenderer
 				.putInt(2) // uBlurRadius
 				.putFloat(nearClipPlane) // uNearClipPlane
 				.putFloat(farClipPlane) // uFarClipPlane
+				.putInt((RENDER_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0) // uIsReverseZDepth
 				.finishAndUpload()
 			;
 		}

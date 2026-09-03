@@ -13,6 +13,7 @@ import com.seibel.distanthorizons.common.render.blaze.test.BlazeDhTestTriangleRe
 import com.seibel.distanthorizons.common.render.blaze.wrappers.buffer.BlazeVertexBufferWrapper;
 import com.seibel.distanthorizons.common.render.blaze.wrappers.uniform.BlazeLodUniformBufferWrapper;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftRenderWrapper;
+import com.seibel.distanthorizons.core.render.EDhDepthRange;
 import com.seibel.distanthorizons.core.render.EDhRenderDepth;
 import com.seibel.distanthorizons.core.render.renderer.AbstractDebugWireframeRenderer;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
@@ -40,9 +41,18 @@ public class BlazeDhRenderApiDefinition extends AbstractDhRenderApiDefinition
 		#endif
 	}
 	
+	public EDhDepthRange getDepthRange()
+	{
+		#if MC_VER <= MC_26_1_2
+		return EDhDepthRange.NEG_ONE_TO_POS_ONE;
+		#else
+		// probably caused due to the starting changes to Vulkan
+		return EDhDepthRange.ZERO_TO_POS_ONE;
+		#endif
+	}
 	
 	private final EDhApiRenderingApi renderApi;
-	public EDhApiRenderingApi getRenderApi() { return renderApi; }
+	public EDhApiRenderingApi getRenderApi() { return this.renderApi; }
 	public EDhApiRenderingEngine getRenderingEngine() { return EDhApiRenderingEngine.BLAZE_3D; }
 	public boolean isNativeRenderer() { return false; }
 	

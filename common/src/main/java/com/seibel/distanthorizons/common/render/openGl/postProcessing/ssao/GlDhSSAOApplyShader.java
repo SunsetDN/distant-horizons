@@ -24,8 +24,11 @@ import com.seibel.distanthorizons.common.render.openGl.glObject.shader.GlShaderP
 import com.seibel.distanthorizons.common.render.openGl.postProcessing.GlScreenQuad;
 import com.seibel.distanthorizons.common.wrappers.minecraft.MinecraftGLWrapper;
 import com.seibel.distanthorizons.common.render.openGl.util.GlAbstractShaderRenderer;
+import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
+import com.seibel.distanthorizons.core.render.EDhRenderDepth;
 import com.seibel.distanthorizons.core.render.RenderParams;
 import com.seibel.distanthorizons.core.util.RenderUtil;
+import com.seibel.distanthorizons.core.wrapperInterfaces.render.AbstractDhRenderApiDefinition;
 import org.lwjgl.opengl.GL33;
 
 /**
@@ -40,17 +43,19 @@ public class GlDhSSAOApplyShader extends GlAbstractShaderRenderer
 	public static GlDhSSAOApplyShader INSTANCE = new GlDhSSAOApplyShader();
 	
 	private static final MinecraftGLWrapper GLMC = MinecraftGLWrapper.INSTANCE;
+	private static final AbstractDhRenderApiDefinition RENDER_DEF = SingletonInjector.INSTANCE.get(AbstractDhRenderApiDefinition.class);
 	
 	
 	public int ssaoTexture;
 	
 	// uniforms
-	public int gSSAOMapUniform;
-	public int gDepthMapUniform;
-	public int gViewSizeUniform;
-	public int gBlurRadiusUniform;
-	public int gNearUniform;
-	public int gFarUniform;
+	public int uSourceColorTexture;
+	public int uSourceDepthTexture;
+	public int uViewSize;
+	public int uBlurRadius;
+	public int uNearClipPlane;
+	public int uFarClipPlane;
+	public int uIsReverseZDepth;
 	
 	
 	
@@ -68,12 +73,13 @@ public class GlDhSSAOApplyShader extends GlAbstractShaderRenderer
 		);
 		
 		// uniform setup
-		this.gSSAOMapUniform = this.shader.getUniformLocation("gSSAOMap");
-		this.gDepthMapUniform = this.shader.getUniformLocation("gDepthMap");
-		this.gViewSizeUniform = this.shader.tryGetUniformLocation("gViewSize");
-		this.gBlurRadiusUniform = this.shader.tryGetUniformLocation("gBlurRadius");
-		this.gNearUniform = this.shader.tryGetUniformLocation("gNear");
-		this.gFarUniform = this.shader.tryGetUniformLocation("gFar");
+		this.uSourceColorTexture = this.shader.getUniformLocation("uSourceColorTexture");
+		this.uSourceDepthTexture = this.shader.getUniformLocation("uSourceDepthTexture");
+		this.uViewSize = this.shader.getUniformLocation("uViewSize");
+		this.uBlurRadius = this.shader.getUniformLocation("uBlurRadius");
+		this.uNearClipPlane = this.shader.getUniformLocation("uNearClipPlane");
+		this.uFarClipPlane = this.shader.getUniformLocation("uFarClipPlane");
+		this.uIsReverseZDepth = this.shader.getUniformLocation("uIsReverseZDepth");
 	}
 	
 	
@@ -87,32 +93,34 @@ public class GlDhSSAOApplyShader extends GlAbstractShaderRenderer
 	{
 		GLMC.glActiveTexture(GL33.GL_TEXTURE0);
 		GLMC.glBindTexture(GlDhMetaRenderer.INSTANCE.getActiveDepthTextureId());
-		GL33.glUniform1i(this.gDepthMapUniform, 0);
+		GL33.glUniform1i(this.uSourceDepthTexture, 0);
 		
 		GLMC.glActiveTexture(GL33.GL_TEXTURE1);
 		GLMC.glBindTexture(this.ssaoTexture);
-		GL33.glUniform1i(this.gSSAOMapUniform, 1);
+		GL33.glUniform1i(this.uSourceColorTexture, 1);
 		
-		GL33.glUniform1i(this.gBlurRadiusUniform, 2);
+		GL33.glUniform1i(this.uBlurRadius, 2);
 		
-		if (this.gViewSizeUniform >= 0)
+		if (this.uViewSize >= 0)
 		{
-			GL33.glUniform2f(this.gViewSizeUniform,
+			GL33.glUniform2f(this.uViewSize,
 					MC_RENDER.getTargetFramebufferViewportWidth(),
 					MC_RENDER.getTargetFramebufferViewportHeight());
 		}
 		
-		if (this.gNearUniform >= 0)
+		if (this.uNearClipPlane >= 0)
 		{
-			GL33.glUniform1f(this.gNearUniform,
+			GL33.glUniform1f(this.uNearClipPlane,
 					RenderUtil.getNearClipPlaneInBlocks());
 		}
 		
-		if (this.gFarUniform >= 0)
+		if (this.uFarClipPlane >= 0)
 		{
 			float farClipPlane = RenderUtil.getFarClipPlaneDistanceInBlocks();
-			GL33.glUniform1f(this.gFarUniform, farClipPlane);
+			GL33.glUniform1f(this.uFarClipPlane, farClipPlane);
 		}
+		
+		GL33.glUniform1i(this.uIsReverseZDepth, (RENDER_DEF.getRenderDepth() == EDhRenderDepth.REVERSE_Z) ? 1 : 0);
 	}
 	
 	
