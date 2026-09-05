@@ -64,7 +64,10 @@ public class RenderBufferHandler implements AutoCloseable
 	public final LodQuadTree lodQuadTree;
 	
 	private final SortedArraySet<LodBufferContainer> loadedNearToFarBuffers;
-	
+
+	/** DNCity: see BoundingBoxOcclusionCuller's own doc comment / Config...enableOcclusionCulling. */
+	private final com.seibel.distanthorizons.core.render.occlusion.BoundingBoxOcclusionCuller occlusionCuller = new com.seibel.distanthorizons.core.render.occlusion.BoundingBoxOcclusionCuller();
+
 	private int visibleBufferCount;
 	private int culledBufferCount;
 	private int shadowVisibleBufferCount;
@@ -132,6 +135,17 @@ public class RenderBufferHandler implements AutoCloseable
 		boolean enableFrustumCulling;
 		IDhApiCullingFrustum frustum;
 		boolean isShadowPass = (IRIS_ACCESSOR != null && IRIS_ACCESSOR.isRenderingShadowPass());
+		if (isShadowPass && !Config.Client.Advanced.Graphics.Culling.renderLodsInShadowPass.get())
+		{
+			// DNCity: leave this.loadedNearToFarBuffers empty (already cleared above) so no LOD
+			// geometry is submitted to the shader pack's shadow-map pass -- LODs still render
+			// normally in the main lighting/gbuffer pass (that's a separate buildRenderList call
+			// with isShadowPass == false), they just don't cast/receive shadows. See
+			// Config.Client.Advanced.Graphics.Culling.renderLodsInShadowPass's own comment.
+			this.shadowCulledBufferCount = 0;
+			this.shadowVisibleBufferCount = 0;
+			return;
+		}
 		if (isShadowPass)
 		{
 			enableFrustumCulling = !Config.Client.Advanced.Graphics.Culling.disableShadowPassFrustumCulling.get();
@@ -142,29 +156,47 @@ public class RenderBufferHandler implements AutoCloseable
 			enableFrustumCulling = !Config.Client.Advanced.Graphics.Culling.disableFrustumCulling.get();
 			frustum = DhApi.overrides.get(IDhApiCullingFrustum.class);
 		}
-		
-		
-		// update the frustum if necessary
-		if (enableFrustumCulling)
+
+		// DNCity: GPU occlusion culling only ever applies to the main camera pass -- see
+		// BoundingBoxOcclusionCuller's own doc comment for why (it tests against whatever's
+		// already in the depth buffer, which for the shadow pass would be the wrong depth/matrix
+		// entirely).
+		boolean enableOcclusionCulling = !isShadowPass && Config.Client.Advanced.Graphics.Culling.enableOcclusionCulling.get();
+		this.occlusionCuller.beginFrame();
+
+		// worldMinY/worldHeight/matWorldViewProjection are also used below by the occlusion cull
+		// check (same camera matrix the frustum uses), so they're computed together here.
+		int worldMinY = 0;
+		int worldHeight = 0;
+		Matrix4fc matWorldViewProjection = null;
+		if (enableFrustumCulling || enableOcclusionCulling)
 		{
-			int worldMinY = renderParams.clientLevelWrapper.getMinHeight();
-			int worldHeight = renderParams.clientLevelWrapper.getMaxHeight();
-			
+			worldMinY = renderParams.clientLevelWrapper.getMinHeight();
+			worldHeight = renderParams.clientLevelWrapper.getMaxHeight();
+
 			Vec3d cameraPos = MC_RENDER.getCameraExactPosition();
-			
+
 			Matrix4fc matWorldView = new Matrix4f()
 					.setTransposed(renderParams.mcModelViewMatrix.getValuesAsArray())
 					.translate(
-							-(float) cameraPos.x, 
-							-(float) cameraPos.y, 
+							-(float) cameraPos.x,
+							-(float) cameraPos.y,
 							-(float) cameraPos.z);
-			
-			Matrix4fc matWorldViewProjection = new Matrix4f()
+
+			matWorldViewProjection = new Matrix4f()
 					.setTransposed(renderParams.dhProjectionMatrix.getValuesAsArray())
 					.mul(matWorldView);
-			
-			frustum.update(worldMinY, worldMinY + worldHeight, new Mat4f(matWorldViewProjection));
+
+			if (enableFrustumCulling)
+			{
+				frustum.update(worldMinY, worldMinY + worldHeight, new Mat4f(matWorldViewProjection));
+			}
 		}
+		// effectively-final locals for the node-filter lambda below
+		final int lambdaWorldMinY = worldMinY;
+		final int lambdaWorldHeight = worldHeight;
+		final Matrix4fc lambdaMatWorldViewProjection = matWorldViewProjection;
+		final boolean lambdaEnableOcclusionCulling = enableOcclusionCulling;
 		
 		
 		
@@ -198,13 +230,14 @@ public class RenderBufferHandler implements AutoCloseable
 			
 			try
 			{
-				if (enableFrustumCulling)
+				if (enableFrustumCulling || lambdaEnableOcclusionCulling)
 				{
 					DhLodPos lodBounds = DhSectionPos.getSectionBBoxPos(renderSection.pos);
 					int blockMinX = lodBounds.getMinX().toBlockWidth();
 					int blockMinZ = lodBounds.getMinZ().toBlockWidth();
 					int lodBlockWidth = lodBounds.getBlockWidth();
-					if (!frustum.intersects(blockMinX, blockMinZ, lodBlockWidth, lodBounds.detailLevel))
+
+					if (enableFrustumCulling && !frustum.intersects(blockMinX, blockMinZ, lodBlockWidth, lodBounds.detailLevel))
 					{
 						if (isShadowPass)
 						{
@@ -214,8 +247,24 @@ public class RenderBufferHandler implements AutoCloseable
 						{
 							this.culledBufferCount++;
 						}
-						
+
 						return true;
+					}
+
+					// DNCity: GPU occlusion culling, see BoundingBoxOcclusionCuller's doc comment.
+					// Only reached once the section has already passed frustum culling above.
+					if (lambdaEnableOcclusionCulling)
+					{
+						boolean visible = this.occlusionCuller.testAndQueue(
+								node.sectionPos,
+								blockMinX, lambdaWorldMinY, blockMinZ,
+								lodBlockWidth, lambdaWorldHeight, lodBlockWidth,
+								lambdaMatWorldViewProjection);
+						if (!visible)
+						{
+							this.culledBufferCount++;
+							return true;
+						}
 					}
 				}
 				
@@ -316,7 +365,11 @@ public class RenderBufferHandler implements AutoCloseable
 	//=========//
 	
 	@Override
-	public void close() { this.lodQuadTree.close(); }
+	public void close()
+	{
+		this.lodQuadTree.close();
+		this.occlusionCuller.close();
+	}
 	
 	
 	

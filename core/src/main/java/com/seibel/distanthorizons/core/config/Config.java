@@ -72,8 +72,13 @@ public class Config
 		
 		public static ConfigUiLinkedEntry quickLodChunkRenderDistance = new ConfigUiLinkedEntry(Client.Advanced.Graphics.Quality.lodChunkRenderDistanceRadius);
 		
+		// DNCity: default lowered MEDIUM -> LOW (still player-adjustable in the DH GUI/config file).
+		// This pack already runs Sodium + Iris shaders + Flywheel + Veil competing for the same GPU
+		// budget DH's LOD terrain adds on top of, so the stock MEDIUM default (which enables SSAO
+		// and COMPLETE transparency, see RenderQualityPresetConfigEventHandler) is a heavier
+		// starting point than makes sense here.
 		public static ConfigEntry<EDhApiQualityPreset> qualityPresetSetting = new ConfigEntry.Builder<EDhApiQualityPreset>()
-				.set(EDhApiQualityPreset.MEDIUM) // the default value is set via the listener when accessed
+				.set(EDhApiQualityPreset.LOW) // the default value is set via the listener when accessed
 				.comment(""
 						+ "Changing this setting will modify a number of different settings that will change the \n"
 						+ "visual fidelity of the rendered LODs.\n"
@@ -84,9 +89,13 @@ public class Config
 				.addListener(RenderQualityPresetConfigEventHandler.INSTANCE)
 				.build();
 		
+		// DNCity: default lowered BALANCED (50% of logical cores) -> LOW_IMPACT (25%), so DH's
+		// world-gen/LOD-builder thread pool (see ThreadPoolUtil/PriorityTaskPicker's shared
+		// numberOfThreads budget) doesn't compete as hard with vanilla chunk loading and every other
+		// mod's own threads in this already CPU-contended pack.
 		public static ConfigEntry<EDhApiThreadPreset> threadPresetSetting = new ConfigEntry.Builder<EDhApiThreadPreset>()
 				.setChatCommandName("common.threadPreset")
-				.set(EDhApiThreadPreset.BALANCED) // the default value is set via the listener when accessed
+				.set(EDhApiThreadPreset.LOW_IMPACT) // the default value is set via the listener when accessed
 				.comment(""
 						+ "Changing this setting will modify a number of different settings that will change \n"
 						+ "the load that Distant Horizons is allowed to put on your CPU. \n"
@@ -177,8 +186,12 @@ public class Config
 				{
 					public static ConfigUIComment qualityHeader = new ConfigUIComment.Builder().setParentConfigClass(Quality.class).build();
 					
+					// DNCity: default lowered 256 -> 128 chunks (still up to 4096 in the GUI/config file).
+					// Halves the terrain area DH has to generate and render by default, which matters
+					// more here than in a lighter pack since Sodium/Iris/Flywheel/Veil are already
+					// sharing the same GPU frame budget.
 					public static ConfigEntry<Integer> lodChunkRenderDistanceRadius = new ConfigEntry.Builder<Integer>()
-							.setMinDefaultMax(32, 256, 4096)
+							.setMinDefaultMax(32, 128, 4096)
 							.comment("" +
 									"The radius of the mod's render distance. (measured in chunks)\n" +
 									"")
@@ -765,7 +778,48 @@ public class Config
 									+ "\n"
 									+ "Disable this if shadows render incorrectly.")
 							.build();
-					
+
+					// DNCity: new entry, not in upstream. Lets LODs participate in a shader pack's normal
+					// lighting/gbuffer pass (so they aren't flat/unlit) without also submitting geometry to
+					// its shadow-map pass -- DH↔shader shadow-pass interaction is the most fragile part of
+					// this integration, so this repo keeps it off by default rather than debug it. See
+					// RenderBufferHandler.buildRenderList's isShadowPass branch, which this gates.
+					public static ConfigEntry<Boolean> renderLodsInShadowPass = new ConfigEntry.Builder<Boolean>()
+							.set(false)
+							.comment(""
+									+ "If true, LODs are also submitted during a shader pack's shadow-map \n"
+									+ "render pass (so distant terrain can cast/receive shadows). \n"
+									+ "\n"
+									+ "If false, LODs are skipped during the shadow pass entirely -- they \n"
+									+ "still render normally in the main lighting/gbuffer pass, so they \n"
+									+ "aren't unlit under a shader pack, they just don't cast shadows.")
+							.build();
+
+					// DNCity: new GPU-driven addition to the existing CPU-only frustum culling above --
+					// see RenderBufferHandler's occlusionCuller field and BoundingBoxOcclusionCuller's
+					// own class doc for the technique (1-frame-latency hardware occlusion queries against
+					// each section's full-column bounding box). Defaults to false (opt-in) because this
+					// couldn't be visually verified in-game before being added -- it only affects which
+					// already-frustum-culled sections get skipped, so disabling it fully reverts to the
+					// existing, already-shipped frustum-only behavior with no other code path touched.
+					// Enable this and watch for terrain popping in/out incorrectly near the edges of
+					// hills/mountains; if that happens, disable it and report which world/vantage point.
+					public static ConfigEntry<Boolean> enableOcclusionCulling = new ConfigEntry.Builder<Boolean>()
+							.set(false)
+							.comment(""
+									+ "(Experimental, opt-in) If true, LOD sections fully hidden behind \n"
+									+ "closer opaque terrain are also skipped using GPU hardware occlusion \n"
+									+ "queries, on top of the normal frustum culling above. \n"
+									+ "\n"
+									+ "This uses each section's full column height as a conservative bounding \n"
+									+ "box (not the real terrain height), so it under-culls rather than \n"
+									+ "over-culls -- it should never hide something that's actually visible, \n"
+									+ "but may occasionally take one extra frame to reveal something that just \n"
+									+ "became visible (e.g. flying past a mountain). \n"
+									+ "\n"
+									+ "Disable this if you see terrain incorrectly popping in/out.")
+							.build();
+
 					public static ConfigEntry<String> ignoredRenderBlockCsv = new ConfigEntry.Builder<String>() // TODO accept wildcards
 							.set("minecraft:barrier,minecraft:structure_void,minecraft:light,minecraft:tripwire,minecraft:brown_mushroom")
 							.setAppearance(EConfigEntryAppearance.ONLY_IN_FILE) // only shown in file since the UI has a character limit
