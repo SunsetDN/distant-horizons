@@ -52,14 +52,28 @@ public class SortedArraySet<E>
 	// list methods //
 	//==============//
 	
+	/**
+	 * DNCity: inserts in comparator order via binary search instead of appending, so the list is
+	 * actually sorted after every add -- previously this just appended (dedup via the HashSet,
+	 * but no sorting at all despite the class name/its only caller's contract), so
+	 * RenderBufferHandler.buildRenderList's near-to-far LOD render list was silently unsorted:
+	 * wrong transparency depth-order for every frame (see that method's own javadoc, which
+	 * exists specifically for correct discrete-voxel translucency blending), most visible at
+	 * large render distances where many translucent (water/ice) LOD sections are on screen at
+	 * once. Binary-search insertion is also the actual fix for the perf half of this: an O(log n)
+	 * search plus a single array shift per element, done once during the quad-tree traversal,
+	 * instead of a full incorrect no-op sort.
+	 */
 	public void add(E element)
 	{
 		if (this.set.add(element))
 		{
-			this.list.add(element);
+			int index = Collections.binarySearch(this.list, element, this.comparator);
+			if (index < 0) index = -(index + 1);
+			this.list.add(index, element);
 		}
 	}
-	
+
 	public E get(int index) { return this.list.get(index); }
 	
 	public int size() { return this.list.size(); }
