@@ -19,14 +19,12 @@
 
 package com.seibel.distanthorizons.core.render.glObject.vertexAttribute;
 
-import com.seibel.distanthorizons.core.render.glObject.GLProxy;
 import org.lwjgl.opengl.GL32;
 
 /**
  * Base for binding/unbinding Vertex Attribute objects (VAO's).
- * 
+ *
  * @see VertexAttributePostGL43
- * @see VertexAttributePreGL43
  */
 public abstract class AbstractVertexAttribute
 {
@@ -48,14 +46,10 @@ public abstract class AbstractVertexAttribute
 	
 	public static AbstractVertexAttribute create()
 	{
-		if (GLProxy.getInstance().vertexAttributeBufferBindingSupported)
-		{
-			return new VertexAttributePostGL43();
-		}
-		else
-		{
-			return new VertexAttributePreGL43();
-		}
+		// DNCity: was a runtime branch on GLProxy.vertexAttributeBufferBindingSupported, falling
+		// back to VertexAttributePreGL43 (deleted) for pre-GL4.3 GPUs -- GL4.3 is now a hard floor
+		// (see GLProxy), so the post-GL4.3 binding path is always available.
+		return new VertexAttributePostGL43();
 	}
 	
 	

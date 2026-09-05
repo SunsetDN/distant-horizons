@@ -23,12 +23,10 @@ import com.seibel.distanthorizons.api.interfaces.override.rendering.IDhApiShader
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
 import com.seibel.distanthorizons.api.objects.math.DhApiVec3f;
 import com.seibel.distanthorizons.core.config.Config;
-import com.seibel.distanthorizons.core.render.glObject.GLProxy;
 import com.seibel.distanthorizons.core.render.glObject.shader.Shader;
 import com.seibel.distanthorizons.core.render.glObject.shader.ShaderProgram;
 import com.seibel.distanthorizons.core.render.glObject.vertexAttribute.AbstractVertexAttribute;
 import com.seibel.distanthorizons.core.render.glObject.vertexAttribute.VertexAttributePostGL43;
-import com.seibel.distanthorizons.core.render.glObject.vertexAttribute.VertexAttributePreGL43;
 import com.seibel.distanthorizons.core.render.glObject.vertexAttribute.VertexPointer;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.RenderUtil;
@@ -107,14 +105,9 @@ public class DhTerrainShaderProgram extends ShaderProgram implements IDhApiShade
 		
 		// TODO: Add better use of the LODFormat thing
 		int vertexByteCount = LodUtil.LOD_VERTEX_FORMAT.getByteSize();
-		if (GLProxy.getInstance().vertexAttributeBufferBindingSupported)
-		{
-			this.vao = new VertexAttributePostGL43(); // also binds AbstractVertexAttribute
-		}
-		else
-		{
-			this.vao = new VertexAttributePreGL43(); // also binds AbstractVertexAttribute
-		}
+		// DNCity: was a runtime branch on GLProxy.vertexAttributeBufferBindingSupported with a
+		// VertexAttributePreGL43 fallback (deleted) -- GL4.3 is now a hard floor (see GLProxy).
+		this.vao = new VertexAttributePostGL43(); // also binds AbstractVertexAttribute
 		this.vao.bind();
 		
 		// TODO comment what each attribute represents

@@ -30,13 +30,10 @@ import com.seibel.distanthorizons.api.objects.math.DhApiVec3d;
 import com.seibel.distanthorizons.api.objects.render.DhApiRenderableBox;
 import com.seibel.distanthorizons.api.objects.render.DhApiRenderableBoxGroupShading;
 import com.seibel.distanthorizons.core.config.Config;
-import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
-import com.seibel.distanthorizons.core.jar.EPlatform;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.logging.f3.F3Screen;
-import com.seibel.distanthorizons.core.render.glObject.GLProxy;
 import com.seibel.distanthorizons.core.render.glObject.buffer.GLElementBuffer;
 import com.seibel.distanthorizons.core.render.glObject.buffer.GLVertexBuffer;
 import com.seibel.distanthorizons.core.util.LodUtil;
@@ -44,13 +41,11 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftGLW
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IProfilerWrapper;
 import com.seibel.distanthorizons.core.util.math.Vec3d;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.ISodiumAccessor;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.OverrideInjector;
 import com.seibel.distanthorizons.coreapi.ModInfo;
 import org.apache.logging.log4j.LogManager;
 import com.seibel.distanthorizons.core.logging.DhLogger;
-import org.lwjgl.opengl.ARBInstancedArrays;
 import org.lwjgl.opengl.GL32;
 import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryUtil;
@@ -71,7 +66,6 @@ public class GenericObjectRenderer implements IDhApiCustomRenderRegister
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
 	private static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
-	private static final ISodiumAccessor SODIUM = ModAccessorInjector.INSTANCE.get(ISodiumAccessor.class);
 	private static final IMinecraftGLWrapper GLMC = SingletonInjector.INSTANCE.get(IMinecraftGLWrapper.class);
 	
 	private static final DhApiRenderableBoxGroupShading DEFAULT_SHADING = DhApiRenderableBoxGroupShading.getUnshaded();
@@ -92,8 +86,6 @@ public class GenericObjectRenderer implements IDhApiCustomRenderRegister
 	private GLElementBuffer boxIndexBuffer;
 	
 	private boolean instancedRenderingAvailable;
-	private boolean vertexAttribDivisorSupported;
-	private boolean instancedArraysSupported;
 	
 	
 	
@@ -183,23 +175,16 @@ public class GenericObjectRenderer implements IDhApiCustomRenderRegister
 		//===================================//
 		// is instanced rendering available? //
 		//===================================//
-		
-		this.vertexAttribDivisorSupported = GLProxy.getInstance().vertexAttribDivisorSupported;
-		this.instancedArraysSupported = GLProxy.getInstance().instancedArraysSupported;
-		this.instancedRenderingAvailable = this.vertexAttribDivisorSupported || this.instancedArraysSupported;
-		if (!this.instancedRenderingAvailable)
-		{
-			LOGGER.warn("Instanced rendering not supported by this GPU, falling back to direct rendering. Generic object rendering will be slow and some effects may be disabled.");
-		}
-		else
-		{
-			boolean isMac = (EPlatform.get() == EPlatform.MACOS);
-			if (isMac && SODIUM != null)
-			{
-				LOGGER.warn("There have been reports of instanced rendering causing crashes on macOS when Sodium is present. Instanced rendering can be disabled via the DH config.");
-			}
-		}
-		
+
+		// DNCity: was a runtime capability check (GLProxy.vertexAttribDivisorSupported ||
+		// GLProxy.instancedArraysSupported, the latter an ARB_instanced_arrays fallback for
+		// pre-GL3.3 contexts) with a "falling back to direct rendering" warning path -- GL3.3's
+		// core glVertexAttribDivisor is now guaranteed (GL4.4 is a hard floor, see GLProxy), so
+		// instanced rendering is always available. The macOS+Sodium instanced-rendering crash
+		// warning that used to live here was also dropped: this repo only ships on Windows (see
+		// AGENTS.md), so it was always dead code in this project.
+		this.instancedRenderingAvailable = true;
+
 		
 		
 		//======================//
@@ -583,24 +568,15 @@ public class GenericObjectRenderer implements IDhApiCustomRenderRegister
 		
 		profiler.pop();
 	}
-	/** 
-	 * Clean way to handle both {@link GL33#glVertexAttribDivisor} and {@link ARBInstancedArrays#glVertexAttribDivisorARB}
-	 * based on which one is supported.
+	/**
+	 * DNCity: used to also fall back to ARBInstancedArrays#glVertexAttribDivisorARB for pre-GL3.3
+	 * contexts -- GL3.3's core {@link GL33#glVertexAttribDivisor} is now guaranteed (GL4.4 is a
+	 * hard floor, see GLProxy), so that fallback (and this wrapper's reason to exist) is gone;
+	 * kept as a thin method since callers already invoke it by this name.
 	 */
 	private void vertexAttribDivisor(int index, int divisor)
 	{
-		if (this.vertexAttribDivisorSupported)
-		{
-			GL33.glVertexAttribDivisor(index, divisor);	
-		}
-		else if(this.instancedArraysSupported)
-		{
-			ARBInstancedArrays.glVertexAttribDivisorARB(index, divisor);
-		}
-		else
-		{
-			throw new IllegalStateException("Instanced rendering isn't supported by this machine. Direct rendering should have been used instead.");
-		}
+		GL33.glVertexAttribDivisor(index, divisor);
 	}
 	
 	

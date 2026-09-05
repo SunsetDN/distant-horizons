@@ -23,7 +23,6 @@ import com.seibel.distanthorizons.api.enums.config.EDhApiGpuUploadMethod;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.render.glObject.GLEnums;
-import com.seibel.distanthorizons.core.render.glObject.GLProxy;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import org.lwjgl.opengl.GL32;
 import org.lwjgl.system.MemoryUtil;
@@ -39,7 +38,9 @@ public class QuadElementBuffer extends GLElementBuffer
 	
 	public QuadElementBuffer()
 	{
-		super(GLProxy.getInstance().bufferStorageSupported);
+		// DNCity: was `GLProxy.getInstance().bufferStorageSupported`, now always true (GL4.4 is a
+		// hard floor -- see GLProxy's constructor).
+		super(true);
 	}
 	
 	public int getCapacity()
@@ -140,8 +141,7 @@ public class QuadElementBuffer extends GLElementBuffer
 			return;
 		}
 		int vertexCount = quadCount * 4; // 4 vertices per quad
-		GLProxy gl = GLProxy.getInstance();
-		
+
 		if (vertexCount < 255)
 		{ // Reserve 1 for the reset index
 			this.type = GL32.GL_UNSIGNED_BYTE;
@@ -158,20 +158,13 @@ public class QuadElementBuffer extends GLElementBuffer
 		
 		ByteBuffer buffer = MemoryUtil.memAlloc(this.indicesCount * GLEnums.getTypeSize(this.type));
 		buildBuffer(quadCount, buffer, this.type);
-		if (!gl.bufferStorageSupported)
-		{
-			
-			this.bind();
-			super.uploadBuffer(buffer, EDhApiGpuUploadMethod.DATA,
-					this.indicesCount * GLEnums.getTypeSize(this.type), GL32.GL_STATIC_DRAW);
-		}
-		else
-		{
-			this.bind();
-			super.uploadBuffer(buffer, EDhApiGpuUploadMethod.BUFFER_STORAGE,
-					this.indicesCount * GLEnums.getTypeSize(this.type), 0);
-		}
-		
+
+		// DNCity: was a runtime branch on gl.bufferStorageSupported with a GL_DATA fallback for
+		// pre-GL4.4 GPUs -- always Buffer Storage now (GL4.4 is a hard floor, see GLProxy).
+		this.bind();
+		super.uploadBuffer(buffer, EDhApiGpuUploadMethod.BUFFER_STORAGE,
+				this.indicesCount * GLEnums.getTypeSize(this.type), 0);
+
 		MemoryUtil.memFree(buffer);
 	}
 	

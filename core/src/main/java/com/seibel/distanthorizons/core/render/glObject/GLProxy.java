@@ -23,7 +23,6 @@ import com.seibel.distanthorizons.api.enums.config.EDhApiGLErrorHandlingMode;
 import com.seibel.distanthorizons.api.enums.config.EDhApiGpuUploadMethod;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
-import com.seibel.distanthorizons.core.jar.EPlatform;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.util.objects.GLMessages.*;
@@ -66,11 +65,15 @@ public class GLProxy
 	/** Minecraft's GL capabilities */
 	public final GLCapabilities glCapabilities;
 	
-	public boolean namedObjectSupported = false; // ~OpenGL 4.5 (UNUSED CURRENTLY)
-	public boolean bufferStorageSupported = false; // ~OpenGL 4.4
-	public boolean vertexAttributeBufferBindingSupported = false; // ~OpenGL 4.3
-	public boolean instancedArraysSupported = false;
-	public boolean vertexAttribDivisorSupported = false; // OpenGL 3.3 or newer
+	// DNCity: these used to be probed at runtime and gated legacy fallback paths (pre-GL4.3 vertex
+	// attribute binding, pre-GL4.4 buffer upload, an ARB_instanced_arrays fallback for pre-GL3.3
+	// contexts). The hard floor below is now GL4.4, which guarantees all of these, so they're
+	// hardcoded true rather than probed -- the legacy branches they used to gate were deleted
+	// (see VertexAttributePreGL43's removal, GenericObjectRenderer's ARB fallback removal, and
+	// this constructor's simplified upload-method selection below).
+	public final boolean bufferStorageSupported = true; // GL4.4, required by the floor check below
+	public final boolean vertexAttributeBufferBindingSupported = true; // GL4.3, required by the floor check below
+	public final boolean vertexAttribDivisorSupported = true; // GL3.3, required by the floor check below
 	
 	private final EDhApiGpuUploadMethod preferredUploadMethod;
 	
@@ -125,8 +128,14 @@ public class GLProxy
 		// get Minecraft's capabilities
 		this.glCapabilities = GL.getCapabilities();
 		
-		// crash the game if the GPU doesn't support OpenGL 3.2
-		if (!this.glCapabilities.OpenGL32)
+		// DNCity: raised from OpenGL 3.2 -> 4.4. This used to be a soft floor with runtime
+		// capability probing (glBufferStorage/glBindVertexBuffer/GL_ARB_instanced_arrays null
+		// checks below) picking a legacy fallback path for anything below GL4.3/4.4. Since this
+		// mod only ships on Windows (see AGENTS.md) and any GPU capable of running this pack's
+		// Sodium+Iris+Flywheel+Veil stack already supports GL4.4, that fallback machinery was
+		// dead weight -- GL4.4 (Buffer Storage + Vertex Attribute Buffer Binding) is now required
+		// outright instead of being an optional "if available" upgrade.
+		if (!this.glCapabilities.OpenGL44)
 		{
 			String supportedVersionInfo = this.getFailedVersionInfo(this.glCapabilities);
 			
@@ -148,49 +157,14 @@ public class GLProxy
 		//======================//
 		// get GPU capabilities //
 		//======================//
-		
-		// UNUSED currently
-		// Check if we can use the named version of all calls, which is available in GL4.5 or after
-		this.namedObjectSupported = this.glCapabilities.glNamedBufferData != 0L; //Nullptr
-		
-		// Check if we can use the Buffer Storage, which is available in GL4.4 or after
-		this.bufferStorageSupported = this.glCapabilities.glBufferStorage != 0L; // Nullptr
-		if (!this.bufferStorageSupported)
-		{
-			LOGGER.info("This GPU doesn't support Buffer Storage (OpenGL 4.4), falling back to using other methods.");
-		}
-		
-		// Check if we can use the make-over version of Vertex Attribute, which is available in GL4.3 or after
-		this.vertexAttributeBufferBindingSupported = this.glCapabilities.glBindVertexBuffer != 0L; // Nullptr
-		
-		// used by instanced rendering
-		this.vertexAttribDivisorSupported = this.glCapabilities.OpenGL33;
-		// denotes if ARBInstancedArrays.glVertexAttribDivisorARB() is available or not
-		// can be used as a backup if MC didn't create a GL 3.3+ context
-		this.instancedArraysSupported = this.glCapabilities.GL_ARB_instanced_arrays;
-		
-		// get the best automatic upload method
-		String vendor = GL32.glGetString(GL32.GL_VENDOR).toUpperCase(); // example return: "NVIDIA CORPORATION"
-		if (EPlatform.get() != EPlatform.MACOS)
-		{
-			if (vendor.contains("NVIDIA") || vendor.contains("GEFORCE"))
-			{
-				// NVIDIA card
-				this.preferredUploadMethod = this.bufferStorageSupported ? EDhApiGpuUploadMethod.BUFFER_STORAGE : EDhApiGpuUploadMethod.SUB_DATA;
-			}
-			else
-			{
-				// AMD or Intel card
-				this.preferredUploadMethod = this.bufferStorageSupported ? EDhApiGpuUploadMethod.BUFFER_STORAGE : EDhApiGpuUploadMethod.DATA;
-			}
-		}
-		else
-		{
-			// Mac may have an issue with Buffer Storage, so default to the most basic
-			// form of uploading
-			this.preferredUploadMethod = EDhApiGpuUploadMethod.DATA;
-		}
-		LOGGER.info("GPU Vendor [" + vendor + "] with OS [" + EPlatform.get().getName() + "], Preferred upload method is [" + this.preferredUploadMethod + "].");
+
+		// DNCity: always Buffer Storage (GL4.4) -- the floor check above guarantees it's
+		// available, so there's no vendor/OS-specific fallback selection to do anymore (this used
+		// to branch NVIDIA/AMD/Intel to different fallback methods, and force macOS to the most
+		// basic GL_DATA path regardless of capability; this repo is Windows-only, see AGENTS.md,
+		// so that OS branch was always dead code here too).
+		this.preferredUploadMethod = EDhApiGpuUploadMethod.BUFFER_STORAGE;
+		LOGGER.info("Preferred upload method is [" + this.preferredUploadMethod + "].");
 		
 		
 		
@@ -368,20 +342,20 @@ public class GLProxy
 	private String getFailedVersionInfo(GLCapabilities c)
 	{
 		return "Your OpenGL support:\n" +
-				"openGL version 3.2+: [" + c.OpenGL32 + "] <- REQUIRED\n" +
-				"Vertex Attribute Buffer Binding: [" + (c.glVertexAttribBinding != 0) + "] <- optional improvement\n" +
-				"Buffer Storage: [" + (c.glBufferStorage != 0) + "] <- optional improvement\n" +
+				"openGL version 4.4+: [" + c.OpenGL44 + "] <- REQUIRED\n" +
+				"Vertex Attribute Buffer Binding: [" + (c.glVertexAttribBinding != 0) + "]\n" +
+				"Buffer Storage: [" + (c.glBufferStorage != 0) + "]\n" +
 				"If you noticed that your computer supports higher OpenGL versions"
 				+ " but not the required version, try running the game in compatibility mode."
 				+ " (How you turn that on, I have no clue~)";
 	}
-	
+
 	private String versionInfoToString(GLCapabilities c)
 	{
 		return "Your OpenGL support:\n" +
-				"openGL version 3.2+: [" + c.OpenGL32 + "] <- REQUIRED\n" +
-				"Vertex Attribute Buffer Binding: [" + (c.glVertexAttribBinding != 0) + "] <- optional improvement\n" +
-				"Buffer Storage: [" + (c.glBufferStorage != 0) + "] <- optional improvement\n";
+				"openGL version 4.4+: [" + c.OpenGL44 + "] <- REQUIRED\n" +
+				"Vertex Attribute Buffer Binding: [" + (c.glVertexAttribBinding != 0) + "]\n" +
+				"Buffer Storage: [" + (c.glBufferStorage != 0) + "]\n";
 	}
 	
 	
