@@ -39,9 +39,12 @@ import net.minecraft.world.level.chunk.ChunkStatus;
 #elif MC_VER <= MC_1_20_6
 import net.minecraft.core.registries.Registries;
 #elif MC_VER <= MC_1_21_3
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.level.chunk.ChunkStatus;
-#elif MC_VER <= MC_1_21_3
+// Upstream had two "MC_VER <= MC_1_21_3" branches here with the same condition -- the first
+// (dropped) used the pre-1.21.1-rename "net.minecraft.world.level.chunk.ChunkStatus" import,
+// always shadowing this corrected one since preprocessor branches match in order. Confirmed by
+// hand against MC 1.21.1's real mappings (matches what Sodium's own working common/ source
+// already imports for 1.21.1: net.caffeinemc.mods.sodium.mixin.../LevelLoadingScreenMixin.java)
+// that "status" is the correct package for 1.21.1, not the pre-rename one.
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 #elif MC_VER <= MC_1_21_8

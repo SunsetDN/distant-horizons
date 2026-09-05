@@ -596,8 +596,17 @@ allprojects { p ->
         // VanillaGradle and Mixins in common
         maven { url "https://repo.spongepowered.org/maven/" }
 
-        // Canvas mod
-        maven { url "https://maven.vram.io/" }
+        // Canvas mod's maven.vram.io is dead (DNS doesn't resolve at all as of 2026-09 -- confirmed
+        // by hand) and Canvas support isn't used here anyway (fabric-only, and this DH fork is
+        // pinned to neoforge-only for DNCity -- see versionProperties/1.21.1.properties), so it's
+        // swapped for maven.su5ed.dev/releases instead: needed to resolve
+        // org.sinytra.forgified-fabric-api (a transitive dependency pulled in via project
+        // :Iris:neoforge, once DNCity's own dependencySubstitution redirects DH's
+        // "maven.modrinth:iris:..." request to its local mods/Iris build) -- this is the same repo
+        // Iris's own neoforge/build.gradle.kts already declares for that artifact, just not
+        // visible from DH's side of the project-to-project dependency resolution without it here
+        // too.
+        maven { url "https://maven.su5ed.dev/releases" }
         // ModMenu mod
         maven { url "https://maven.terraformersmc.com/" }
 
@@ -658,7 +667,10 @@ allprojects { p ->
             // Some other dependencies
             implementation("org.jetbrains:annotations:16.0.2")
             implementation("com.google.code.findbugs:jsr305:3.0.2")
-            implementation("com.google.common:google-collect:0.5")
+            // See coreSubProjects/core/build.gradle's own comment: "com.google.common:google-collect:0.5"
+            // (pre-Guava "Google Collections") no longer exists on any reachable public repo and is
+            // superseded by guava below, so it's dropped here too (this block duplicates that
+            // project's dependencies for :core specifically).
             implementation("com.google.guava:guava:31.1-jre")
         }
     }
