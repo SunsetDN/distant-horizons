@@ -47,7 +47,11 @@ dependencies { // All of these dependencies are in Vanilla Minecraft, but we nee
     // Some other dependencies
     implementation("org.jetbrains:annotations:16.0.2")
     implementation("com.google.code.findbugs:jsr305:3.0.2")
-    implementation("com.google.common:google-collect:0.5")
+    // "com.google.common:google-collect:0.5" (the pre-Guava "Google Collections" library) used to
+    // be declared here too, but that artifact/version no longer exists on any reachable public
+    // repo (confirmed by hand -- Google Collections was superseded by, and folded into, Guava's
+    // own "com.google.common" package namespace over a decade ago) -- dropped for DNCity, since
+    // guava below already provides everything under that same namespace.
     implementation("com.google.guava:guava:31.1-jre")
     
 }
