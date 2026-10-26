@@ -1,3 +1,4 @@
+// AGENT-DONE(codex): dh-iris-clean-build
 plugins {
     // Note: This is only needed for multi-loader projects
     // The main architectury loom version is set at the start of the root build.gradle
@@ -43,6 +44,13 @@ loom {
         }
     }
 }
+
+// The enclosing DNCity composite substitutes the published Iris coordinate with the local Iris
+// project. Loom resolves modCompileOnly while configuring this build, before Gradle can execute
+// the local project's jar task, so a clean checkout otherwise fails while trying to inspect an
+// Iris jar that does not exist yet. This dependency is compile-only; use the published artifact
+// declared below and let DNCity provide its locally-built Iris jar at runtime/distribution time.
+configurations.modCompileOnly.resolutionStrategy.useGlobalDependencySubstitutionRules = false
 
 
 
